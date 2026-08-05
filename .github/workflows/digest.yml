@@ -1,0 +1,100 @@
+name: Daily digest
+
+on:
+  workflow_dispatch: {}
+  # Uncomment once a manual workflow_dispatch run has been verified
+  # end-to-end (both repos' commits landed, the Pages URL renders). Time is
+  # UTC — convert from whatever local morning time you actually want.
+  # schedule:
+  #   - cron: "30 11 * * *"
+
+# Never trigger this on `push` — the job pushes to `main` itself, which
+# would self-trigger a loop.
+concurrency:
+  group: daily-digest
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout (with reading-hub submodule)
+        uses: actions/checkout@v4
+        with:
+          # GITHUB_TOKEN can't read/write a *different* private repo, which
+          # the reading-hub submodule is. A fine-grained PAT with Contents
+          # Read+Write on both repos covers checkout, the submodule, and
+          # both pushes below with one credential.
+          token: ${{ secrets.HUB_REPO_TOKEN }}
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run the digest pipeline
+        env:
+          AGENTMAIL_API_KEY: ${{ secrets.AGENTMAIL_API_KEY }}
+          AGENTMAIL_INBOX: ${{ secrets.AGENTMAIL_INBOX }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python3 main.py digest --verbose
+
+      - name: Commit reading-hub updates
+        working-directory: reading-hub
+        run: |
+          # actions/checkout leaves submodules in detached HEAD; move onto
+          # main before committing (the working-tree edits main.py already
+          # made survive this, it's the same tree as origin/main's tip).
+          git checkout main
+          git config user.name "daily-tech-digest-bot"
+          git config user.email "digest-bot@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "Update newsletters/reading-pace ($(date -u +%F))"
+            git push origin HEAD:main
+          else
+            echo "no reading-hub changes"
+          fi
+
+      - name: Commit digest content + reading-hub pointer
+        run: |
+          git config user.name "daily-tech-digest-bot"
+          git config user.email "digest-bot@users.noreply.github.com"
+          git add site/src/content/digests reading-hub
+          if git diff --cached --quiet; then
+            echo "no changes to commit"
+          else
+            git commit -m "Digest for $(date -u +%F)"
+            git push origin HEAD:main
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Build the site
+        working-directory: site
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
