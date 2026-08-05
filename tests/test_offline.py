@@ -4,23 +4,32 @@ Offline test suite. No network — every request is stubbed.
 
     python3 tests/test_offline.py
 
-Covers utils, each feed module, feed auto-discovery, and the Telegraph
-converter — where the bugs actually live. Does NOT cover live HTTP; run
-`main.py fetch --verbose` and `main.py publish --dry-run` by hand after
-changing anything that makes a request.
+Covers utils, each feed module, feed auto-discovery, newsletter
+classification/unsubscribe, rank merge/prompt/gemini_client, and the
+reading-pace target-count calibration — where the bugs actually live. Does
+NOT cover live HTTP; run `main.py fetch --verbose` and
+`main.py digest --dry-run` by hand after changing anything that makes a
+request.
 """
 
 import json
 import os
 import sys
+import urllib.request as _urllib_request
 from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 import feeds  # noqa: E402
-import publish as P  # noqa: E402
+import main as M  # noqa: E402
+import newsletters  # noqa: E402
 import utils  # noqa: E402
 from feeds import dev_to, hacker_news, medium, pragmatic_engineer  # noqa: E402
+from newsletters import classify  # noqa: E402
+from newsletters import unsubscribe as unsub  # noqa: E402
+from rank import gemini_client  # noqa: E402
+from rank import merge as rank_merge  # noqa: E402
+from rank import prompt as rank_prompt  # noqa: E402
 
 FAILURES = []
 COUNT = 0
@@ -241,78 +250,177 @@ def test_feeds():
               all(all(k in i for k in utils.ITEM_FIELDS) for i in items))
 
 
-def walk(nodes):
-    for n in nodes:
-        if isinstance(n, dict):
-            yield n
-            yield from walk(n.get("children") or [])
+def test_newsletters():
+    section("newsletters / classify - non-content")
+    check("welcome email flagged non-content",
+          classify.is_non_content("Welcome to TLDR!", "Thanks for signing up."))
+    check("short bodiless email flagged non-content",
+          classify.is_non_content("hi", "ok"))
+    check("real newsletter issue not flagged",
+          not classify.is_non_content("TLDR AI 2026-08-05",
+                                       "Here's today's roundup: " + "x" * 200 + " http://a.com"))
+
+    section("newsletters / classify - date verification")
+    check("date_from_url extracts /YYYY/MM/DD/",
+          classify.date_from_url("https://blog.x.com/2026/08/03/post").date().isoformat()
+          == "2026-08-03")
+    check("date_from_url extracts YYYY-MM-DD dashes",
+          classify.date_from_url("https://x.com/2026-08-03-post") is not None)
+    check("date_from_url returns None without a date",
+          classify.date_from_url("https://x.com/post") is None)
+    known_dt = classify.date_from_snowflake("https://x.com/user/status/20")
+    check("date_from_snowflake decodes the epoch-relative timestamp",
+          known_dt is not None and known_dt.year == 2010, known_dt)
+    check("verify_published_at finds a URL date",
+          classify.verify_published_at("https://blog.x.com/2026/08/03/post") is not None)
+    check("verify_published_at returns None when nothing is datable",
+          classify.verify_published_at("https://example.com/post") is None)
+
+    section("newsletters / classify - link extraction")
+    html = ('<a href="https://a.com/2026-08-05-real-post">Real Post Title</a>'
+            '<a href="https://list.example.com/unsubscribe?x=1">Unsubscribe</a>'
+            '<a href="https://facebook.com/sharer?u=1">Share</a>')
+    links = classify.extract_links(html, "")
+    check("extracts the real article link with anchor text",
+          links == [{"url": "https://a.com/2026-08-05-real-post", "anchor_text": "Real Post Title"}],
+          links)
+    check("filters out unsubscribe and social-share links", len(links) == 1, links)
+    text_links = classify.extract_links("", "check this out https://a.com/x and https://a.com/x again")
+    check("text-fallback dedupes bare urls", len(text_links) == 1, text_links)
+
+    section("newsletters / unsubscribe")
+    url = unsub.find_unsubscribe_url("", '<a href="https://list.x.com/unsubscribe?id=9">Unsubscribe</a>')
+    check("finds unsubscribe link in html", url == "https://list.x.com/unsubscribe?id=9", url)
+    check("no link found returns None", unsub.find_unsubscribe_url("", "<p>no links here</p>") is None)
+    check("plain endpoint treated as one-click",
+          unsub.is_one_click("https://list.x.com/unsubscribe?id=9"))
+    check("click-tracker domain not treated as one-click",
+          not unsub.is_one_click("https://click.email.bbc.com/?qs=abc"))
+
+    section("newsletters / registry reconciliation")
+    registry = [{"sender": "a@x.com", "lastSeen": "2026-01-01"}]
+    updated, added = newsletters.reconcile_registry(
+        list(registry),
+        {"a@x.com": "2026-08-05T07:00:00Z", "b@y.com": "2026-08-05T07:00:00Z"},
+        "2026-08-05")
+    check("bumps lastSeen for an existing sender",
+          next(n for n in updated if n["sender"] == "a@x.com")["lastSeen"] == "2026-08-05")
+    check("adds a new sender with defaults",
+          "b@y.com" in added and any(n["sender"] == "b@y.com" for n in updated))
 
 
-def test_publish():
-    section("publish / entity decoding")
-    n, _ = P.html_to_nodes("<p>AI &amp; LLMs &mdash; &ldquo;quoted&rdquo; &#128295;</p>")
-    txt = "".join(c for c in n[0]["children"] if isinstance(c, str))
-    check("entities decode to real characters",
-          txt == "AI & LLMs — “quoted” \U0001f527", repr(txt))
+def test_rank():
+    section("rank / merge - assemble")
+    fresh_iso = utils.iso(NOW - timedelta(hours=1))
+    stale_iso = utils.iso(NOW - timedelta(hours=30))
 
-    section("publish / tag handling")
-    n, _ = P.html_to_nodes("<h1>A</h1><h2>B</h2><h5>C</h5><div>D</div>")
-    check("h1 and h2 remap to h3",
-          [x["tag"] for x in n[:2]] == ["h3", "h3"], [x["tag"] for x in n])
-    check("h5 remaps to h4", n[2]["tag"] == "h4", n[2]["tag"])
-    check("div remaps to p", n[3]["tag"] == "p", n[3]["tag"])
-    n, _ = P.html_to_nodes("<p>keep <span>this</span> text</p>")
-    joined = "".join(c for c in n[0]["children"] if isinstance(c, str)).strip()
-    check("span unwrapped, inner text kept", joined == "keep this text",
-          n[0]["children"])
-    n, _ = P.html_to_nodes("<p>safe</p><script>alert(1)</script><style>b{}</style>")
-    check("script and style dropped entirely",
-          len(n) == 1 and "alert" not in json.dumps(n), json.dumps(n))
-    n, _ = P.html_to_nodes("<p>a<br>b</p><hr>")
-    check("void tags not pushed onto the stack",
-          [x["tag"] for x in n] == ["p", "hr"], [x["tag"] for x in n])
+    feed_items = [
+        utils.item(source="dev.to", title="Fresh", url="https://a.com/1",
+                   published_at=fresh_iso, paywalled=False),
+        utils.item(source="medium", title="Paywalled", url="https://medium.com/2",
+                   published_at=fresh_iso),
+        utils.item(source="dev.to", title="Stale", url="https://a.com/3",
+                   published_at=stale_iso, paywalled=False),
+    ]
+    news_items = [
+        utils.item(source="newsletter:x", title="Dup", url="https://a.com/1", published_at=fresh_iso),
+        utils.item(source="newsletter:x", title="New", url="https://a.com/4", published_at=fresh_iso),
+    ]
+    merged = rank_merge.assemble(feed_items, news_items, CUTOFF)
+    check("drops paywalled items", all("medium.com" not in i["url"] for i in merged), merged)
+    check("drops stale items", all("/3" not in i["url"] for i in merged))
+    check("dedupes by url, feed item wins",
+          len(merged) == 2 and merged[0]["source"] == "dev.to", merged)
+    check("keeps unique newsletter item", any(i["url"] == "https://a.com/4" for i in merged))
 
-    section("publish / attributes")
-    n, _ = P.html_to_nodes('<p><a href="https://x.com" onclick="evil()" class="c">l</a></p>')
-    a = [x for x in walk(n) if x.get("tag") == "a"][0]
-    check("href preserved", a["attrs"] == {"href": "https://x.com"}, a.get("attrs"))
-    check("onclick and class stripped",
-          "onclick" not in json.dumps(n) and "class" not in json.dumps(n))
+    section("rank / merge - trim_for_selection")
+    trimmed = rank_merge.trim_for_selection([utils.item(
+        source="dev.to", title="T", url="https://a.com/1", published_at=fresh_iso,
+        description="x" * 500)], excerpt_chars=50)
+    check("trims description to excerpt_chars", len(trimmed[0]["description"]) == 50)
+    check("trim keeps only the needed fields",
+          set(trimmed[0]) == {"url", "source", "title", "published_at", "tags", "description"})
 
-    section("publish / structure")
-    n, _ = P.html_to_nodes("<ul><li>one</li><li>two <b>bold</b></li></ul>")
-    check("list nesting preserved",
-          n[0]["tag"] == "ul" and len(n[0]["children"]) == 2, json.dumps(n))
-    check("nested inline tag inside li", any(x.get("tag") == "b" for x in walk(n)))
-    n, _ = P.html_to_nodes("bare text at top level")
-    check("bare top-level text wrapped in p", n[0]["tag"] == "p", n)
-    n, _ = P.html_to_nodes("<p>unclosed <b>bold</p>")
-    check("malformed html does not crash", isinstance(n, list) and len(n) > 0)
-    n, _ = P.html_to_nodes("<p>x</p>")
-    check("only telegraph-legal tags emitted",
-          all(x["tag"] in P.ALLOWED for x in walk(n)))
+    section("rank / prompt - templates")
+    p1 = rank_prompt.build_selection_prompt("# Interests\nHigh: craft", trimmed, 9)
+    check("selection prompt embeds target count", "9" in p1, p1[:200])
+    check("selection prompt embeds interests text", "Interests" in p1)
+    p2 = rank_prompt.build_summary_prompt([{"section": "Craft", "items": trimmed}])
+    check("summary prompt embeds grouped items json",
+          "Craft" in p2 and trimmed[0]["url"] in p2)
 
-    section("publish / guards")
-    big = "<p>" + ("word " * 30000) + "</p>"
-    n, _ = P.html_to_nodes(big)
-    check("oversize content detected",
-          len(json.dumps(n, ensure_ascii=False).encode()) > P.MAX_CONTENT_BYTES)
-    check("missing html file returns exit 3",
-          P.run(html_path="/nonexistent/x.html", title="t") == 3)
-    import tempfile
-    with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False) as f:
-        f.write("<script>only junk</script>")
-        junk = f.name
-    check("empty converted content returns exit 3",
-          P.run(html_path=junk, title="t") == 3)
-    os.unlink(junk)
+
+class _FakeHTTPResponse:
+    def __init__(self, body):
+        self._body = body
+
+    def read(self):
+        return self._body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+
+def test_gemini_client():
+    section("rank / gemini_client")
+    real_urlopen = _urllib_request.urlopen
+    try:
+        good_body = json.dumps({
+            "candidates": [{"content": {"parts": [{"text": json.dumps({"ok": True})}]}}]
+        }).encode()
+        _urllib_request.urlopen = lambda req, timeout=None: _FakeHTTPResponse(good_body)
+        result = gemini_client.generate_json("prompt", api_key="k")
+        check("parses nested candidate JSON text", result == {"ok": True}, result)
+
+        bad_body = json.dumps({
+            "candidates": [{"content": {"parts": [{"text": "not json"}]}}]
+        }).encode()
+        _urllib_request.urlopen = lambda req, timeout=None: _FakeHTTPResponse(bad_body)
+        try:
+            gemini_client.generate_json("prompt", api_key="k")
+            check("raises on invalid JSON text", False)
+        except RuntimeError:
+            check("raises on invalid JSON text", True)
+
+        _urllib_request.urlopen = lambda req, timeout=None: _FakeHTTPResponse(b"{}")
+        try:
+            gemini_client.generate_json("prompt", api_key="k")
+            check("raises when candidates missing", False)
+        except RuntimeError:
+            check("raises when candidates missing", True)
+    finally:
+        _urllib_request.urlopen = real_urlopen
+
+
+def test_digest_helpers():
+    section("main / target item count calibration")
+    cfg = {"digest": {"target_read_minutes": 30, "fallback_min_per_item": 3.33}}
+    log_with_actual = [
+        {"date": "baseline", "actualReadMin": None, "items": None},
+        {"date": "2026-07-21", "actualReadMin": 30, "items": 9, "minPerItem": 3.33},
+        {"date": "2026-07-25", "actualReadMin": 30, "items": 9, "minPerItem": 3.33},
+    ]
+    target, mpi = M._compute_target_item_count(log_with_actual, cfg)
+    check("picks the most recent row with an actual read time", mpi == 3.33, mpi)
+    check("computes target from target_read_minutes / min_per_item", target == 9, target)
+
+    empty_log = [{"date": "baseline", "actualReadMin": None, "items": None}]
+    target2, mpi2 = M._compute_target_item_count(empty_log, cfg)
+    check("falls back to config's fallback_min_per_item with no actuals",
+          mpi2 == 3.33 and target2 == 9, (mpi2, target2))
 
 
 def main():
     test_utils()
     test_discovery()
     test_feeds()
-    test_publish()
+    test_newsletters()
+    test_rank()
+    test_gemini_client()
+    test_digest_helpers()
     print(f"\n{COUNT - len(FAILURES)}/{COUNT} passed")
     if FAILURES:
         print("FAILED: " + ", ".join(FAILURES))

@@ -1,77 +1,50 @@
 #!/usr/bin/env bash
-# Fail if anything git would publish contains a value from config.json.
+# Fail if anything git would publish looks like a secret, or if a file that
+# should never be committed (an instruction/prompt file, a generated
+# artefact) is tracked.
 #
 #   ./scripts/check-secrets.sh
 #
 # Run before any push to a public repo. Also usable as a pre-commit hook:
 #   ln -sf ../../scripts/check-secrets.sh .git/hooks/pre-commit
+#
+# config.json holds no secrets anymore (target_read_minutes, freshness_hours,
+# site title, Gemini model name) — real account identifiers and API keys
+# (AGENTMAIL_API_KEY, AGENTMAIL_INBOX, GEMINI_API_KEY, HUB_REPO_TOKEN) live
+# in GitHub Actions secrets, never in a tracked file. This script only needs
+# the generic pattern scan below plus the never-commit-these checks.
 
 set -uo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO"
 
-CONFIG="config.json"
 HITS=0
 
 red()   { printf '\033[31m%s\033[0m\n' "$1"; }
 green() { printf '\033[32m%s\033[0m\n' "$1"; }
 
-echo "Scanning tracked files for values from $CONFIG"
+echo "Scanning tracked files for secrets and files that should never be committed"
 echo
 
-# --- config.json itself must never be tracked -----------------------------
-if git ls-files --error-unmatch "$CONFIG" >/dev/null 2>&1; then
-  red "FAIL  $CONFIG is TRACKED BY GIT. Run: git rm --cached $CONFIG"
-  HITS=$((HITS + 1))
-else
-  green "ok    $CONFIG is not tracked"
-fi
+# Portable array-building (no `mapfile` — macOS ships bash 3.2, which
+# predates it; CI runners have a newer bash but this needs to work on both).
+TRACKED=()
+while IFS= read -r line; do
+  [[ -n "$line" ]] && TRACKED+=("$line")
+done < <(git ls-files 2>/dev/null | grep -v -e 'check-secrets\.sh$')
 
-if [[ ! -f "$CONFIG" ]]; then
-  echo "note  no $CONFIG present — scanning generic patterns only"
-fi
-
-# Files git would actually publish. Excludes config.json and this script.
-mapfile -t TRACKED < <(git ls-files 2>/dev/null | grep -v -e '^config\.json$' -e 'check-secrets.sh')
-
-# config.example.json exists to hold placeholder addresses, so the generic
-# pattern scan skips it. It is still scanned for real config.json values below,
-# which is the check that actually matters.
-mapfile -t PATTERN_SCOPE < <(printf '%s\n' "${TRACKED[@]}" | grep -v '^config\.example\.json$')
 if [[ ${#TRACKED[@]} -eq 0 ]]; then
   echo "note  no tracked files yet (run git add first for a full scan)"
-  mapfile -t TRACKED < <(find . -type f \
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && TRACKED+=("$line")
+  done < <(find . -type f \
     -not -path './.git/*' -not -path './__pycache__/*' \
-    -not -name 'config.json' -not -name 'check-secrets.sh' | sed 's|^\./||')
+    -not -path './site/node_modules/*' -not -path './site/dist/*' \
+    -not -name 'check-secrets.sh' | sed 's|^\./||')
 fi
 
-# --- every literal value in config.json -----------------------------------
-if [[ -f "$CONFIG" ]]; then
-  while IFS= read -r val; do
-    [[ -z "$val" || ${#val} -lt 8 ]] && continue
-    [[ "$val" == 0000* ]] && continue          # placeholders from the example
-    if OUT=$(grep -rInF -- "$val" "${TRACKED[@]}" 2>/dev/null); then
-      red "FAIL  config value leaked: $val"
-      echo "$OUT" | sed 's/^/        /'
-      HITS=$((HITS + 1))
-    fi
-  done < <(python3 -c '
-import json, sys
-def walk(o):
-    if isinstance(o, dict):
-        for k, v in o.items():
-            if not k.startswith("_"):
-                yield from walk(v)
-    elif isinstance(o, list):
-        for v in o: yield from walk(v)
-    elif isinstance(o, str):
-        yield o
-print("\n".join(walk(json.load(open("'"$CONFIG"'")))))
-' 2>/dev/null)
-fi
-
-# --- generic patterns, in case something never reached config.json --------
+# --- generic secret patterns -----------------------------------------------
 declare -a PATTERNS=(
   '[a-zA-Z0-9._%+-]+@agentmail\.to'
   '[a-zA-Z0-9._%+-]+@(gmail|outlook|yahoo|icloud|hotmail)\.com'
@@ -80,32 +53,45 @@ declare -a PATTERNS=(
   'sk-[A-Za-z0-9]{20,}'
   'ghp_[A-Za-z0-9]{20,}'
   'github_pat_[A-Za-z0-9_]{20,}'
+  'gho_[A-Za-z0-9]{20,}'
   'xox[baprs]-[A-Za-z0-9-]{10,}'
   'AKIA[0-9A-Z]{16}'
   '-----BEGIN [A-Z ]*PRIVATE KEY-----'
   'ntn_[A-Za-z0-9]{20,}'
   'secret_[A-Za-z0-9]{30,}'
+  'AIza[0-9A-Za-z_-]{35}'              # Google API key (Gemini/AI Studio)
 )
 for pat in "${PATTERNS[@]}"; do
-  if OUT=$(grep -rInE -- "$pat" "${PATTERN_SCOPE[@]}" 2>/dev/null); then
+  if OUT=$(grep -rInE -- "$pat" "${TRACKED[@]}" 2>/dev/null); then
     red "FAIL  pattern matched: $pat"
     echo "$OUT" | sed 's/^/        /'
     HITS=$((HITS + 1))
   fi
 done
 
-# --- generated artefacts that should be ignored ---------------------------
-for f in digest_feed.json digest.html fetch.log fetch.err telegraph.json; do
+# --- files that should never be tracked, by exact name ---------------------
+NEVER_COMMIT=(
+  ROUTINE_PROMPT.md CLAUDE_CODE_PROMPT.md PLAN.md
+  config.json.local
+  digest_feed.json digest.html fetch.log fetch.err
+)
+for f in "${NEVER_COMMIT[@]}"; do
   if git ls-files --error-unmatch "$f" >/dev/null 2>&1; then
-    red "FAIL  generated file tracked: $f"
+    red "FAIL  file that must never be committed is tracked: $f"
     HITS=$((HITS + 1))
   fi
 done
+
+# --- Astro build output / node_modules should never be tracked -------------
+if git ls-files 2>/dev/null | grep -qE '^site/(dist|node_modules)/'; then
+  red "FAIL  site/dist or site/node_modules is tracked — build output, never commit it"
+  HITS=$((HITS + 1))
+fi
 
 echo
 if [[ $HITS -eq 0 ]]; then
   green "clean — ${#TRACKED[@]} files scanned, nothing sensitive found"
   exit 0
 fi
-red "$HITS problem(s) found. Do NOT push to a public repo."
+red "$HITS problem(s) found. Do NOT push."
 exit 1
