@@ -1,0 +1,76 @@
+---
+interface Item {
+	url: string;
+	title: string;
+	source: string;
+	publishedAt: string;
+	tags: string[];
+	summary: string;
+}
+interface Section {
+	heading: string;
+	items: Item[];
+}
+interface Props {
+	title: string;
+	intro: string;
+	sections: Section[];
+	stats: { itemCount: number; sourcesScanned: string[]; errors: string[] };
+}
+const { title, intro, sections, stats } = Astro.props;
+
+function formatDate(iso: string) {
+	return new Date(iso).toLocaleDateString('en-US', {
+		weekday: 'short',
+		month: 'short',
+		day: 'numeric',
+	});
+}
+---
+
+<article>
+	<h1>{title}</h1>
+	<p class="meta">
+		{stats.itemCount} item{stats.itemCount === 1 ? '' : 's'} · sources: {
+			stats.sourcesScanned.join(', ')
+		}
+	</p>
+	{intro && <p class="intro">{intro}</p>}
+
+	{
+		sections.map((section) => (
+			<section class="digest-section">
+				<h2>{section.heading}</h2>
+				{section.items.map((item) => (
+					<article class="item">
+						<h3>
+							<a href={item.url} target="_blank" rel="noopener noreferrer">
+								{item.title}
+							</a>
+						</h3>
+						<p class="item-meta">
+							{item.source} · Published {formatDate(item.publishedAt)}
+						</p>
+						<p>{item.summary}</p>
+						{item.tags.length > 0 && (
+							<div class="tags">
+								{item.tags.map((tag) => (
+									<span class="tag">{tag}</span>
+								))}
+							</div>
+						)}
+					</article>
+				))}
+			</section>
+		))
+	}
+
+	{
+		stats.errors.length > 0 && (
+			<p class="meta">
+				{stats.errors.length} source error(s) this run — see the run's GitHub Actions log for
+				detail.
+			</p>
+		)
+	}
+</article>

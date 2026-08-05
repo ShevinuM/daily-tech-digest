@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import DigestBody from '../components/DigestBody.astro';
+
+const digests = await getCollection('digests');
+const latest = digests.sort((a, b) => b.id.localeCompare(a.id))[0];
+const base = import.meta.env.BASE_URL;
+---
+
+<Layout title={latest ? latest.data.title : 'Tech Reading Digest'}>
+	{
+		latest ? (
+			<DigestBody
+				title={latest.data.title}
+				intro={latest.data.intro}
+				sections={latest.data.sections}
+				stats={latest.data.stats}
+			/>
+		) : (
+			<div class="empty-state">
+				<p>No digest published yet — check back after the next scheduled run.</p>
+			</div>
+		)
+	}
+	{
+		digests.length > 1 && (
+			<p class="meta">
+				<a href={`${base}/archive/`}>See all {digests.length} past digests →</a>
+			</p>
+		)
+	}
+</Layout>

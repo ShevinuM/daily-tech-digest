@@ -1,0 +1,37 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+const digests = (await getCollection('digests')).sort((a, b) => b.id.localeCompare(a.id));
+const base = import.meta.env.BASE_URL;
+
+function formatDate(dateStr: string) {
+	return new Date(`${dateStr}T00:00:00Z`).toLocaleDateString('en-US', {
+		weekday: 'long',
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+		timeZone: 'UTC',
+	});
+}
+---
+
+<Layout title="Archive — Tech Reading Digest">
+	<h1>Archive</h1>
+	{
+		digests.length === 0 ? (
+			<div class="empty-state">
+				<p>No digests published yet.</p>
+			</div>
+		) : (
+			<ul class="archive-list">
+				{digests.map((entry) => (
+					<li>
+						<a href={`${base}/digest/${entry.id}/`}>{formatDate(entry.id)}</a>
+						<span class="meta">{entry.data.stats.itemCount} items</span>
+					</li>
+				))}
+			</ul>
+		)
+	}
+</Layout>

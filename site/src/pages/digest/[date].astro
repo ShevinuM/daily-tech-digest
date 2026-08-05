@@ -1,0 +1,24 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import DigestBody from '../../components/DigestBody.astro';
+
+export async function getStaticPaths() {
+	const digests = await getCollection('digests');
+	return digests.map((entry) => ({
+		params: { date: entry.id },
+		props: { entry },
+	}));
+}
+
+const { entry } = Astro.props;
+---
+
+<Layout title={entry.data.title}>
+	<DigestBody
+		title={entry.data.title}
+		intro={entry.data.intro}
+		sections={entry.data.sections}
+		stats={entry.data.stats}
+	/>
+</Layout>
