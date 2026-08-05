@@ -1,80 +1,57 @@
 # Daily Tech Digest
 
-A ~30-minute tech reading digest, assembled every morning and published to
-Telegraph + Instapaper. Runs entirely on one Mac. No SaaS, no API keys to
-paste, no task quota.
-
-## Why this exists
-
-The first version routed every feed fetch through Code by Zapier, because the
-agent's built-in web fetch returns a stale cache for dev.to and Medium. That
-worked, but Zapier bills per step and kills any code step at **one second** —
-so slow feeds timed out, got retried, and each retry billed again.
-
-It burned **100 tasks in five days** and stopped mid-run. Measured breakdown of
-a single run:
-
-| Source | Tasks | Digest items produced |
-|---|---:|---:|
-| dev.to fetches | 7 | 6 |
-| Medium fetches | 6 | **0** |
-| Article body retries | 4 | 0 |
-| Telegraph publish | 2 | 0 |
-| Pragmatic Engineer | 1 | 0 |
-| **Total** | **20** | **6** |
-
-Eleven of the twenty failed and still counted. Medium had contributed zero
-items across every run to date — its posts are member-only and the no-paywall
-rule drops them — while being the single largest line item.
-
-Stdlib-only Python replaced all of it. Current cost: nothing.
+A daily tech reading digest: fetched, filtered, ranked, and summarized on a
+schedule by GitHub Actions, published to a small [Astro](https://astro.build)
+site on GitHub Pages. No server to run, no SaaS bill — a scheduled workflow,
+a free-tier AI call, and a static site.
 
 ## Architecture
 
 ```
-launchd 07:10 ──► main.py fetch ──► digest_feed.json
-                       │
-                       └─ feeds/*.py, auto-discovered
-
-launchd 07:30 ──► claude -p ────────┤ reads the JSON
-                                    ├ reads reading rules from Notion (MCP)
-                                    ├ reads newsletters from AgentMail (MCP)
-                                    ├ ranks, dedupes, writes summaries
-                                    └ main.py publish
-                                           ├ Telegraph  (no auth)
-                                           └ Instapaper (Keychain)
+GitHub Actions (cron, .github/workflows/digest.yml)
+  1. checkout, with the private reading-hub submodule
+  2. main.py fetch          feeds/*.py, auto-discovered -> digest_feed.json
+  3. newsletters/           AgentMail REST -> classified, date-verified items
+  4. rank/                  merge + dedupe, then 2 batched Gemini calls:
+                             selection (rank candidates) -> summary (write prose)
+  5. write site/src/content/digests/<date>.json
+  6. update reading-hub/newsletters.json + reading-hub/reading-pace.json
+  7. commit + push both repos
+  8. astro build -> deploy to GitHub Pages
 ```
 
-Deterministic work — fetching, filtering, converting, publishing — is plain
-Python. Judgement — what's worth reading, how to summarise it — is the model.
-Splitting them means the fetch is debuggable on its own and a bad morning shows
-up in a log rather than as a mysteriously thin digest.
+Deterministic work — fetching, filtering, deduping, date-verifying, paywall
+detection — is plain stdlib Python. Judgement — what's worth reading, how to
+summarize it — goes to a small number of batched Gemini calls per run (not
+one call per item), using Google AI Studio's free tier.
+
+The reading hub — your topics, priorities, "dial up/down" list, newsletter
+registry, and reading-pace log — lives in a **separate private repo**
+(`daily-tech-digest-hub`), linked here as a git submodule at `reading-hub/`.
+That keeps personal reading habits and email addresses private while the
+digest *output* stays public.
 
 ## Layout
 
 ```
-main.py                  entry point: fetch / publish / feeds
+main.py                  CLI: feeds / fetch / digest
 utils.py                 http, RSS parsing, dates, paywall detection, item shape
-publish.py               HTML -> Telegraph nodes -> published, then Instapaper
 feeds/                   one module per source, auto-discovered
-  __init__.py            discovery
-  dev_to.py
-  medium.py
-  pragmatic_engineer.py
-  hacker_news.py
-config.json              account identifiers — GITIGNORED, never committed
-config.example.json      placeholders, tracked
+  dev_to.py  medium.py  pragmatic_engineer.py  hacker_news.py
+newsletters/             AgentMail REST client, classification, unsubscribe
+rank/                    merge/dedupe, Gemini prompts + client, site-content writer
+site/                    Astro site (content collection `digests`)
+reading-hub/             git submodule -> private daily-tech-digest-hub repo
+config.json               non-secret tunables (tracked — see Secrets below)
 scripts/check-secrets.sh pre-push gate; also usable as a pre-commit hook
-tests/test_offline.py    68 tests, no network
-launchd/                 plist template, __HOME__ substituted at install
-ROUTINE_PROMPT.md        the routine's prompt; installed as SKILL.md
+tests/test_offline.py    offline tests, no network
+.github/workflows/digest.yml
 ```
 
-## Adding or removing a source
+## Adding or removing a feed source
 
-Sources are plug-ins. Drop a file in `feeds/` to add one; delete it to remove
-one. Nothing else needs editing — not `main.py`, not the routine prompt, not
-the tests.
+Sources are plug-ins. Drop a file in `feeds/` to add one; delete it to
+remove one. Nothing else needs editing.
 
 ```python
 # feeds/lobsters.py
@@ -105,150 +82,77 @@ python3 main.py feeds                  # confirm it was picked up
 python3 main.py fetch --only lobsters  # try it in isolation
 ```
 
-Raising inside `fetch` is fine — `main.py` records the error and carries on
-with the other feeds, so one dead source never costs you a digest.
+Raising inside `fetch` is fine — it's recorded as an error and the run
+continues with the other feeds.
 
-## Install
-
-```bash
-./install.sh
-```
-
-Checks prerequisites, runs the tests, copies `main.py`, `utils.py`,
-`publish.py`, `config.json` and the whole of `feeds/` to `~/Claude/digest`,
-installs the routine prompt, and loads the launchd job. It refuses to install
-if the tests fail, and mirrors `feeds/` exactly so a deleted source also
-disappears from the installed copy.
-
-Then, once, add the Instapaper credential yourself — the bare `-w` makes macOS
-prompt interactively so it never reaches your shell history:
+## Local development
 
 ```bash
-security add-generic-password -s digest-instapaper -a your@email.com -w
-```
-
-Telegraph needs nothing; `publish.py` creates an anonymous account on first run
-and caches the token at `~/.config/digest/telegraph.json` (chmod 600).
-
-## Usage
-
-```bash
+python3 tests/test_offline.py          # offline, no network
 python3 main.py feeds
-python3 main.py fetch --verbose
-python3 main.py fetch --only dev_to hacker_news
-python3 main.py publish --html digest.html --title "Tech Reading Digest" --dry-run
-python3 main.py publish --html digest.html --title "Tech Reading Digest"
+python3 main.py fetch --verbose        # real network
+python3 main.py digest --dry-run       # full pipeline, writes locally, doesn't push/delete
+cd site && npm install && npm run build
+./scripts/check-secrets.sh             # must exit 0 before any push
 ```
 
-### `fetch`
+`main.py digest` needs `reading-hub/` checked out (`git submodule update
+--init`) and reads `GEMINI_API_KEY` from the environment (required) and
+`AGENTMAIL_API_KEY`/`AGENTMAIL_INBOX` (optional — without them it degrades
+to feed-only, same as a source returning nothing).
 
-| Flag | Does |
+## Secrets and variables (GitHub Actions)
+
+Set these under the repo's Settings → Secrets and variables → Actions:
+
+| Name | What |
 |---|---|
-| `--out PATH` | Output path (default `digest_feed.json`) |
-| `--hours N` | Freshness window (default from `config.json`) |
-| `--only FEED…` | Run only these feeds |
-| `--no-bodies` | Skip article body fetch — faster, thinner summaries |
-| `--verbose` | Per-source counts and cutoff, to stderr |
+| `GEMINI_API_KEY` | Google AI Studio API key (free tier) |
+| `AGENTMAIL_API_KEY` | AgentMail REST API key |
+| `AGENTMAIL_INBOX` | the AgentMail inbox address newsletters arrive at |
+| `HUB_REPO_TOKEN` | fine-grained PAT, Contents Read+Write on **both** this repo and the private hub repo — `GITHUB_TOKEN` can't check out or push to a separate private repo |
 
-Exit: `0` got items · `1` ran but empty · `2` couldn't write.
+Non-secret tunables (`target_read_minutes`, `freshness_hours`, Gemini model
+name, site title) live in the tracked `config.json` — no secrets are stored
+there, so there's nothing to keep out of the public repo.
 
-### `publish`
-
-| Flag | Does |
-|---|---|
-| `--html PATH` | Digest HTML fragment (required) |
-| `--title` | Page title (required) |
-| `--dry-run` | Print converted nodes, publish nothing |
-| `--no-instapaper` | Telegraph only |
-| `--author` / `--account` | Override the values in `config.json` |
-
-Exit: `0` published · `1` Telegraph failed · `2` published but Instapaper
-failed · `3` bad input.
-
-Telegraph accepts a fixed tag set, so the converter remaps rather than failing:
-`h1`/`h2`→`h3`, `h5`/`h6`→`h4`, `div`→`p`, `del`→`s`, `span` unwrapped,
-`script`/`style` dropped. Only `href` and `src` survive. Anything remapped is
-reported on stderr. Content is capped at 64 KB — a 9-item digest is ~13 KB.
-
-## Output format
-
-```json
-{
-  "generated_at": "2026-08-05T07:10:04Z",
-  "cutoff": "2026-08-04T07:10:04Z",
-  "feeds": ["dev_to", "hacker_news", "medium", "pragmatic_engineer"],
-  "counts": { "dev_to": 44, "hacker_news": 14, "medium": 13, "pragmatic_engineer": 0 },
-  "total_items": 71, "usable_items": 58, "errors": [],
-  "items": [{
-    "source": "dev.to", "title": "...", "url": "...",
-    "published_at": "2026-08-04T09:13:44Z", "author": "...",
-    "tags": ["architecture"], "description": "...",
-    "paywalled": false, "body_excerpt": "first ~2500 chars",
-    "reactions": 12, "reading_minutes": 11
-  }]
-}
-```
-
-Every item carries the fields in `utils.ITEM_FIELDS`; feeds may add their own
-ranking signals on top (`reactions` for dev.to, `score` and `discussion_url`
-for Hacker News).
-
-- `paywalled` is `true` for **every** Medium item — RSS genuinely cannot tell
-  member-only stories apart, so they're flagged rather than guessed at. Hacker
-  News items are flagged by domain (WSJ, FT, NYT, Bloomberg…).
-- `body_excerpt` is filled for the top 25 dev.to items and all Pragmatic
-  Engineer items. Medium and HN feeds don't carry bodies.
-
-## Configuration
-
-`config.json` holds account identifiers and is **gitignored** — this repo is
-public. Copy `config.example.json` and fill it in; `install.sh` does this for
-you on first run and refuses to proceed with placeholder values.
-
-Per-feed tunables live in the feed module itself: `TAGS` in `dev_to.py` and
-`medium.py`, `MIN_SCORE` and `SCAN` in `hacker_news.py`, `PAYWALL_HINTS` in
-`utils.py`.
-
-What actually goes in the digest is **not** configured here — it lives in a
-plain-English Notion page the routine reads every morning, so changing your
-reading interests doesn't require touching code.
+Also required once, by hand:
+- Settings → Pages → Source → **GitHub Actions**.
+- Uncomment the `schedule:` trigger in `.github/workflows/digest.yml` after
+  a manual `workflow_dispatch` run has been verified end to end.
 
 ## Tests
 
 ```bash
-python3 tests/test_offline.py     # 68/68, no network
+python3 tests/test_offline.py
 ```
 
-Covers utils, all four feed modules, plug-in discovery (including that adding
-and deleting a file changes the active source list), the Telegraph converter,
-and the publisher's error paths. Two real bugs were caught this way:
-`strip_html` collapsed whitespace before stripping tags, doubling spaces in
-every Medium snippet and Pragmatic Engineer body.
+Covers utils, every feed module, plug-in discovery, newsletter
+classification/date-verification/unsubscribe-link extraction, rank
+merge/dedup/prompt construction, and the reading-pace target-count
+calibration. **Not covered:** live HTTP — run `main.py fetch --verbose` and
+`main.py digest --dry-run` by hand after changing anything that makes a
+request.
 
-**Not covered:** live HTTP. After changing anything that makes a request, run
-`main.py fetch --verbose` and `main.py publish --dry-run` by hand.
+## Secrets scanning
 
-## Secrets
-
-`scripts/check-secrets.sh` fails if `config.json` is tracked, if any literal
-value from it appears in a tracked file, if a generated artefact is staged, or
-if a common credential pattern matches. Run it before pushing, or install it as
+`scripts/check-secrets.sh` fails if a generated artefact or an
+instruction/plan `.md` file is tracked, or a common credential pattern
+matches anywhere in a tracked file. Run it before pushing, or install it as
 a hook:
 
 ```bash
 ln -sf ../../scripts/check-secrets.sh .git/hooks/pre-commit
 ```
 
-It has already caught one real leak — an email address that had been pasted
-into a setup document.
-
 ## Known limitations
 
-- **macOS only.** Uses `security` and `launchctl`.
-- **Runs only when the Mac is awake.** Asleep at 07:30 means that day is
-  skipped, not delayed. That's the cost of dropping the cloud scheduler.
-- **Medium contributes nothing in practice.** Kept because it's free locally
-  and the paywall flag is honest, but nothing survives the no-paywall rule.
-- **Newsletter items need date verification.** TLDR and The Rundown routinely
-  surface stories 1–2 days old; arrival date is not publish date. The routine
-  prompt requires verifying each one and dropping anything undatable.
+- **Newsletter item dates are verified, not trusted.** Newsletters routinely
+  resurface 1-2 day old stories; an item is only kept if its original
+  publish date can be established from its URL (a `/YYYY/MM/DD/` path, or an
+  X/Twitter snowflake ID) — otherwise it's dropped rather than guessed at.
+- **No paywall workaround.** A paywalled item is dropped outright rather
+  than searched for a free mirror.
+- **Reading-pace calibration is semi-manual.** An unattended run can only
+  log an *estimated* read time; edit `reading-hub/reading-pace.json` by hand
+  whenever you want to record an actual one.
