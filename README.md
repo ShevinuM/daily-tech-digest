@@ -1,6 +1,6 @@
 ## !!Still In Progress
 
-This is a prototype. I'm working on backend + frontend rewrite for this. 
+This is a prototype. I'm working on backend + frontend rewrite for this. And I'm working on new features listed on Issues.
 
 # Daily Tech Digest
 
