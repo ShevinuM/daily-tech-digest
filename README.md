@@ -1,5 +1,7 @@
 ## !!Still In Progress
 
+This is a prototype. I'm working on backend + frontend rewrite for this. 
+
 # Daily Tech Digest
 
 A daily tech reading digest: fetched, filtered, ranked, and summarized on a
