@@ -1,0 +1,18 @@
+{
+  "_comment": "Non-secret tunables only. Account identifiers (AgentMail inbox, API keys) live in GitHub Actions secrets, not here — this file is tracked.",
+
+  "digest": {
+    "target_read_minutes": 30,
+    "fallback_min_per_item": 3.33,
+    "freshness_hours": 24
+  },
+
+  "site": {
+    "title": "Tech Reading Digest",
+    "author": "Shevinu"
+  },
+
+  "gemini": {
+    "model": "gemini-2.5-flash"
+  }
+}
