@@ -9,8 +9,11 @@ be truncated before footer/unsubscribe links.
 """
 from __future__ import annotations
 
+import ipaddress
 import re
+import socket
 import urllib.error
+import urllib.parse
 import urllib.request
 
 _HREF_RE = re.compile(r'href=["\'](https?://[^"\']+)["\']', re.IGNORECASE)
@@ -46,9 +49,31 @@ def is_one_click(url: str) -> bool:
     return not any(hint in lowered for hint in _TRACKER_HINTS)
 
 
+def _is_safe_target(url: str) -> bool:
+    """Defense-in-depth against SSRF: this URL comes from unsolicited email
+    content, so require https and refuse a hostname that resolves to a
+    private/loopback/link-local/reserved address (e.g. a cloud metadata
+    endpoint). Doesn't close a DNS-rebinding race, but rules out the obvious
+    cases for a link we didn't choose."""
+    parsed = urllib.parse.urlsplit(url)
+    if parsed.scheme != "https" or not parsed.hostname:
+        return False
+    try:
+        addrs = {info[4][0] for info in socket.getaddrinfo(parsed.hostname, None)}
+    except OSError:
+        return False
+    for addr in addrs:
+        ip = ipaddress.ip_address(addr)
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
+            return False
+    return True
+
+
 def unsubscribe(url: str, *, timeout: int = 15) -> bool:
     """GET the one-click URL. Returns True on a 2xx response, False otherwise
     (never raises — a failed unsubscribe attempt shouldn't fail the run)."""
+    if not _is_safe_target(url):
+        return False
     req = urllib.request.Request(url, method="GET",
                                   headers={"User-Agent": "daily-tech-digest-unsubscribe/1.0"})
     try:

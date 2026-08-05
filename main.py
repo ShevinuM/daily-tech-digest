@@ -163,6 +163,43 @@ def _compute_target_item_count(reading_pace_log: list[dict], cfg: dict) -> tuple
     return max(1, round(target_minutes / min_per_item)), min_per_item
 
 
+def _reconcile_digest(digest, by_url: dict[str, dict]) -> dict:
+    """Trust only prose (`intro`, section `heading`, item `summary`) from the
+    model's summary call. Factual fields — url/title/source/publishedAt/tags
+    — are taken from our own already-fetched candidate data, keyed by url,
+    never published verbatim from model output: newsletter content that
+    reaches the model is untrusted input, and a hallucinated or
+    prompt-injected url/title/date should never be able to reach the public
+    site just because the model echoed it back."""
+    sections_out = []
+    for section in (digest.get("sections", []) if isinstance(digest, dict) else []):
+        if not isinstance(section, dict):
+            continue
+        items_out = []
+        for item in section.get("items", []) or []:
+            if not isinstance(item, dict):
+                continue
+            cand = by_url.get(item.get("url"))
+            if not cand:
+                continue
+            items_out.append({
+                "url": cand["url"],
+                "title": cand.get("title", ""),
+                "source": cand.get("source", ""),
+                "publishedAt": cand.get("published_at", ""),
+                "tags": cand.get("tags") or [],
+                "summary": item.get("summary", "") if isinstance(item.get("summary"), str) else "",
+            })
+        if items_out:
+            heading = section.get("heading")
+            sections_out.append({
+                "heading": heading if isinstance(heading, str) and heading else "Reading",
+                "items": items_out,
+            })
+    intro = digest.get("intro", "") if isinstance(digest, dict) else ""
+    return {"intro": intro if isinstance(intro, str) else "", "sections": sections_out}
+
+
 def cmd_digest(args) -> int:
     cfg = load_config()
     hours = args.hours or cfg.get("digest", {}).get("freshness_hours", 24)
@@ -258,6 +295,11 @@ def cmd_digest(args) -> int:
                                               api_key=gemini_key, model=model)
     except RuntimeError as e:
         print(f"Gemini summary call failed: {e}", file=sys.stderr)
+        return 2
+    digest = _reconcile_digest(digest, by_url)
+    if not digest["sections"]:
+        print("Gemini summary call returned no items matching the selected candidates",
+              file=sys.stderr)
         return 2
 
     # 7. Write site content

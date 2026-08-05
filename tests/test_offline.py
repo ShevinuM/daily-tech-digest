@@ -14,6 +14,7 @@ request.
 
 import json
 import os
+import socket
 import sys
 import urllib.request as _urllib_request
 from datetime import datetime, timedelta, timezone
@@ -297,6 +298,25 @@ def test_newsletters():
     check("click-tracker domain not treated as one-click",
           not unsub.is_one_click("https://click.email.bbc.com/?qs=abc"))
 
+    section("newsletters / unsubscribe - SSRF hardening")
+    check("http (non-https) rejected", not unsub._is_safe_target("http://example.com/unsub"))
+    check("loopback IP literal rejected", not unsub._is_safe_target("https://127.0.0.1/x"))
+    check("cloud metadata IP literal rejected",
+          not unsub._is_safe_target("https://169.254.169.254/latest/meta-data"))
+    check("private IP literal rejected", not unsub._is_safe_target("https://10.0.0.5/x"))
+    check("localhost hostname rejected", not unsub._is_safe_target("https://localhost/x"))
+
+    real_getaddrinfo = socket.getaddrinfo
+    try:
+        socket.getaddrinfo = lambda host, port: [(None, None, None, None, ("93.184.216.34", 0))]
+        check("a host that resolves publicly is a safe target",
+              unsub._is_safe_target("https://example.com/unsub"))
+        socket.getaddrinfo = lambda host, port: (_ for _ in ()).throw(OSError("no such host"))
+        check("a DNS resolution failure is rejected",
+              not unsub._is_safe_target("https://does-not-resolve.example/x"))
+    finally:
+        socket.getaddrinfo = real_getaddrinfo
+
     section("newsletters / registry reconciliation")
     registry = [{"sender": "a@x.com", "lastSeen": "2026-01-01"}]
     updated, added = newsletters.reconcile_registry(
@@ -411,6 +431,44 @@ def test_digest_helpers():
     target2, mpi2 = M._compute_target_item_count(empty_log, cfg)
     check("falls back to config's fallback_min_per_item with no actuals",
           mpi2 == 3.33 and target2 == 9, (mpi2, target2))
+
+    section("main / reconcile digest against known candidates (anti-hallucination)")
+    by_url = {
+        "https://a.com/1": {"url": "https://a.com/1", "title": "Real Title",
+                             "source": "dev.to", "published_at": "2026-08-05T00:00:00Z",
+                             "tags": ["ai"]},
+    }
+    model_digest = {
+        "intro": "today's hook",
+        "sections": [{
+            "heading": "🤖 Craft",
+            "items": [
+                # model echoes a known url -> factual fields still come from by_url,
+                # only `summary` is trusted from the model.
+                {"url": "https://a.com/1", "title": "MODEL-CHANGED TITLE",
+                 "source": "MODEL-CHANGED SOURCE", "publishedAt": "2099-01-01T00:00:00Z",
+                 "tags": ["hallucinated"], "summary": "a real summary"},
+                # model hallucinates a url never in the candidate set -> dropped entirely.
+                {"url": "https://evil.example/fake", "title": "Fake", "source": "?",
+                 "publishedAt": "2026-08-05T00:00:00Z", "tags": [], "summary": "should be dropped"},
+            ],
+        }],
+    }
+    reconciled = M._reconcile_digest(model_digest, by_url)
+    check("keeps the intro prose", reconciled["intro"] == "today's hook")
+    check("keeps exactly one item (hallucinated url dropped)",
+          len(reconciled["sections"][0]["items"]) == 1, reconciled)
+    kept = reconciled["sections"][0]["items"][0]
+    check("factual fields come from our own candidate data, not the model",
+          kept["title"] == "Real Title" and kept["source"] == "dev.to"
+          and kept["publishedAt"] == "2026-08-05T00:00:00Z" and kept["tags"] == ["ai"], kept)
+    check("only the summary is trusted from the model", kept["summary"] == "a real summary")
+
+    all_hallucinated = M._reconcile_digest(
+        {"intro": "x", "sections": [{"heading": "h", "items": [
+            {"url": "https://nope.example/x", "summary": "s"}]}]}, by_url)
+    check("a section with only unmatched urls is dropped entirely",
+          all_hallucinated["sections"] == [], all_hallucinated)
 
 
 def main():
