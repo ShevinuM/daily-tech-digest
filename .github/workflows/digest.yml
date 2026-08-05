@@ -2,11 +2,10 @@ name: Daily digest
 
 on:
   workflow_dispatch: {}
-  # Uncomment once a manual workflow_dispatch run has been verified
-  # end-to-end (both repos' commits landed, the Pages URL renders). Time is
-  # UTC — convert from whatever local morning time you actually want.
-  # schedule:
-  #   - cron: "30 11 * * *"
+  # 02:00 UTC = 07:30 IST — matches the original launchd routine's morning
+  # time. Cron is always UTC; adjust if your local time or timezone changes.
+  schedule:
+    - cron: "0 2 * * *"
 
 # Never trigger this on `push` — the job pushes to `main` itself, which
 # would self-trigger a loop.
