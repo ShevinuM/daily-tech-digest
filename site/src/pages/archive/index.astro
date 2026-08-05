@@ -3,7 +3,9 @@ import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 
 const digests = (await getCollection('digests')).sort((a, b) => b.id.localeCompare(a.id));
-const base = import.meta.env.BASE_URL;
+// Strip a trailing slash — BASE_URL is "/" at the custom-domain root, and
+// "//path" is a protocol-relative URL, not a same-site path.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 function formatDate(dateStr: string) {
 	return new Date(`${dateStr}T00:00:00Z`).toLocaleDateString('en-US', {

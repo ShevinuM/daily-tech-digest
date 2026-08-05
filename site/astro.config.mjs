@@ -1,8 +1,11 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 
-// GitHub Pages project-page URL: https://<owner>.github.io/<repo>/
+// Custom domain, served from the root (not a /daily-tech-digest subpath) —
+// digest.shevinum.dev is a dedicated subdomain, since www.shevinum.dev is
+// already the portfolio site's custom domain and a domain can only point
+// at one Pages deployment.
 export default defineConfig({
-	site: 'https://shevinum.github.io',
-	base: '/daily-tech-digest',
+	site: 'https://digest.shevinum.dev',
+	base: '/',
 });
