@@ -16,7 +16,9 @@ def assemble(feed_items: list[dict], newsletter_items: list[dict],
     list. Drops anything paywalled (RSS/newsletter links can't reliably tell
     member-only stories apart, and in practice a free alternative is almost
     never findable automatically, so paywalled items are dropped outright
-    rather than guessed at) or published before `cutoff`. De-dupes by URL,
+    rather than guessed at), published before `cutoff`, or not an http(s)
+    URL (newsletter links are unwrapped from raw email HTML — a non-http(s)
+    scheme should never reach the site as a live <a href>). De-dupes by URL,
     feed items first, so a feed item (which usually carries a body_excerpt)
     wins over a newsletter item pointing at the same URL."""
     seen_urls: set[str] = set()
@@ -28,7 +30,7 @@ def assemble(feed_items: list[dict], newsletter_items: list[dict],
         if not published_at or published_at < cutoff:
             continue
         url = item.get("url", "")
-        if not url or url in seen_urls:
+        if not url.startswith(("http://", "https://")) or url in seen_urls:
             continue
         seen_urls.add(url)
         out.append(item)

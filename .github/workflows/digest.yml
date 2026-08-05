@@ -77,6 +77,11 @@ jobs:
             git push origin HEAD:main
           fi
 
+      - name: Clean up AgentMail (only once both pushes above succeeded)
+        env:
+          AGENTMAIL_API_KEY: ${{ secrets.AGENTMAIL_API_KEY }}
+        run: python3 main.py delete-threads --verbose
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:

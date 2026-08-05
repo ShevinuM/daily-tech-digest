@@ -74,6 +74,7 @@ NEVER_COMMIT=(
   ROUTINE_PROMPT.md CLAUDE_CODE_PROMPT.md PLAN.md
   config.json.local
   digest_feed.json digest.html fetch.log fetch.err
+  .agentmail_pending_delete.json
 )
 for f in "${NEVER_COMMIT[@]}"; do
   if git ls-files --error-unmatch "$f" >/dev/null 2>&1; then

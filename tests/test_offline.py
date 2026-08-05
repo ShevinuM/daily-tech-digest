@@ -16,6 +16,7 @@ import json
 import os
 import socket
 import sys
+import urllib.error as _urllib_error
 import urllib.request as _urllib_request
 from datetime import datetime, timedelta, timezone
 
@@ -26,6 +27,7 @@ import main as M  # noqa: E402
 import newsletters  # noqa: E402
 import utils  # noqa: E402
 from feeds import dev_to, hacker_news, medium, pragmatic_engineer  # noqa: E402
+from newsletters import agentmail_client  # noqa: E402
 from newsletters import classify  # noqa: E402
 from newsletters import unsubscribe as unsub  # noqa: E402
 from rank import gemini_client  # noqa: E402
@@ -317,6 +319,41 @@ def test_newsletters():
     finally:
         socket.getaddrinfo = real_getaddrinfo
 
+    section("newsletters / unsubscribe - redirect re-validation")
+    handler = unsub._SafeRedirectHandler()
+    fake_req = _urllib_request.Request("https://example.org/unsub")
+    try:
+        handler.redirect_request(fake_req, None, 302, "Found", {},
+                                  "https://169.254.169.254/latest/meta-data")
+        check("redirect to a metadata IP literal raises", False)
+    except _urllib_error.HTTPError:
+        check("redirect to a metadata IP literal raises", True)
+    new_req = handler.redirect_request(fake_req, None, 302, "Found", {},
+                                        "https://93.184.216.34/next")
+    check("redirect to a safe IP literal is allowed through",
+          new_req is not None and new_req.full_url == "https://93.184.216.34/next")
+
+    section("newsletters / agentmail_client - pagination cap")
+    real_urlopen = _urllib_request.urlopen
+    calls = {"n": 0}
+
+    def _always_more_pages(req, timeout=None):
+        calls["n"] += 1
+        body = json.dumps({
+            "messages": [{"thread_id": f"t{calls['n']}", "from": "a@x.com"}],
+            "next_page_token": "always-more",
+        }).encode()
+        return _FakeHTTPResponse(body)
+
+    try:
+        _urllib_request.urlopen = _always_more_pages
+        result = agentmail_client.list_messages("inbox1", "key", max_pages=3)
+        check("stops after max_pages even with a non-advancing token",
+              calls["n"] == 3, calls["n"])
+        check("collects messages from every page fetched", len(result) == 3, len(result))
+    finally:
+        _urllib_request.urlopen = real_urlopen
+
     section("newsletters / registry reconciliation")
     registry = [{"sender": "a@x.com", "lastSeen": "2026-01-01"}]
     updated, added = newsletters.reconcile_registry(
@@ -352,6 +389,12 @@ def test_rank():
     check("dedupes by url, feed item wins",
           len(merged) == 2 and merged[0]["source"] == "dev.to", merged)
     check("keeps unique newsletter item", any(i["url"] == "https://a.com/4" for i in merged))
+
+    unsafe_scheme_items = [utils.item(source="x", title="T", url="javascript:alert(1)",
+                                       published_at=fresh_iso)]
+    merged_unsafe = rank_merge.assemble(unsafe_scheme_items, [], CUTOFF)
+    check("drops non-http(s) scheme urls (never becomes a live <a href>)",
+          merged_unsafe == [], merged_unsafe)
 
     section("rank / merge - trim_for_selection")
     trimmed = rank_merge.trim_for_selection([utils.item(

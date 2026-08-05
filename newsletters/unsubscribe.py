@@ -69,6 +69,22 @@ def _is_safe_target(url: str) -> bool:
     return True
 
 
+class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """`_is_safe_target` only checks the URL we chose to fetch — the default
+    urllib opener follows 30x redirects with no re-validation, so a first
+    hop that passes the check could still redirect to a private/loopback/
+    metadata address. Re-check every hop before following it."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not _is_safe_target(newurl):
+            raise urllib.error.HTTPError(newurl, code, "refused unsafe redirect target",
+                                          headers, fp)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+_opener = urllib.request.build_opener(_SafeRedirectHandler)
+
+
 def unsubscribe(url: str, *, timeout: int = 15) -> bool:
     """GET the one-click URL. Returns True on a 2xx response, False otherwise
     (never raises — a failed unsubscribe attempt shouldn't fail the run)."""
@@ -77,7 +93,7 @@ def unsubscribe(url: str, *, timeout: int = 15) -> bool:
     req = urllib.request.Request(url, method="GET",
                                   headers={"User-Agent": "daily-tech-digest-unsubscribe/1.0"})
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        with _opener.open(req, timeout=timeout) as resp:
             return 200 <= resp.status < 300
     except (urllib.error.URLError, OSError):
         return False

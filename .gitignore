@@ -24,6 +24,8 @@ digest_feed.json
 digest.html
 *.log
 *.err
+*.tmp
+.agentmail_pending_delete.json
 
 # ---------------------------------------------------------------------------
 # Astro site

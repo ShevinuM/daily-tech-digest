@@ -37,12 +37,16 @@ def _request(method: str, path: str, *, api_key: str, params: dict | None = None
 
 
 def list_messages(inbox_id: str, api_key: str, *, after: str | None = None,
-                   limit: int = 100, from_sender: str | None = None) -> list[dict]:
+                   limit: int = 100, from_sender: str | None = None,
+                   max_pages: int = 50) -> list[dict]:
     """All message metadata (no body) newer than `after` (ISO 8601), paginated.
-    `from_sender` filters to messages whose sender contains that substring."""
+    `from_sender` filters to messages whose sender contains that substring.
+    `max_pages` bounds the loop against a non-advancing page_token — at
+    `limit=100` that's 5000 messages, far more than a 24h window should ever
+    produce."""
     out: list[dict] = []
     page_token = None
-    while True:
+    for _ in range(max_pages):
         params = {"limit": limit}
         if after:
             params["after"] = after

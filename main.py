@@ -8,6 +8,9 @@ Daily tech digest — entry point.
     python3 main.py digest [--dry-run]          full pipeline: fetch, scan newsletters,
                                                  rank+summarize via Gemini, write the Astro
                                                  site content, update the reading hub
+    python3 main.py delete-threads              delete AgentMail threads queued by a prior
+                                                 `digest` run — only after that run's output
+                                                 has actually been pushed (see cmd_digest step 9)
 
 Adding a source: drop a file in feeds/ exposing fetch(cutoff, **opts).
 Removing one: delete the file, or set ENABLED = False in it.
@@ -35,6 +38,7 @@ DEFAULT_OUT = os.path.join(HERE, "digest_feed.json")
 CONFIG_PATH = os.path.join(HERE, "config.json")
 HUB_DIR = os.path.join(HERE, "reading-hub")
 SITE_DIR = os.path.join(HERE, "site")
+PENDING_DELETE_PATH = os.path.join(HERE, ".agentmail_pending_delete.json")
 
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -338,13 +342,22 @@ def cmd_digest(args) -> int:
     })
     write_site_content.write_hub_file(HUB_DIR, "reading-pace.json", pace_data)
 
-    # 9. Clean up AgentMail — only real runs, only threads actually used
+    # 9. Queue AgentMail cleanup — do NOT delete here. This process's output
+    # (the digest content, the reading-hub updates) isn't actually durable
+    # until it's committed and pushed, which happens in a later, separate
+    # workflow step that can independently fail. Deleting the source
+    # threads now would make that failure mode unrecoverable (the next
+    # run's 24h window won't see them again). `main.py delete-threads`
+    # reads this file and does the deletion; the workflow only calls it
+    # after both pushes succeed.
     if agentmail_key and agentmail_inbox and thread_ids:
         if args.dry_run:
-            print(f"dry-run: would delete {len(thread_ids)} AgentMail thread(s)")
+            print(f"dry-run: would queue {len(thread_ids)} AgentMail thread(s) for deletion")
         else:
-            errors.extend(newsletters.delete_used_threads(agentmail_inbox, thread_ids,
-                                                            agentmail_key, verbose=verbose))
+            _write_json_atomic(PENDING_DELETE_PATH,
+                                {"inbox": agentmail_inbox, "thread_ids": thread_ids})
+            print(f"queued {len(thread_ids)} AgentMail thread(s) for deletion "
+                  f"after a successful push (run `main.py delete-threads`)")
 
     if flagged:
         print(f"{len(flagged)} unsubscribe(s) need your attention:")
@@ -355,6 +368,38 @@ def cmd_digest(args) -> int:
         for e in errors[:10]:
             print(f"  - {e}", file=sys.stderr)
 
+    return 0
+
+
+def cmd_delete_threads(args) -> int:
+    """Delete AgentMail threads queued by a prior `digest` run. Intended to
+    run as a separate, later workflow step, only after that run's output
+    has actually been pushed successfully — see the comment at step 9 in
+    cmd_digest for why this is split out."""
+    try:
+        with open(PENDING_DELETE_PATH, encoding="utf-8") as f:
+            queued = json.load(f)
+    except FileNotFoundError:
+        print("nothing queued for deletion")
+        return 0
+    except (OSError, ValueError) as e:
+        print(f"could not read {PENDING_DELETE_PATH}: {e}", file=sys.stderr)
+        return 2
+
+    api_key = os.environ.get("AGENTMAIL_API_KEY")
+    if not api_key:
+        print("AGENTMAIL_API_KEY not set", file=sys.stderr)
+        return 2
+
+    thread_ids = queued.get("thread_ids", [])
+    errors = newsletters.delete_used_threads(queued["inbox"], thread_ids, api_key,
+                                              verbose=args.verbose)
+    os.remove(PENDING_DELETE_PATH)
+    print(f"deleted {len(thread_ids) - len(errors)}/{len(thread_ids)} queued thread(s)")
+    if errors:
+        for e in errors:
+            print(f"  - {e}", file=sys.stderr)
+        return 1
     return 0
 
 
@@ -381,10 +426,17 @@ def main() -> int:
     d.add_argument("--out", default=DEFAULT_OUT, help="where to also write the raw feed fetch")
     d.add_argument("--hours", type=int, help="freshness window (default from config)")
     d.add_argument("--dry-run", action="store_true",
-                   help="run the full pipeline and write output locally, but don't delete "
-                        "AgentMail threads (the workflow, not this command, decides whether to push)")
+                   help="run the full pipeline and write output locally, but don't queue "
+                        "AgentMail threads for deletion (the workflow, not this command, "
+                        "decides whether to push, and cleanup only runs after a push succeeds)")
     d.add_argument("--verbose", "-v", action="store_true")
     d.set_defaults(func=cmd_digest)
+
+    dt = sub.add_parser("delete-threads",
+                         help="delete AgentMail threads queued by a prior `digest` run "
+                              "(run only after that run's output has been pushed)")
+    dt.add_argument("--verbose", "-v", action="store_true")
+    dt.set_defaults(func=cmd_delete_threads)
 
     args = ap.parse_args()
     return args.func(args)

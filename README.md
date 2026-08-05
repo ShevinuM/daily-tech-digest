@@ -156,3 +156,11 @@ ln -sf ../../scripts/check-secrets.sh .git/hooks/pre-commit
 - **Reading-pace calibration is semi-manual.** An unattended run can only
   log an *estimated* read time; edit `reading-hub/reading-pace.json` by hand
   whenever you want to record an actual one.
+- **A failed run doesn't carry its content forward.** The freshness window
+  is always `now - 24h`, not "since the last successful publish" — if a run
+  fails partway (Gemini quota, both pushes rejected, etc.), that day's
+  candidate items simply age out of the next run's window rather than being
+  retried. AgentMail cleanup is deliberately deferred until after both
+  pushes succeed (`main.py delete-threads`, a separate workflow step) so a
+  failed run at least doesn't also delete its own source newsletters — but
+  there's no automatic retry of a failed day's content.
