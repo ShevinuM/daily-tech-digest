@@ -5,11 +5,14 @@ summarization), not once per item, to stay well within the free tier.
 from __future__ import annotations
 
 import json
+import time
 import urllib.error
 import urllib.request
 
 API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 TIMEOUT = 60
+MAX_ATTEMPTS = 3
+RETRYABLE_HTTP_CODES = {429, 500, 502, 503, 504}
 
 
 def generate_json(prompt: str, *, api_key: str, model: str = "gemini-2.5-flash",
@@ -23,19 +26,27 @@ def generate_json(prompt: str, *, api_key: str, model: str = "gemini-2.5-flash",
             "responseMimeType": "application/json",
         },
     }
-    req = urllib.request.Request(
-        url, method="POST",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            data = json.loads(resp.read())
-    except urllib.error.HTTPError as e:
-        detail = e.read().decode("utf-8", "replace")
-        raise RuntimeError(f"Gemini generateContent -> HTTP {e.code}: {detail}") from e
-    except urllib.error.URLError as e:
-        raise RuntimeError(f"Gemini generateContent -> {e.reason}") from e
+    req_body = json.dumps(payload).encode("utf-8")
+
+    data = None
+    for attempt in range(MAX_ATTEMPTS):
+        req = urllib.request.Request(
+            url, method="POST", data=req_body,
+            headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read())
+            break
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode("utf-8", "replace")
+            if e.code not in RETRYABLE_HTTP_CODES or attempt == MAX_ATTEMPTS - 1:
+                raise RuntimeError(f"Gemini generateContent -> HTTP {e.code}: {detail}") from e
+        except (urllib.error.URLError, OSError) as e:
+            reason = getattr(e, "reason", e)
+            if attempt == MAX_ATTEMPTS - 1:
+                raise RuntimeError(f"Gemini generateContent -> {reason}") from e
+        time.sleep(2 ** attempt)
 
     try:
         text = data["candidates"][0]["content"]["parts"][0]["text"]

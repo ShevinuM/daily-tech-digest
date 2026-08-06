@@ -12,10 +12,12 @@ NOT cover live HTTP; run `main.py fetch --verbose` and
 request.
 """
 
+import io
 import json
 import os
 import socket
 import sys
+import time
 import urllib.error as _urllib_error
 import urllib.request as _urllib_request
 from datetime import datetime, timedelta, timezone
@@ -454,6 +456,52 @@ def test_gemini_client():
             check("raises when candidates missing", False)
         except RuntimeError:
             check("raises when candidates missing", True)
+
+        real_sleep = time.sleep
+        time.sleep = lambda s: None
+        try:
+            calls = {"n": 0}
+
+            def flaky_then_ok(req, timeout=None):
+                calls["n"] += 1
+                if calls["n"] < 2:
+                    raise TimeoutError("read timed out")
+                return _FakeHTTPResponse(good_body)
+
+            _urllib_request.urlopen = flaky_then_ok
+            result = gemini_client.generate_json("prompt", api_key="k")
+            check("retries a read-timeout and succeeds on the next attempt",
+                  result == {"ok": True} and calls["n"] == 2, calls)
+
+            calls2 = {"n": 0}
+
+            def always_times_out(req, timeout=None):
+                calls2["n"] += 1
+                raise TimeoutError("read timed out")
+
+            _urllib_request.urlopen = always_times_out
+            try:
+                gemini_client.generate_json("prompt", api_key="k")
+                check("raises RuntimeError (not bare TimeoutError) after exhausting retries", False)
+            except RuntimeError:
+                check("raises RuntimeError (not bare TimeoutError) after exhausting retries",
+                      calls2["n"] == gemini_client.MAX_ATTEMPTS, calls2)
+
+            calls3 = {"n": 0}
+
+            def bad_request(req, timeout=None):
+                calls3["n"] += 1
+                raise _urllib_error.HTTPError(
+                    "https://x", 400, "Bad Request", {}, io.BytesIO(b"bad key"))
+
+            _urllib_request.urlopen = bad_request
+            try:
+                gemini_client.generate_json("prompt", api_key="k")
+                check("does not retry a non-retryable HTTP 400", False)
+            except RuntimeError:
+                check("does not retry a non-retryable HTTP 400", calls3["n"] == 1, calls3)
+        finally:
+            time.sleep = real_sleep
     finally:
         _urllib_request.urlopen = real_urlopen
 
