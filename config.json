@@ -12,7 +12,10 @@
     "author": "Shevinu"
   },
 
-  "gemini": {
-    "model": "gemini-3.6-flash"
+  "llm": {
+    "_comment": "Tried in this order; first provider with an API key set (as a GitHub secret / env var) that succeeds wins. Groq/OpenRouter free tiers cap tokens-per-minute below what the (large) selection prompt needs, so they're expected to fail over fast on that call via 429 - they still cover the small summary call and any Gemini outage.",
+    "gemini": {"model": "gemini-3.6-flash"},
+    "groq": {"model": "llama-3.3-70b-versatile"},
+    "openrouter": {"model": "openai/gpt-oss-20b:free"}
   }
 }

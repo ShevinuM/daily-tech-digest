@@ -6,7 +6,8 @@ Daily tech digest — entry point.
     python3 main.py fetch [--verbose]           fetch everything -> digest_feed.json
     python3 main.py fetch --only dev_to         fetch one feed
     python3 main.py digest [--dry-run]          full pipeline: fetch, scan newsletters,
-                                                 rank+summarize via Gemini, write the Astro
+                                                 rank+summarize via an LLM (Gemini, falling
+                                                 back to Groq/OpenRouter), write the Astro
                                                  site content, update the reading hub
     python3 main.py delete-threads              delete AgentMail threads queued by a prior
                                                  `digest` run — only after that run's output
@@ -28,7 +29,7 @@ from datetime import datetime, timedelta, timezone
 import feeds
 import newsletters
 import utils
-from rank import gemini_client
+from rank import llm_client
 from rank import merge as rank_merge
 from rank import prompt as rank_prompt
 from rank import write_site_content
@@ -260,19 +261,18 @@ def cmd_digest(args) -> int:
     target_count, min_per_item = _compute_target_item_count(pace_data.get("log", []), cfg)
     utils.log(f"target item count: {target_count} (min/item={min_per_item})", verbose=verbose)
 
-    # 5. Gemini: selection
-    gemini_key = os.environ.get("GEMINI_API_KEY")
-    if not gemini_key:
-        print("GEMINI_API_KEY not set", file=sys.stderr)
+    # 5. LLM: selection
+    if not any(os.environ.get(v) for v in llm_client.PROVIDER_ENV_VARS):
+        print(f"no LLM provider configured (set one of: "
+              f"{', '.join(llm_client.PROVIDER_ENV_VARS)})", file=sys.stderr)
         return 2
-    model = cfg.get("gemini", {}).get("model", "gemini-2.5-flash")
 
     trimmed = rank_merge.trim_for_selection(candidates)
     selection_prompt = rank_prompt.build_selection_prompt(interests_text, trimmed, target_count)
     try:
-        selection = gemini_client.generate_json(selection_prompt, api_key=gemini_key, model=model)
+        selection = llm_client.generate_json(selection_prompt, config=cfg)
     except RuntimeError as e:
-        print(f"Gemini selection call failed: {e}", file=sys.stderr)
+        print(f"LLM selection call failed: {e}", file=sys.stderr)
         return 2
 
     by_url = {c["url"]: c for c in candidates}
@@ -289,20 +289,19 @@ def cmd_digest(args) -> int:
         grouped[section].append(cand)
 
     if not grouped:
-        print("Gemini selection returned no items matching the candidate list", file=sys.stderr)
+        print("LLM selection returned no items matching the candidate list", file=sys.stderr)
         return 2
 
-    # 6. Gemini: summary
+    # 6. LLM: summary
     grouped_payload = [{"section": s, "items": grouped[s]} for s in order]
     try:
-        digest = gemini_client.generate_json(rank_prompt.build_summary_prompt(grouped_payload),
-                                              api_key=gemini_key, model=model)
+        digest = llm_client.generate_json(rank_prompt.build_summary_prompt(grouped_payload), config=cfg)
     except RuntimeError as e:
-        print(f"Gemini summary call failed: {e}", file=sys.stderr)
+        print(f"LLM summary call failed: {e}", file=sys.stderr)
         return 2
     digest = _reconcile_digest(digest, by_url)
     if not digest["sections"]:
-        print("Gemini summary call returned no items matching the selected candidates",
+        print("LLM summary call returned no items matching the selected candidates",
               file=sys.stderr)
         return 2
 

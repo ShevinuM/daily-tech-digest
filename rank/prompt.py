@@ -1,4 +1,4 @@
-"""Gemini prompt templates, as Python string constants (not committed .md
+"""LLM prompt templates, as Python string constants (not committed .md
 instruction files — this is a template consumed programmatically, unit
 testable, and versioned with the code that calls it).
 

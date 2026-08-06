@@ -5,7 +5,7 @@ Offline test suite. No network — every request is stubbed.
     python3 tests/test_offline.py
 
 Covers utils, each feed module, feed auto-discovery, newsletter
-classification/unsubscribe, rank merge/prompt/gemini_client, and the
+classification/unsubscribe, rank merge/prompt/llm_client, and the
 reading-pace target-count calibration — where the bugs actually live. Does
 NOT cover live HTTP; run `main.py fetch --verbose` and
 `main.py digest --dry-run` by hand after changing anything that makes a
@@ -32,7 +32,7 @@ from feeds import dev_to, hacker_news, medium, pragmatic_engineer  # noqa: E402
 from newsletters import agentmail_client  # noqa: E402
 from newsletters import classify  # noqa: E402
 from newsletters import unsubscribe as unsub  # noqa: E402
-from rank import gemini_client  # noqa: E402
+from rank import llm_client  # noqa: E402
 from rank import merge as rank_merge  # noqa: E402
 from rank import prompt as rank_prompt  # noqa: E402
 
@@ -429,77 +429,140 @@ class _FakeHTTPResponse:
         return False
 
 
-def test_gemini_client():
-    section("rank / gemini_client")
+class _EnvKeys:
+    """Set only the given env vars for the block, restoring prior state after."""
+
+    def __init__(self, **keys):
+        self.keys = keys
+        self.saved = {}
+
+    def __enter__(self):
+        for k in llm_client.PROVIDER_ENV_VARS:
+            self.saved[k] = os.environ.pop(k, None)
+        for k, v in self.keys.items():
+            if v is not None:
+                os.environ[k] = v
+        return self
+
+    def __exit__(self, *a):
+        for k, v in self.saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+        return False
+
+
+def test_llm_client():
+    section("rank / llm_client")
     real_urlopen = _urllib_request.urlopen
+    good_gemini_body = json.dumps({
+        "candidates": [{"content": {"parts": [{"text": json.dumps({"ok": True})}]}}]
+    }).encode()
+    good_openai_body = json.dumps({
+        "choices": [{"message": {"content": json.dumps({"ok": True})}}]
+    }).encode()
     try:
-        good_body = json.dumps({
-            "candidates": [{"content": {"parts": [{"text": json.dumps({"ok": True})}]}}]
-        }).encode()
-        _urllib_request.urlopen = lambda req, timeout=None: _FakeHTTPResponse(good_body)
-        result = gemini_client.generate_json("prompt", api_key="k")
-        check("parses nested candidate JSON text", result == {"ok": True}, result)
+        with _EnvKeys(GEMINI_API_KEY="k"):
+            _urllib_request.urlopen = lambda req, timeout=None: _FakeHTTPResponse(good_gemini_body)
+            result = llm_client.generate_json("prompt", config={})
+            check("parses nested candidate JSON text", result == {"ok": True}, result)
 
-        bad_body = json.dumps({
-            "candidates": [{"content": {"parts": [{"text": "not json"}]}}]
-        }).encode()
-        _urllib_request.urlopen = lambda req, timeout=None: _FakeHTTPResponse(bad_body)
-        try:
-            gemini_client.generate_json("prompt", api_key="k")
-            check("raises on invalid JSON text", False)
-        except RuntimeError:
-            check("raises on invalid JSON text", True)
+            bad_body = json.dumps({
+                "candidates": [{"content": {"parts": [{"text": "not json"}]}}]
+            }).encode()
+            _urllib_request.urlopen = lambda req, timeout=None: _FakeHTTPResponse(bad_body)
+            try:
+                llm_client.generate_json("prompt", config={})
+                check("raises on invalid JSON text", False)
+            except RuntimeError:
+                check("raises on invalid JSON text", True)
 
-        _urllib_request.urlopen = lambda req, timeout=None: _FakeHTTPResponse(b"{}")
-        try:
-            gemini_client.generate_json("prompt", api_key="k")
-            check("raises when candidates missing", False)
-        except RuntimeError:
-            check("raises when candidates missing", True)
+            _urllib_request.urlopen = lambda req, timeout=None: _FakeHTTPResponse(b"{}")
+            try:
+                llm_client.generate_json("prompt", config={})
+                check("raises when candidates missing", False)
+            except RuntimeError:
+                check("raises when candidates missing", True)
 
         real_sleep = time.sleep
         time.sleep = lambda s: None
         try:
-            calls = {"n": 0}
+            with _EnvKeys(GEMINI_API_KEY="k"):
+                calls = {"n": 0}
 
-            def flaky_then_ok(req, timeout=None):
-                calls["n"] += 1
-                if calls["n"] < 2:
+                def flaky_then_ok(req, timeout=None):
+                    calls["n"] += 1
+                    if calls["n"] < 2:
+                        raise TimeoutError("read timed out")
+                    return _FakeHTTPResponse(good_gemini_body)
+
+                _urllib_request.urlopen = flaky_then_ok
+                result = llm_client.generate_json("prompt", config={})
+                check("retries a read-timeout and succeeds on the next attempt",
+                      result == {"ok": True} and calls["n"] == 2, calls)
+
+                calls2 = {"n": 0}
+
+                def always_times_out(req, timeout=None):
+                    calls2["n"] += 1
                     raise TimeoutError("read timed out")
-                return _FakeHTTPResponse(good_body)
 
-            _urllib_request.urlopen = flaky_then_ok
-            result = gemini_client.generate_json("prompt", api_key="k")
-            check("retries a read-timeout and succeeds on the next attempt",
-                  result == {"ok": True} and calls["n"] == 2, calls)
+                _urllib_request.urlopen = always_times_out
+                try:
+                    llm_client.generate_json("prompt", config={})
+                    check("raises RuntimeError (not bare TimeoutError) after exhausting retries", False)
+                except RuntimeError:
+                    check("raises RuntimeError (not bare TimeoutError) after exhausting retries",
+                          calls2["n"] == llm_client.SERVER_ERROR_ATTEMPTS, calls2)
 
-            calls2 = {"n": 0}
+                calls3 = {"n": 0}
 
-            def always_times_out(req, timeout=None):
-                calls2["n"] += 1
-                raise TimeoutError("read timed out")
+                def bad_request(req, timeout=None):
+                    calls3["n"] += 1
+                    raise _urllib_error.HTTPError(
+                        "https://x", 400, "Bad Request", {}, io.BytesIO(b"bad key"))
 
-            _urllib_request.urlopen = always_times_out
-            try:
-                gemini_client.generate_json("prompt", api_key="k")
-                check("raises RuntimeError (not bare TimeoutError) after exhausting retries", False)
-            except RuntimeError:
-                check("raises RuntimeError (not bare TimeoutError) after exhausting retries",
-                      calls2["n"] == gemini_client.MAX_ATTEMPTS, calls2)
+                _urllib_request.urlopen = bad_request
+                try:
+                    llm_client.generate_json("prompt", config={})
+                    check("does not retry a non-retryable HTTP 400", False)
+                except RuntimeError:
+                    check("does not retry a non-retryable HTTP 400", calls3["n"] == 1, calls3)
 
-            calls3 = {"n": 0}
+                calls4 = {"n": 0}
 
-            def bad_request(req, timeout=None):
-                calls3["n"] += 1
-                raise _urllib_error.HTTPError(
-                    "https://x", 400, "Bad Request", {}, io.BytesIO(b"bad key"))
+                def always_rate_limited(req, timeout=None):
+                    calls4["n"] += 1
+                    raise _urllib_error.HTTPError(
+                        "https://x", 429, "Too Many Requests", {}, io.BytesIO(b"rate limited"))
 
-            _urllib_request.urlopen = bad_request
-            try:
-                gemini_client.generate_json("prompt", api_key="k")
-                check("does not retry a non-retryable HTTP 400", False)
-            except RuntimeError:
-                check("does not retry a non-retryable HTTP 400", calls3["n"] == 1, calls3)
+                _urllib_request.urlopen = always_rate_limited
+                try:
+                    llm_client.generate_json("prompt", config={})
+                    check("caps 429 retries below the server-error budget (fails over fast)", False)
+                except RuntimeError:
+                    check("caps 429 retries below the server-error budget (fails over fast)",
+                          calls4["n"] == llm_client.RATE_LIMIT_ATTEMPTS, calls4)
+
+            with _EnvKeys(GEMINI_API_KEY="k", GROQ_API_KEY="g"):
+                def gemini_fails_groq_succeeds(req, timeout=None):
+                    if "generativelanguage.googleapis.com" in req.full_url:
+                        raise _urllib_error.HTTPError(
+                            "https://x", 503, "Unavailable", {}, io.BytesIO(b"overloaded"))
+                    return _FakeHTTPResponse(good_openai_body)
+
+                _urllib_request.urlopen = gemini_fails_groq_succeeds
+                result = llm_client.generate_json("prompt", config={})
+                check("falls over to the next configured provider when the first is down",
+                      result == {"ok": True}, result)
+
+            with _EnvKeys():
+                try:
+                    llm_client.generate_json("prompt", config={})
+                    check("raises with no provider configured", False)
+                except RuntimeError as e:
+                    check("raises with no provider configured", "no LLM provider configured" in str(e), e)
         finally:
             time.sleep = real_sleep
     finally:
@@ -568,7 +631,7 @@ def main():
     test_feeds()
     test_newsletters()
     test_rank()
-    test_gemini_client()
+    test_llm_client()
     test_digest_helpers()
     print(f"\n{COUNT - len(FAILURES)}/{COUNT} passed")
     if FAILURES:
