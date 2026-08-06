@@ -9,6 +9,9 @@ from __future__ import annotations
 import utils
 
 NAME = "dev_to"
+# The item-level `source` field dev.to items actually carry — distinct from
+# NAME. feeds.body_fetcher() and rank/pools.py key off this, not NAME.
+SOURCE = "dev.to"
 ENABLED = True
 
 API = "https://dev.to/api/articles"
@@ -16,12 +19,10 @@ API = "https://dev.to/api/articles"
 # Tag feeds checked in addition to the global top feed. Tune to your stack.
 TAGS = ["typescript", "javascript", "node", "react", "devops", "docker", "ai"]
 
-# How many top-ranked articles get a full body fetched for accurate summaries.
-BODY_LIMIT = 25
 BODY_CHARS = 2500
 
 
-def fetch(cutoff, *, verbose=False, want_bodies=True, **_):
+def fetch(cutoff, *, verbose=False, **_):
     urls = [
         f"{API}?top=1&per_page=100&page=1",
         f"{API}?top=1&per_page=100&page=2",
@@ -44,7 +45,7 @@ def fetch(cutoff, *, verbose=False, want_bodies=True, **_):
             if not link or link in seen:
                 continue
             seen[link] = utils.item(
-                source="dev.to",
+                source=SOURCE,
                 title=a.get("title"),
                 url=link,
                 published_at=a.get("published_at"),
@@ -60,28 +61,22 @@ def fetch(cutoff, *, verbose=False, want_bodies=True, **_):
 
     ranked = sorted(seen.values(), key=lambda x: -x.get("reactions", 0))
     utils.log(f"{NAME}: {len(ranked)} fresh", verbose=verbose)
-
-    if want_bodies and ranked:
-        _attach_bodies(ranked[:BODY_LIMIT], errors, verbose)
-
     if errors:
         utils.log(f"{NAME}: {len(errors)} error(s)", verbose=verbose)
     return ranked, errors
 
 
-def _attach_bodies(targets, errors, verbose):
-    """Pull article bodies so the digest can summarise from real text."""
-    import re
+def fetch_body(item: dict) -> str | None:
+    """`rank/enrich.py`'s per-source hook — used only for items that reach
+    pool 2/3, instead of pre-fetching a fixed 25 bodies at feed time.
 
-    def body(it):
-        d = utils.http_get(f"{API}/{it['path']}", as_json=True)
-        return re.sub(r"\s+", " ", d.get("body_markdown") or "")[:BODY_CHARS]
-
-    got = 0
-    for it, text, err in utils.parallel(body, targets):
-        if err:
-            errors.append(f"{NAME} body {it.get('path')}: {err}")
-            continue
-        it["body_excerpt"] = text
-        got += 1
-    utils.log(f"{NAME}: {got} bodies", verbose=verbose)
+    Deliberately does NOT collapse whitespace here: `rank/enrich.py`'s
+    `clean_for_summary` strips markdown heading/bullet markers by matching
+    at the start of a line, and it runs on whatever this returns. Collapsing
+    newlines first would destroy those line starts and let raw `##`/`- `
+    markdown syntax leak into the LLM prompt."""
+    path = item.get("path")
+    if not path:
+        return None
+    data = utils.http_get(f"{API}/{path}", as_json=True)
+    return (data.get("body_markdown") or "")[:BODY_CHARS]

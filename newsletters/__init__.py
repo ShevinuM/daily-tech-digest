@@ -70,7 +70,7 @@ def scan(inbox_id: str, api_key: str, cutoff: datetime, *, verbose: bool = False
                 continue
             items.append(utils.item(
                 source=f"newsletter:{sender or 'unknown'}",
-                title=link["anchor_text"] or link["url"],
+                title=link["anchor_text"] or utils.slug_words(link["url"]) or "Untitled link",
                 url=link["url"],
                 published_at=utils.iso(published_at),
                 author=sender,

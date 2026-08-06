@@ -29,9 +29,12 @@ from datetime import datetime, timedelta, timezone
 import feeds
 import newsletters
 import utils
+from rank import enrich as rank_enrich
 from rank import llm_client
-from rank import merge as rank_merge
+from rank import pools as rank_pools
 from rank import prompt as rank_prompt
+from rank import relevance as rank_relevance
+from rank import summarize as rank_summarize
 from rank import write_site_content
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -149,6 +152,95 @@ def cmd_fetch(args) -> int:
 
 # --------------------------------------------------------------------------
 
+def cmd_pools(args) -> int:
+    """Calibration tool: run fetch -> pool 2 -> enrich -> relevance and print
+    what would reach pool 3, without ever calling the LLM or writing
+    anything. Lets the weights in config.json's `relevance.weights` get
+    tuned against real daily data at no API cost."""
+    cfg = load_config()
+    hours = args.hours or cfg.get("digest", {}).get("freshness_hours", 24)
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(hours=hours)
+    verbose = args.verbose
+
+    fetch_payload = _run_feeds(now=now, cutoff=cutoff, only=None, no_bodies=True, verbose=verbose)
+
+    newsletter_items: list[dict] = []
+    agentmail_key = os.environ.get("AGENTMAIL_API_KEY")
+    agentmail_inbox = os.environ.get("AGENTMAIL_INBOX")
+    if agentmail_key and agentmail_inbox:
+        result = newsletters.scan(agentmail_inbox, agentmail_key, cutoff, verbose=verbose)
+        newsletter_items = result["items"]
+
+    pool2 = rank_pools.build_pool2(fetch_payload["items"], newsletter_items, cutoff, cfg)
+    pool2_counts: dict[str, int] = {}
+    for item in pool2:
+        pool2_counts[item.get("source", "")] = pool2_counts.get(item.get("source", ""), 0) + 1
+
+    # Only items with no description (HN, newsletters) need a body fetch to
+    # be scored on comparable text — dev.to/medium/PE already have one,
+    # unless relevance.enrich_all_pool2 opts every item in (see PLAN.md D9 —
+    # a config edit, not a code change, once the calibration gate decides).
+    enrich_all = cfg.get("relevance", {}).get("enrich_all_pool2", False)
+    needs_text = pool2 if enrich_all else [i for i in pool2 if not i.get("description")]
+    skip_sources = cfg.get("enrich", {}).get("skip_sources", [])
+    enrich_errors = rank_enrich.ensure_text(needs_text, skip_sources=skip_sources, verbose=verbose)
+
+    try:
+        with open(os.path.join(HUB_DIR, "interests.md"), encoding="utf-8") as f:
+            interests_text = f.read()
+    except OSError as e:
+        print(f"could not read reading-hub/interests.md (is the submodule checked out?): {e}",
+              file=sys.stderr)
+        return 2
+
+    pool3, dropped = rank_relevance.rank(pool2, interests_text, cfg)
+
+    if args.json:
+        payload = {
+            "pool2_total": len(pool2),
+            "pool2_by_source": pool2_counts,
+            "enrich_errors": enrich_errors,
+            "dropped": [{"title": i.get("title", ""), "source": i.get("source", ""),
+                         **i.get("relevance", {})} for i in dropped],
+            "pool3": [{"title": i.get("title", ""), "source": i.get("source", ""),
+                       **i.get("relevance", {})} for i in pool3],
+        }
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+
+    print(f"pool2: {len(pool2)} item(s)")
+    for source in sorted(pool2_counts):
+        print(f"  {source:<20} {pool2_counts[source]}")
+    if enrich_errors:
+        print(f"\nenrich: {len(enrich_errors)} error(s)")
+        if verbose:
+            for e in enrich_errors[:10]:
+                print(f"  - {e}")
+
+    print(f"\nnon-tech drops: {len(dropped)}")
+    for item in dropped:
+        rel = item.get("relevance", {})
+        print(f"  non={rel.get('non_tech', 0):.3f} topic={rel.get('topic_raw', 0):.3f}  "
+              f"[{item.get('source', '')}] {item.get('title', '')}")
+
+    print(f"\npool3: {len(pool3)} item(s)")
+    for item in pool3:
+        rel = item.get("relevance", {})
+        print(f"  {rel.get('score', 0):.3f}  topic={rel.get('topic', 0):.3f} "
+              f"stack={rel.get('stack', 0):.3f} up={rel.get('dial_up', 0):.3f} "
+              f"down={rel.get('dial_down', 0):.3f}  [{item.get('source', '')}] "
+              f"{item.get('title', '')}")
+
+    pool3_counts: dict[str, int] = {}
+    for item in pool3:
+        pool3_counts[item.get("source", "")] = pool3_counts.get(item.get("source", ""), 0) + 1
+    print("\npool3 by source: " + "  ".join(f"{k}={v}" for k, v in sorted(pool3_counts.items())))
+    return 0
+
+
+# --------------------------------------------------------------------------
+
 def _compute_target_item_count(reading_pace_log: list[dict], cfg: dict) -> tuple[int, float]:
     """target_item_count = round(target_read_minutes / min_per_item), where
     min_per_item comes from the most recent reading-pace row with both an
@@ -168,14 +260,15 @@ def _compute_target_item_count(reading_pace_log: list[dict], cfg: dict) -> tuple
     return max(1, round(target_minutes / min_per_item)), min_per_item
 
 
-def _reconcile_digest(digest, by_url: dict[str, dict]) -> dict:
+def _reconcile_digest(digest, pool3: list[dict]) -> dict:
     """Trust only prose (`intro`, section `heading`, item `summary`) from the
-    model's summary call. Factual fields — url/title/source/publishedAt/tags
-    — are taken from our own already-fetched candidate data, keyed by url,
-    never published verbatim from model output: newsletter content that
-    reaches the model is untrusted input, and a hallucinated or
-    prompt-injected url/title/date should never be able to reach the public
-    site just because the model echoed it back."""
+    model's digest call. Factual fields — url/title/source/publishedAt/tags/
+    paywalled — are taken from our own pool-3 data, keyed by the integer
+    index `i` the model was given (never a url: no candidate carries a url
+    into the prompt at all now, which removes an entire class of
+    injection — see rank/prompt.py). Non-int, out-of-range, and duplicate
+    indices are rejected outright rather than trusted."""
+    used_indices: set[int] = set()
     sections_out = []
     for section in (digest.get("sections", []) if isinstance(digest, dict) else []):
         if not isinstance(section, dict):
@@ -184,15 +277,20 @@ def _reconcile_digest(digest, by_url: dict[str, dict]) -> dict:
         for item in section.get("items", []) or []:
             if not isinstance(item, dict):
                 continue
-            cand = by_url.get(item.get("url"))
-            if not cand:
+            idx = item.get("i")
+            if not isinstance(idx, int) or isinstance(idx, bool):
                 continue
+            if idx < 0 or idx >= len(pool3) or idx in used_indices:
+                continue
+            used_indices.add(idx)
+            cand = pool3[idx]
             items_out.append({
                 "url": cand["url"],
                 "title": cand.get("title", ""),
                 "source": cand.get("source", ""),
                 "publishedAt": cand.get("published_at", ""),
                 "tags": cand.get("tags") or [],
+                "paywalled": bool(cand.get("paywalled")),
                 "summary": item.get("summary", "") if isinstance(item.get("summary"), str) else "",
             })
         if items_out:
@@ -237,11 +335,12 @@ def cmd_digest(args) -> int:
         utils.log("newsletters: AGENTMAIL_API_KEY/AGENTMAIL_INBOX not set, skipping (feed-only)",
                    verbose=True)
 
-    # 3. Merge + qualify (dedupe, drop paywalled/stale)
-    candidates = rank_merge.assemble(fetch_payload["items"], newsletter_items, cutoff)
-    if not candidates:
+    # 3. Pool 2 — deterministic per-source thresholds/caps (rank/pools.py)
+    pool2 = rank_pools.build_pool2(fetch_payload["items"], newsletter_items, cutoff, cfg)
+    if not pool2:
         print("no qualifying candidates (all stale, paywalled, or empty)", file=sys.stderr)
         return 1
+    utils.log(f"pool2: {len(pool2)} item(s)", verbose=verbose)
 
     # 4. Reading hub
     interests_path = os.path.join(HUB_DIR, "interests.md")
@@ -258,54 +357,58 @@ def cmd_digest(args) -> int:
         print(f"could not read reading-hub files (is the submodule checked out?): {e}", file=sys.stderr)
         return 2
 
+    if not rank_relevance.parse_interests(interests_text)["topics"]:
+        errors.append("interests.md: no '## Topics' bullets found — topic relevance "
+                       "scoring and non-tech filtering are disabled. Check the heading.")
+
     target_count, min_per_item = _compute_target_item_count(pace_data.get("log", []), cfg)
     utils.log(f"target item count: {target_count} (min/item={min_per_item})", verbose=verbose)
 
-    # 5. LLM: selection
+    # 5. Enrich pool 2 — only items with no description (HN, newsletters)
+    # need a body fetch to be scored on text comparable to the rest, unless
+    # relevance.enrich_all_pool2 opts every item in (see PLAN.md D9).
+    enrich_all = cfg.get("relevance", {}).get("enrich_all_pool2", False)
+    needs_text = pool2 if enrich_all else [i for i in pool2 if not i.get("description")]
+    skip_sources = cfg.get("enrich", {}).get("skip_sources", [])
+    errors.extend(rank_enrich.ensure_text(needs_text, skip_sources=skip_sources, verbose=verbose))
+
+    # 6. Relevance: pool2 -> pool3 (model2vec vs interests.md)
+    pool3, dropped = rank_relevance.rank(pool2, interests_text, cfg)
+    utils.log(f"pool3: {len(pool3)} item(s) ({len(dropped)} dropped as non-tech)", verbose=verbose)
+    if not pool3:
+        print("no candidates survived relevance scoring", file=sys.stderr)
+        return 1
+
+    # 7. Fill in remaining bodies for the 25 pool-3 winners (idempotent —
+    # reuses whatever step 5 already resolved), then summarize each.
+    errors.extend(rank_enrich.ensure_text(pool3, skip_sources=skip_sources, verbose=verbose))
+    summarize_cfg = cfg.get("summarize", {})
+    for item in pool3:
+        text = rank_summarize.pick_text(item)
+        item["summary"] = rank_summarize.extractive(
+            text, sentences=summarize_cfg.get("sentences", 5),
+            max_chars=summarize_cfg.get("max_chars", 900),
+            algorithm=summarize_cfg.get("algorithm", "text_rank"))
+
+    # 8. LLM — one call: selection, grouping, and prose together
     if not any(os.environ.get(v) for v in llm_client.PROVIDER_ENV_VARS):
         print(f"no LLM provider configured (set one of: "
               f"{', '.join(llm_client.PROVIDER_ENV_VARS)})", file=sys.stderr)
         return 2
 
-    trimmed = rank_merge.trim_for_selection(candidates)
-    selection_prompt = rank_prompt.build_selection_prompt(interests_text, trimmed, target_count)
+    digest_prompt = rank_prompt.build_digest_prompt(interests_text, pool3, target_count)
     try:
-        selection = llm_client.generate_json(selection_prompt, config=cfg)
+        raw_digest = llm_client.generate_json(digest_prompt, config=cfg)
     except RuntimeError as e:
-        print(f"LLM selection call failed: {e}", file=sys.stderr)
+        print(f"LLM digest call failed: {e}", file=sys.stderr)
         return 2
 
-    by_url = {c["url"]: c for c in candidates}
-    grouped: dict[str, list[dict]] = {}
-    order: list[str] = []
-    for pick in selection if isinstance(selection, list) else []:
-        cand = by_url.get(pick.get("url"))
-        if not cand:
-            continue
-        section = pick.get("section") or "Reading"
-        if section not in grouped:
-            grouped[section] = []
-            order.append(section)
-        grouped[section].append(cand)
-
-    if not grouped:
-        print("LLM selection returned no items matching the candidate list", file=sys.stderr)
-        return 2
-
-    # 6. LLM: summary
-    grouped_payload = [{"section": s, "items": grouped[s]} for s in order]
-    try:
-        digest = llm_client.generate_json(rank_prompt.build_summary_prompt(grouped_payload), config=cfg)
-    except RuntimeError as e:
-        print(f"LLM summary call failed: {e}", file=sys.stderr)
-        return 2
-    digest = _reconcile_digest(digest, by_url)
+    digest = _reconcile_digest(raw_digest, pool3)
     if not digest["sections"]:
-        print("LLM summary call returned no items matching the selected candidates",
-              file=sys.stderr)
+        print("LLM digest call returned no items matching the candidate list", file=sys.stderr)
         return 2
 
-    # 7. Write site content
+    # 9. Write site content
     date_str = now.strftime("%Y-%m-%d")
     site_title = cfg.get("site", {}).get("title", "Tech Reading Digest")
     title = f"{site_title} — {now.strftime('%A, %B ')}{now.day}, {now.year}"
@@ -318,7 +421,7 @@ def cmd_digest(args) -> int:
     write_path = write_site_content.write_digest(SITE_DIR, date_str, title, utils.iso(now), digest, stats)
     print(f"wrote {write_path} ({item_count} items)")
 
-    # 8. Update reading hub: newsletters registry + reading-pace log
+    # 10. Update reading hub: newsletters registry + reading-pace log
     updated_newsletters, added = newsletters.reconcile_registry(
         newsletters_data.get("newsletters", []), senders_seen, date_str)
     newsletters_data["newsletters"] = updated_newsletters
@@ -341,7 +444,7 @@ def cmd_digest(args) -> int:
     })
     write_site_content.write_hub_file(HUB_DIR, "reading-pace.json", pace_data)
 
-    # 9. Queue AgentMail cleanup — do NOT delete here. This process's output
+    # 11. Queue AgentMail cleanup — do NOT delete here. This process's output
     # (the digest content, the reading-hub updates) isn't actually durable
     # until it's committed and pushed, which happens in a later, separate
     # workflow step that can independently fail. Deleting the source
@@ -436,6 +539,13 @@ def main() -> int:
                               "(run only after that run's output has been pushed)")
     dt.add_argument("--verbose", "-v", action="store_true")
     dt.set_defaults(func=cmd_delete_threads)
+
+    p = sub.add_parser("pools", help="calibration tool: fetch -> pool2 -> enrich -> relevance, "
+                                      "print what would reach pool 3 (no LLM call, no writes)")
+    p.add_argument("--hours", type=int, help="freshness window (default from config)")
+    p.add_argument("--json", action="store_true", help="machine-readable output")
+    p.add_argument("--verbose", "-v", action="store_true")
+    p.set_defaults(func=cmd_pools)
 
     args = ap.parse_args()
     return args.func(args)

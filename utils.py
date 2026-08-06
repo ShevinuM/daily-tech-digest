@@ -10,6 +10,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
+from urllib.parse import urlparse
 
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) digest-fetcher/2.0"
 TIMEOUT = 20
@@ -128,6 +129,15 @@ def clean_url(url: str) -> str:
 
 def is_paywalled(url: str) -> bool:
     return any(h in (url or "") for h in PAYWALL_HINTS)
+
+
+def slug_words(url: str, limit: int = 20) -> str:
+    """Readable words from a URL path — a usable title/label for a link that
+    has no anchor text, without carrying the URL itself into any text a
+    model might see."""
+    tokens = re.split(r"[^a-zA-Z0-9]+", urlparse(url or "").path)
+    words = [t for t in tokens if len(t) > 2 and not t.isdigit()]
+    return " ".join(words[:limit])
 
 
 # --------------------------------------------------------------------------

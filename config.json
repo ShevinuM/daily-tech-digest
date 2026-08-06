@@ -13,9 +13,40 @@
   },
 
   "llm": {
-    "_comment": "Tried in this order; first provider with an API key set (as a GitHub secret / env var) that succeeds wins. Groq/OpenRouter free tiers cap tokens-per-minute below what the (large) selection prompt needs, so they're expected to fail over fast on that call via 429 - they still cover the small summary call and any Gemini outage.",
+    "_comment": "Tried in this order; first provider with an API key set (as a GitHub secret / env var) that succeeds wins. Pre-LLM pooling/relevance/summarization keeps the one remaining call's payload small enough (~6-7k tokens) that Groq/OpenRouter's free-tier token-per-minute caps are no longer a guaranteed 429 - see rank/llm_client.py.",
     "gemini": {"model": "gemini-3.6-flash"},
     "groq": {"model": "llama-3.3-70b-versatile"},
     "openrouter": {"model": "openai/gpt-oss-20b:free"}
-  }
+  },
+
+  "pools": {
+    "_comment": "Decision A1: Medium enters pool 2 despite being paywall-flagged; the site renders a member-only badge. See reading-hub/interests.md's paywall rule, edited to match.",
+    "allow_paywalled": true,
+    "pool2": {
+      "dev.to":              {"min_reactions": 2, "cap": 25, "sort_key": "reactions"},
+      "hacker_news":         {"min_score": 40,    "cap": 25, "sort_key": "score"},
+      "medium":              {"cap": null},
+      "pragmatic_engineer":  {"cap": null},
+      "newsletter":          {"cap": null}
+    },
+    "pool3": {"size": 25, "max_per_source": {"dev.to": 10, "hacker_news": 10, "medium": 3}}
+  },
+
+  "relevance": {
+    "_comment": "enrich_all_pool2=true chosen from a same-data A/B/C calibration run on 2026-08-06 (PLAN.md D9): with it off, most dev.to/medium items never get article_text, so doc_body_chars is inert for them and non-tech scoring runs on a ~100-char description alone. With it on, 2 more genuinely non-tech dev.to items (recipe/food-themed 'landing page' posts) were correctly caught that description-only scoring missed, at the cost of enriching every pool2 item, not just the ones missing a description. Only one day of data - re-check with `main.py pools` over a few more days.",
+    "model": "minishlab/potion-retrieval-32M",
+    "weights": {"stack": 0.30, "dial_up": 0.35, "dial_down": 0.60},
+    "drop_non_tech": true,
+    "never_drop_sources": [],
+    "doc_body_chars": 600,
+    "enrich_all_pool2": true
+  },
+
+  "enrich": {
+    "_comment": "Medium 403s our fetcher every time (see PLAN.md D10) - skip_sources stops enrich.ensure_text from ever attempting it, saving ~10 futile HTTP requests and ~10 permanent error lines in stats.errors per run.",
+    "skip_sources": ["medium"],
+    "workers": 8
+  },
+
+  "summarize": {"algorithm": "text_rank", "sentences": 5, "max_chars": 900}
 }

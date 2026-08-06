@@ -9,7 +9,7 @@ providers' free tiers cap tokens/minute low enough that our larger
 (selection) prompt alone can exceed the cap — that shows up as a 429 and
 should fail over fast, not burn a long backoff.
 
-Called twice per run (selection, then summarization) — see rank/prompt.py.
+Called once per run — see rank/prompt.py.
 """
 from __future__ import annotations
 
@@ -100,11 +100,12 @@ def _call_openai_compat(prompt: str, *, api_key: str, model: str, temperature: f
 
 
 # Order matters: tried top to bottom, first one with an API key set that
-# succeeds wins. Gemini's free-tier prompt/context limits are generous
-# enough for our full candidate list (tens of thousands of tokens); Groq
-# and OpenRouter's free-tier token-per-minute caps are not, so on the large
-# selection call they're expected to 429 and fail over — that's fine, they
-# still cover the small summarization call and any Gemini outage.
+# succeeds wins. The one remaining call's payload is now ~6-7k tokens (all
+# mechanical filtering/scoring/summarizing happens in Python before this —
+# see rank/pools.py, rank/relevance.py, rank/summarize.py), which fits
+# comfortably under Groq/OpenRouter's free-tier token-per-minute caps too,
+# so they're genuinely usable as a Gemini-outage fallback now rather than a
+# guaranteed 429.
 PROVIDERS = [
     {"name": "gemini", "env": "GEMINI_API_KEY", "default_model": "gemini-3.6-flash",
      "call": _call_gemini},

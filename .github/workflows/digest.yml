@@ -39,12 +39,38 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Cache embedding model + nltk data
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface
+            ~/nltk_data
+          key: digest-models-v1-${{ hashFiles('requirements.txt') }}-potion-retrieval-32M-punkt_tab
+          restore-keys: |
+            digest-models-v1-
+
+      - name: Warm model + nltk data (no-op on cache hit)
+        run: |
+          python - <<'PY'
+          from model2vec import StaticModel
+          import nltk
+          StaticModel.from_pretrained("minishlab/potion-retrieval-32M")
+          nltk.download("punkt_tab", quiet=True)
+          PY
 
       - name: Run the digest pipeline
         env:
           AGENTMAIL_API_KEY: ${{ secrets.AGENTMAIL_API_KEY }}
           AGENTMAIL_INBOX: ${{ secrets.AGENTMAIL_INBOX }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: python3 main.py digest --verbose
 
       - name: Commit reading-hub updates

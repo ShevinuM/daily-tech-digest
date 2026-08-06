@@ -71,7 +71,7 @@ done
 
 # --- files that should never be tracked, by exact name ---------------------
 NEVER_COMMIT=(
-  ROUTINE_PROMPT.md CLAUDE_CODE_PROMPT.md PLAN.md
+  ROUTINE_PROMPT.md CLAUDE_CODE_PROMPT.md PLAN.md ADVISE.md
   config.json.local
   digest_feed.json digest.html fetch.log fetch.err
   .agentmail_pending_delete.json

@@ -1,9 +1,13 @@
 """Medium — public RSS tag feeds.
 
-Caveat worth knowing before you rely on this: RSS cannot distinguish member-only
-stories from free ones, so every item is flagged `paywalled: true` and the digest
-drops them under its no-paywall rule. Kept because it costs nothing locally and
-the flag is honest, but it has contributed no items in practice.
+Caveat worth knowing before you rely on this: RSS cannot distinguish
+member-only stories from free ones, so every item is flagged
+`paywalled: true`. Under `config.json`'s `pools.allow_paywalled`, these items
+still enter pool 2 — the site renders a "member-only" badge instead of
+dropping them outright — but they're capped hard at `pool3.max_per_source`
+(3) since Medium also 403s our body-fetcher every time (`config.json`'s
+`enrich.skip_sources`), so they're only ever scored/summarized on their
+short RSS description.
 
 Set ENABLED = False (or delete this file) to skip it.
 """

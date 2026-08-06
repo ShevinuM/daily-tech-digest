@@ -18,6 +18,7 @@ const digests = defineCollection({
 						source: z.string(),
 						publishedAt: z.string(),
 						tags: z.array(z.string()).default([]),
+						paywalled: z.boolean().default(false),
 						summary: z.string(),
 					}),
 				),

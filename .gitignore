@@ -5,6 +5,7 @@
 ROUTINE_PROMPT.md
 CLAUDE_CODE_PROMPT.md
 PLAN.md
+ADVISE.md
 
 # ---------------------------------------------------------------------------
 # Secrets — nothing should ever land here, but guard anyway

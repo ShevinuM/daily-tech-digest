@@ -1,98 +1,102 @@
-"""LLM prompt templates, as Python string constants (not committed .md
-instruction files — this is a template consumed programmatically, unit
+"""LLM prompt template, as a Python string constant (not a committed .md
+instruction file — this is a template consumed programmatically, unit
 testable, and versioned with the code that calls it).
 
-Two small batched calls per run, not one call per item:
-  1. SELECTION — given trimmed metadata for every qualified candidate, pick
-     and rank the target count, assigning each a section.
-  2. SUMMARY — given full detail for just the selected items (already
-     grouped by section), write the prose: an intro line, section headings,
-     and a summary per item.
-Splitting this way means the larger candidate list (which can be 50-100+
-items) never carries a full body excerpt through the model, only the
-already-narrowed selection does.
+One call per run. Freshness, paywall status, tech-only filtering, dedupe,
+topic relevance, and summarization are all done in Python before this ever
+runs (rank/pools.py, rank/relevance.py, rank/summarize.py) — the only thing
+left for the model is genuine editorial judgement: which of the pre-scored
+candidates to keep, how to group and title them, and turning each one's
+extractive summary into prose. No item carries a `url` or `published_at`
+into the prompt at all; `main.py`'s `_reconcile_digest` keys the model's
+response back to our own data by index, so a hallucinated or
+prompt-injected URL can never reach the public site.
 """
 from __future__ import annotations
 
 import json
+import re
 
-SELECTION_INSTRUCTIONS = """\
-You are selecting items for a developer's daily tech reading digest.
+import utils
 
-Below is the reader's Interests & Rules file (plain English — it is the
-authoritative source for what belongs in the digest; follow it exactly) and
-a list of candidate items already filtered to be fresh (published within
-the last 24h) and not paywalled.
+_URL_RE = re.compile(r"https?://\S+|\bwww\.\S+", re.I)
 
-Your job: pick the {target_count} most important items (±1 is fine if there
-genuinely aren't enough good candidates — never pad with low-value items to
-hit the count), rank them best-first, and assign each one a short section
-name (a topic grouping like "Agent & AI-Engineering Craft" or "Developer
-Tooling & Craft" — invent sensible section names from the content, don't
-force every item into a fixed list).
+DIGEST_INSTRUCTIONS = """\
+You are writing a developer's daily tech reading digest. The candidates
+below have already been fetched, filtered for freshness/paywall/topic, and
+ranked by relevance — your job is editorial judgement and prose, not
+filtering.
 
-Hard requirements:
-- Tech only. Drop anything that is general world news, politics, sports, or
-  not genuinely about software/tech/AI.
-- Respect the Interests & Rules file's topic priorities, "My stack" filter,
-  "Dial up" / "Dial down" lists, and every bullet under "Rules" (including
-  any cap on AI/LLM share of the digest) as hard constraints.
-- When there are more good candidates than slots, keep the most important
-  ones — never drop a high-value item to force section balance.
-- Prefer accessible, practical, hands-on writing over dense academic or
-  deep infra-internals pieces, per the Rules.
+Below is the reader's Interests & Rules file (plain English — the
+authoritative source for priorities, stack, and tone) and {candidate_count}
+pre-scored candidate items, each with an extractive summary already pulled
+from its source text.
+
+Your job:
+1. Pick the best {target_count} items for today's digest (±1 is fine if
+   there genuinely aren't enough good candidates — never pad with low-value
+   items to hit the count), rank them best-first.
+2. Group them into sections you invent from the content (a topic grouping
+   like "Agent & AI-Engineering Craft" or "Developer Tooling & Craft"), each
+   with a short heading carrying one leading emoji.
+3. Rewrite each chosen item's extractive summary into flowing prose,
+   ~120-200 words, explaining what it is and why it matters to a developer
+   growing their craft. Stay accurate to the given summary — invent no
+   specifics you can't see in it.
+4. Write one `intro` line: just today's date-appropriate hook naming the
+   dominant theme(s). No meta-commentary ("curated", "ranked by priority",
+   "N most worth-reading", read-time estimates, "every item links to its
+   source").
+
+Respect the Interests & Rules file's topic priorities, "My stack" filter,
+"Dial up" / "Dial down" lists, the AI/LLM share cap, and its preference for
+accessible, practical writing over dense academic or deep infra-internals
+pieces.
 
 === INTERESTS & RULES ===
 {interests}
 === END INTERESTS & RULES ===
 
 === CANDIDATES (JSON array) ===
-{candidates}
+{items}
 === END CANDIDATES ===
-
-Respond with ONLY a JSON array, best-first, of objects shaped exactly like:
-[{{"url": "<the exact url from the candidate list>", "section": "<short section name>"}}]
-No prose, no markdown fences, just the JSON array.
-"""
-
-SUMMARY_INSTRUCTIONS = """\
-You are writing the prose for a developer's daily tech reading digest. The
-items below have already been selected and grouped into sections — do not
-add, remove, or re-group items. Your job is purely to write:
-
-- `intro`: a single minimal line — just today's date-appropriate hook naming
-  the dominant theme(s). No meta-commentary ("curated", "ranked by
-  priority", "N most worth-reading", read-time estimates, "every item links
-  to its source") — just what's notable today, one line.
-- for each section, a `heading` (a short, punchy title with one leading
-  emoji) and for each item a `summary`: substantive, ~120-200 words,
-  explaining what it is and why it matters to a developer growing their
-  craft. Do not invent specifics you can't see in the item's description —
-  stay accurate to what's given.
-
-=== SELECTED ITEMS, GROUPED BY SECTION (JSON) ===
-{grouped}
-=== END SELECTED ITEMS ===
 
 Respond with ONLY JSON shaped exactly like:
 {{"intro": "<one line>", "sections": [{{"heading": "<emoji> <title>", "items": [
-  {{"url": "<exact url>", "title": "<exact title>", "source": "<exact source>",
-    "publishedAt": "<exact published_at>", "tags": [<exact tags>], "summary": "<your summary>"}}
+  {{"i": <int index from the candidate list>, "summary": "<your rewritten prose>"}}
 ]}}]}}
-Preserve the given section order and item order within each section. No
-prose, no markdown fences, just the JSON object.
+Do not include url, title, source, or tags in your response — those are
+filled in from our own data afterward, keyed by `i`. No prose, no markdown
+fences, just the JSON object.
 """
 
 
-def build_selection_prompt(interests_text: str, candidates: list[dict], target_count: int) -> str:
-    return SELECTION_INSTRUCTIONS.format(
+def _scrub(text: str) -> str:
+    """Last line of defence for the no-URL invariant. Every string that
+    reaches the model passes through here, regardless of which upstream
+    stage produced it — title, tag, and summary all have paths that bypass
+    rank/enrich.clean_for_summary() (e.g. a newsletter link with no anchor
+    text, or a pool-3 item whose enrichment failed and fell back to a raw
+    description)."""
+    return re.sub(r"\s{2,}", " ", _URL_RE.sub(" ", text or "")).strip()
+
+
+def build_digest_prompt(interests_text: str, items: list[dict], target_count: int) -> str:
+    """`items` are pool-3 items, already carrying a `summary` (from
+    rank/summarize.py). Builds the minimal per-item payload — no url, no
+    published_at — indexed contiguously from 0; `main.py`'s
+    `_reconcile_digest` maps the model's response back to these same items
+    by that index."""
+    payload = []
+    for i, it in enumerate(items):
+        title = _scrub(it.get("title", "")) or utils.slug_words(it.get("url", "")) or "Untitled"
+        tags = [_scrub(t) for t in (it.get("tags") or [])]
+        summary = _scrub(it.get("summary", ""))
+        payload.append({"i": i, "title": title, "source": it.get("source", ""),
+                         "tags": tags, "summary": summary})
+    return DIGEST_INSTRUCTIONS.format(
         target_count=target_count,
+        candidate_count=len(payload),
         interests=interests_text.strip(),
-        candidates=json.dumps(candidates, ensure_ascii=False),
-    )
-
-
-def build_summary_prompt(grouped_sections: list[dict]) -> str:
-    return SUMMARY_INSTRUCTIONS.format(
-        grouped=json.dumps(grouped_sections, ensure_ascii=False),
+        items=json.dumps(payload, ensure_ascii=False),
     )

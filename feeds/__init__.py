@@ -49,3 +49,27 @@ def discover(only: list[str] | None = None) -> list:
 
 def names() -> list[str]:
     return [m.NAME for m in discover()]
+
+
+_BODY_FETCHERS: dict | None = None
+
+
+def body_fetcher(source: str):
+    """Return the `fetch_body(item) -> str | None` hook belonging to the
+    feed module that produced `source`, or None if no module claims it or
+    defines one.
+
+    Matches on a module's `SOURCE` attribute (falling back to `NAME`) rather
+    than `NAME` alone, since a module's item `source` field doesn't always
+    equal its `NAME` (feeds/dev_to.py: NAME="dev_to", but every item it
+    emits carries source="dev.to").
+
+    Builds the source -> hook map once and caches it — `rank/enrich.py`
+    calls this once per item, across a thread pool; without caching, that's
+    a `pkgutil.iter_modules` filesystem scan plus an `importlib.import_module`
+    per item, and a first-import race between worker threads."""
+    global _BODY_FETCHERS
+    if _BODY_FETCHERS is None:
+        _BODY_FETCHERS = {getattr(m, "SOURCE", m.NAME): getattr(m, "fetch_body", None)
+                          for m in discover()}
+    return _BODY_FETCHERS.get(source)
