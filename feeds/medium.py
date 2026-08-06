@@ -1,13 +1,8 @@
 """Medium — public RSS tag feeds.
 
-Caveat worth knowing before you rely on this: RSS cannot distinguish
-member-only stories from free ones, so every item is flagged
-`paywalled: true`. Under `config.json`'s `pools.allow_paywalled`, these items
-still enter pool 2 — the site renders a "member-only" badge instead of
-dropping them outright — but they're capped hard at `pool3.max_per_source`
-(3) since Medium also 403s our body-fetcher every time (`config.json`'s
-`enrich.skip_sources`), so they're only ever scored/summarized on their
-short RSS description.
+RSS metadata is limited, and Medium 403s our body-fetcher every time
+(`config.json`'s `enrich.skip_sources`), so these items are scored/summarized
+on their RSS description.
 
 Set ENABLED = False (or delete this file) to skip it.
 """
@@ -56,11 +51,8 @@ def fetch(cutoff, *, verbose=False, **_):
                 author=utils.rss_field(block, "dc:creator"),
                 tags=utils.rss_categories(block),
                 description=utils.strip_html(snip.group(1) if snip else desc, 400),
-                paywalled=True,
-                paywall_note="Medium RSS cannot identify member-only stories; "
-                             "verify a free version before including.",
             )
 
     out = sorted(seen.values(), key=lambda x: x["published_at"], reverse=True)
-    utils.log(f"{NAME}: {len(out)} fresh (all paywall-flagged)", verbose=verbose)
+    utils.log(f"{NAME}: {len(out)} fresh", verbose=verbose)
     return out, errors

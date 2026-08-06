@@ -52,7 +52,6 @@ def fetch(cutoff, *, verbose=False, **_):
                 author=(a.get("user") or {}).get("username"),
                 tags=a.get("tag_list") or [],
                 description=(a.get("description") or "").strip(),
-                paywalled=False,
                 path=a.get("path", "").lstrip("/"),
                 reactions=a.get("public_reactions_count", 0),
                 comments=a.get("comments_count", 0),

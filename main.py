@@ -104,8 +104,6 @@ def _run_feeds(*, now: datetime, cutoff: datetime, only: list[str] | None,
         ordered.extend(per_source[name])
 
     total = len(ordered)
-    usable = sum(1 for i in ordered if not i.get("paywalled"))
-
     return {
         "generated_at": utils.iso(now),
         "cutoff": utils.iso(cutoff),
@@ -113,7 +111,7 @@ def _run_feeds(*, now: datetime, cutoff: datetime, only: list[str] | None,
         "feeds": sorted(per_source),
         "counts": {k: len(v) for k, v in sorted(per_source.items())},
         "total_items": total,
-        "usable_items": usable,
+        "usable_items": total,
         "errors": errors,
         "items": ordered,
     }
@@ -141,7 +139,7 @@ def cmd_fetch(args) -> int:
         return 2
 
     counts = "  ".join(f"{k}={v}" for k, v in sorted(payload["counts"].items()))
-    print(f"{payload['total_items']} items ({payload['usable_items']} not paywall-flagged) "
+    print(f"{payload['total_items']} items ({payload['usable_items']} usable) "
           f"-> {out}  {counts}")
     if payload["errors"]:
         print(f"{len(payload['errors'])} error(s):", file=sys.stderr)
@@ -262,8 +260,8 @@ def _compute_target_item_count(reading_pace_log: list[dict], cfg: dict) -> tuple
 
 def _reconcile_digest(digest, pool3: list[dict]) -> dict:
     """Trust only prose (`intro`, section `heading`, item `summary`) from the
-    model's digest call. Factual fields — url/title/source/publishedAt/tags/
-    paywalled — are taken from our own pool-3 data, keyed by the integer
+    model's digest call. Factual fields — url/title/source/publishedAt/tags —
+    are taken from our own pool-3 data, keyed by the integer
     index `i` the model was given (never a url: no candidate carries a url
     into the prompt at all now, which removes an entire class of
     injection — see rank/prompt.py). Non-int, out-of-range, and duplicate
@@ -290,7 +288,6 @@ def _reconcile_digest(digest, pool3: list[dict]) -> dict:
                 "source": cand.get("source", ""),
                 "publishedAt": cand.get("published_at", ""),
                 "tags": cand.get("tags") or [],
-                "paywalled": bool(cand.get("paywalled")),
                 "summary": item.get("summary", "") if isinstance(item.get("summary"), str) else "",
             })
         if items_out:
@@ -338,7 +335,7 @@ def cmd_digest(args) -> int:
     # 3. Pool 2 — deterministic per-source thresholds/caps (rank/pools.py)
     pool2 = rank_pools.build_pool2(fetch_payload["items"], newsletter_items, cutoff, cfg)
     if not pool2:
-        print("no qualifying candidates (all stale, paywalled, or empty)", file=sys.stderr)
+        print("no qualifying candidates (all stale or empty)", file=sys.stderr)
         return 1
     utils.log(f"pool2: {len(pool2)} item(s)", verbose=verbose)
 

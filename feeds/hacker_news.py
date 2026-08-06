@@ -1,8 +1,7 @@
 """Hacker News — Firebase API, no auth.
 
-Scans the top stories and keeps fresh ones above a score floor. Links pointing
-at known paywall domains are flagged; the HN discussion URL is always included
-since it's readable either way.
+Scans the top stories and keeps fresh ones above a score floor. The HN
+discussion URL is always included.
 """
 
 from __future__ import annotations

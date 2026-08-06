@@ -20,8 +20,7 @@
   },
 
   "pools": {
-    "_comment": "Decision A1: Medium enters pool 2 despite being paywall-flagged; the site renders a member-only badge. See reading-hub/interests.md's paywall rule, edited to match.",
-    "allow_paywalled": true,
+    "_comment": "Pool-2 thresholds/caps are deterministic and source-specific.",
     "pool2": {
       "dev.to":              {"min_reactions": 2, "cap": 25, "sort_key": "reactions"},
       "hacker_news":         {"min_score": 40,    "cap": 25, "sort_key": "score"},

@@ -34,11 +34,9 @@ def _apply_floors(items: list[dict], rule: dict) -> list[dict]:
 def build_pool2(feed_items: list[dict], newsletter_items: list[dict],
                  cutoff: datetime, cfg: dict) -> list[dict]:
     pools_cfg = cfg.get("pools", {})
-    allow_paywalled = bool(pools_cfg.get("allow_paywalled", False))
     pool2_cfg = pools_cfg.get("pool2", {})
 
-    candidates = merge.assemble(feed_items, newsletter_items, cutoff,
-                                 allow_paywalled=allow_paywalled)
+    candidates = merge.assemble(feed_items, newsletter_items, cutoff)
 
     groups: dict[str, list[dict]] = {}
     for item in candidates:

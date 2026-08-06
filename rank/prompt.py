@@ -2,7 +2,7 @@
 instruction file — this is a template consumed programmatically, unit
 testable, and versioned with the code that calls it).
 
-One call per run. Freshness, paywall status, tech-only filtering, dedupe,
+One call per run. Freshness, topic filtering, dedupe,
 topic relevance, and summarization are all done in Python before this ever
 runs (rank/pools.py, rank/relevance.py, rank/summarize.py) — the only thing
 left for the model is genuine editorial judgement: which of the pre-scored
@@ -23,7 +23,7 @@ _URL_RE = re.compile(r"https?://\S+|\bwww\.\S+", re.I)
 
 DIGEST_INSTRUCTIONS = """\
 You are writing a developer's daily tech reading digest. The candidates
-below have already been fetched, filtered for freshness/paywall/topic, and
+below have already been fetched, filtered for freshness/topic, and
 ranked by relevance — your job is editorial judgement and prose, not
 filtering.
 

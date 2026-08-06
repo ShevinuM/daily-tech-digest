@@ -33,17 +33,16 @@ def fetch(cutoff, *, verbose=False, **_):
         if when < cutoff:
             continue
         out.append(utils.item(
-            source=NAME,
-            title=utils.rss_field(block, "title"),
-            url=utils.rss_field(block, "link"),
-            published_at=utils.iso(when),
-            author=utils.rss_field(block, "dc:creator"),
-            description=utils.strip_html(utils.rss_field(block, "description"), 400),
-            paywalled=False,
-            body_excerpt=utils.strip_html(
-                utils.rss_field(block, "content:encoded"), BODY_CHARS
-            ),
-        ))
+                source=NAME,
+                title=utils.rss_field(block, "title"),
+                url=utils.rss_field(block, "link"),
+                published_at=utils.iso(when),
+                author=utils.rss_field(block, "dc:creator"),
+                description=utils.strip_html(utils.rss_field(block, "description"), 400),
+                body_excerpt=utils.strip_html(
+                    utils.rss_field(block, "content:encoded"), BODY_CHARS
+                ),
+            ))
 
     utils.log(
         f"{NAME}: {len(out)} fresh (newest post "

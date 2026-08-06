@@ -33,8 +33,8 @@ GitHub Actions (cron, .github/workflows/digest.yml)
   12. astro build -> deploy to GitHub Pages
 ```
 
-Deterministic work — fetching, filtering, deduping, date-verifying, paywall
-detection, per-source thresholds, topic-relevance scoring, and extractive
+Deterministic work — fetching, filtering, deduping, date-verifying,
+per-source thresholds, topic-relevance scoring, and extractive
 summarization — is plain Python (stdlib plus model2vec/sumy/trafilatura, no
 LLM calls). What's left for the model is genuine judgement: which of the
 ~25 pre-scored candidates to keep, how to group them, and rewriting each
@@ -52,7 +52,7 @@ digest *output* stays public.
 
 ```
 main.py                  CLI: feeds / fetch / digest / pools / delete-threads
-utils.py                 http, RSS parsing, dates, paywall detection, item shape
+utils.py                 http, RSS parsing, dates, item shape
 feeds/                   one module per source, auto-discovered
   dev_to.py  medium.py  pragmatic_engineer.py  hacker_news.py
 newsletters/             AgentMail REST client, classification, unsubscribe
@@ -63,7 +63,7 @@ rank/
   summarize.py            sumy TextRank extractive summaries
   prompt.py               the one LLM prompt template
   llm_client.py           Gemini -> Groq -> OpenRouter fallback, plain urllib
-  merge.py                cutoff/dedupe/paywall assembly (used by pools.py)
+  merge.py                cutoff/dedupe assembly (used by pools.py)
   write_site_content.py   site-content + reading-hub JSON writer
 site/                    Astro site (content collection `digests`)
 reading-hub/             git submodule -> private daily-tech-digest-hub repo
@@ -201,12 +201,6 @@ ln -sf ../../scripts/check-secrets.sh .git/hooks/pre-commit
   resurface 1-2 day old stories; an item is only kept if its original
   publish date can be established from its URL (a `/YYYY/MM/DD/` path, or an
   X/Twitter snowflake ID) — otherwise it's dropped rather than guessed at.
-- **No paywall workaround.** A paywalled item is dropped outright rather than
-  searched for a free mirror — except Medium, whose RSS feeds can't
-  distinguish member-only stories from free ones at all; those are let
-  through with a "member-only" badge instead of being dropped wholesale
-  (see `reading-hub/interests.md`'s paywall rule and `config.json`'s
-  `pools.allow_paywalled`).
 - **Reading-pace calibration is semi-manual.** An unattended run can only
   log an *estimated* read time; edit `reading-hub/reading-pace.json` by hand
   whenever you want to record an actual one.

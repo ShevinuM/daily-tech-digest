@@ -116,7 +116,7 @@ HN = {
         "time": int(FRESH.timestamp()), "score": 300, "by": "u1", "descendants": 80},
     2: {"type": "story", "id": 2, "title": "HN fresh low", "url": "https://ex.com/2",
         "time": int(FRESH.timestamp()), "score": 5, "by": "u2", "descendants": 1},
-    3: {"type": "story", "id": 3, "title": "HN paywalled",
+    3: {"type": "story", "id": 3, "title": "HN premium-domain",
         "url": "https://www.wsj.com/x", "time": int(FRESH.timestamp()),
         "score": 200, "by": "u3", "descendants": 10},
 }
@@ -161,19 +161,15 @@ def test_utils():
     check("clean_url strips ?source=",
           utils.clean_url("https://a.com/b?source=rss--1") == "https://a.com/b")
 
-    section("utils / item + paywall")
-    check("paywall hint matches medium not dev.to",
-          utils.is_paywalled("https://medium.com/x")
-          and not utils.is_paywalled("https://dev.to/x"))
+    section("utils / item")
     it = utils.item(source="s", title=" T ", url="https://wsj.com/a?source=x",
                     published_at="2026-01-01T00:00:00Z")
     check("item strips tracking + trims title",
           it["url"] == "https://wsj.com/a" and it["title"] == "T", it)
-    check("item auto-detects paywall", it["paywalled"] is True)
     check("item has every required field",
           all(k in it for k in utils.ITEM_FIELDS))
     it2 = utils.item(source="s", title="T", url="https://dev.to/a",
-                     published_at="x", paywalled=False, score=9)
+                     published_at="x", score=9)
     check("item keeps source-specific extras", it2["score"] == 9)
 
     section("utils / parallel")
@@ -219,7 +215,6 @@ def test_feeds():
           all("stale" not in i["url"] for i in d), [i["url"] for i in d])
     check("dedupes across overlapping feeds", len(d) == 2, len(d))
     check("ranks by reaction count", d[0]["title"] == "Fresh B", d[0]["title"])
-    check("not flagged paywalled", all(not i["paywalled"] for i in d))
     check("no errors on happy path", e == [], e)
     check("fetch() no longer pre-fetches bodies (moved to rank/enrich.py)",
           all(i["body_excerpt"] is None for i in d))
@@ -236,8 +231,6 @@ def test_feeds():
     check("drops stale", len(m) == 1, len(m))
     check("strips ?source= tracking param",
           m[0]["url"] == "https://medium.com/@x/fresh-abc", m[0]["url"])
-    check("every item flagged paywalled", m[0]["paywalled"] is True)
-    check("carries a paywall note", "paywall_note" in m[0])
     check("snippet html stripped cleanly",
           m[0]["description"] == "A snippet here.", repr(m[0]["description"]))
     check("categories parsed", m[0]["tags"] == ["python", "api"], m[0]["tags"])
@@ -247,15 +240,12 @@ def test_feeds():
     check("drops stale", len(p) == 1, len(p))
     check("full body from content:encoded",
           p[0]["body_excerpt"] == "Full body here.", repr(p[0]["body_excerpt"]))
-    check("not flagged paywalled", p[0]["paywalled"] is False)
 
     section("feeds / hacker_news")
     h, _ = hacker_news.fetch(CUTOFF, verbose=False)
     check("score floor applied",
           all(i["score"] >= hacker_news.MIN_SCORE for i in h), [i["score"] for i in h])
     check("kept 2 of 3 stories", len(h) == 2, len(h))
-    check("paywall domain flagged",
-          any(i["paywalled"] for i in h if "wsj" in i["url"]))
     check("sorted by score desc", h[0]["score"] == 300, h[0]["score"])
     check("discussion url always present",
           all(i["discussion_url"].startswith("https://news.ycombinator.com")
@@ -417,21 +407,21 @@ def test_rank():
 
     feed_items = [
         utils.item(source="dev.to", title="Fresh", url="https://a.com/1",
-                   published_at=fresh_iso, paywalled=False),
+                   published_at=fresh_iso),
         utils.item(source="medium", title="Paywalled", url="https://medium.com/2",
                    published_at=fresh_iso),
         utils.item(source="dev.to", title="Stale", url="https://a.com/3",
-                   published_at=stale_iso, paywalled=False),
+                   published_at=stale_iso),
     ]
     news_items = [
         utils.item(source="newsletter:x", title="Dup", url="https://a.com/1", published_at=fresh_iso),
         utils.item(source="newsletter:x", title="New", url="https://a.com/4", published_at=fresh_iso),
     ]
     merged = rank_merge.assemble(feed_items, news_items, CUTOFF)
-    check("drops paywalled items", all("medium.com" not in i["url"] for i in merged), merged)
+    check("keeps medium items when fresh", any("medium.com" in i["url"] for i in merged), merged)
     check("drops stale items", all("/3" not in i["url"] for i in merged))
     check("dedupes by url, feed item wins",
-          len(merged) == 2 and merged[0]["source"] == "dev.to", merged)
+          len(merged) == 3 and merged[0]["source"] == "dev.to", merged)
     check("keeps unique newsletter item", any(i["url"] == "https://a.com/4" for i in merged))
 
     unsafe_scheme_items = [utils.item(source="x", title="T", url="javascript:alert(1)",
@@ -440,11 +430,6 @@ def test_rank():
     check("drops non-http(s) scheme urls (never becomes a live <a href>)",
           merged_unsafe == [], merged_unsafe)
 
-    merged_allowed = rank_merge.assemble(feed_items, news_items, CUTOFF, allow_paywalled=True)
-    check("allow_paywalled=True keeps paywalled items",
-          any("medium.com" in i["url"] for i in merged_allowed), merged_allowed)
-
-
 def test_pools():
     section("rank / pools - build_pool2")
     fresh_iso = utils.iso(NOW - timedelta(hours=1))
@@ -452,11 +437,11 @@ def test_pools():
 
     def devto(n, reactions):
         return utils.item(source="dev.to", title=f"dev {n}", url=f"https://dev.to/{n}",
-                          published_at=fresh_iso, paywalled=False, reactions=reactions)
+                          published_at=fresh_iso, reactions=reactions)
 
     def hn(n, score):
         return utils.item(source="hacker_news", title=f"hn {n}", url=f"https://ex.com/{n}",
-                          published_at=fresh_iso, paywalled=False, score=score)
+                          published_at=fresh_iso, score=score)
 
     feed_items = (
         [devto(i, 100 - i) for i in range(30)]     # 30 dev.to items, all above the floor
@@ -464,9 +449,9 @@ def test_pools():
         + [hn(i, 100 - i) for i in range(30)]         # 30 hn items, all above the floor
         + [hn("low", 5)]                             # below min_score=40
         + [utils.item(source="medium", title="M", url="https://medium.com/x",
-                       published_at=fresh_iso, paywalled=True)]
+                       published_at=fresh_iso)]
         + [utils.item(source="dev.to", title="Stale", url="https://dev.to/stale",
-                       published_at=stale_iso, paywalled=False, reactions=999)]
+                       published_at=stale_iso, reactions=999)]
         + [devto(0, 100)]  # duplicate url of dev.to/0 -> deduped by merge.assemble
     )
     news_items = [
@@ -478,7 +463,6 @@ def test_pools():
 
     cfg = {
         "pools": {
-            "allow_paywalled": True,
             "pool2": {
                 "dev.to": {"min_reactions": 2, "cap": 25, "sort_key": "reactions"},
                 "hacker_news": {"min_score": 40, "cap": 25, "sort_key": "score"},
@@ -510,7 +494,7 @@ def test_pools():
     check("hacker_news below min_score floor dropped",
           all(i["url"] != "https://ex.com/low" for i in by_source.get("hacker_news", [])))
 
-    check("medium passes through uncapped despite paywalled (allow_paywalled=True)",
+    check("medium passes through uncapped",
           len(by_source.get("medium", [])) == 1, by_source.get("medium"))
     check("newsletter:<sender> items grouped under one 'newsletter' config rule and capped",
           len(by_source.get("newsletter", [])) == 1, by_source.get("newsletter"))
@@ -1270,9 +1254,9 @@ def test_digest_helpers():
     section("main / reconcile digest against known pool3 items (anti-hallucination, index-keyed)")
     pool3 = [
         {"url": "https://a.com/1", "title": "Real Title", "source": "dev.to",
-         "published_at": "2026-08-05T00:00:00Z", "tags": ["ai"], "paywalled": False},
+         "published_at": "2026-08-05T00:00:00Z", "tags": ["ai"]},
         {"url": "https://b.com/2", "title": "Second Title", "source": "medium",
-         "published_at": "2026-08-05T01:00:00Z", "tags": [], "paywalled": True},
+         "published_at": "2026-08-05T01:00:00Z", "tags": []},
     ]
     model_digest = {
         "intro": "today's hook",
@@ -1300,8 +1284,6 @@ def test_digest_helpers():
           and kept["url"] == "https://a.com/1"
           and kept["publishedAt"] == "2026-08-05T00:00:00Z" and kept["tags"] == ["ai"], kept)
     check("only the summary is trusted from the model", kept["summary"] == "a real summary")
-    check("paywalled is carried through from our data (for the member-only badge)",
-          kept["paywalled"] is False)
 
     all_invalid = M._reconcile_digest(
         {"intro": "x", "sections": [{"heading": "h", "items": [

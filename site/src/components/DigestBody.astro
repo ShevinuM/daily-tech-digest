@@ -5,7 +5,6 @@ interface Item {
 	source: string;
 	publishedAt: string;
 	tags: string[];
-	paywalled: boolean;
 	summary: string;
 }
 interface Section {
@@ -48,7 +47,6 @@ function formatDate(iso: string) {
 							<a href={item.url} target="_blank" rel="noopener noreferrer">
 								{item.title}
 							</a>
-							{item.paywalled && <span class="badge-member-only">member-only</span>}
 						</h3>
 						<p class="item-meta">
 							{item.source} · Published {formatDate(item.publishedAt)}

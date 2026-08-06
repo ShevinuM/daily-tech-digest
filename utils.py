@@ -15,14 +15,6 @@ from urllib.parse import urlparse
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) digest-fetcher/2.0"
 TIMEOUT = 20
 
-# Domains that habitually paywall. Items from these are flagged, not dropped —
-# the digest applies its own no-paywall rule.
-PAYWALL_HINTS = (
-    "medium.com", "towardsdatascience.com", "levelup.gitconnected.com",
-    "betterprogramming.pub", "wsj.com", "ft.com", "nytimes.com",
-    "theinformation.com", "bloomberg.com", "economist.com", "newyorker.com",
-)
-
 _ctx = ssl.create_default_context()
 
 
@@ -127,10 +119,6 @@ def clean_url(url: str) -> str:
     return (url or "").split("?source=")[0].strip()
 
 
-def is_paywalled(url: str) -> bool:
-    return any(h in (url or "") for h in PAYWALL_HINTS)
-
-
 def slug_words(url: str, limit: int = 20) -> str:
     """Readable words from a URL path — a usable title/label for a link that
     has no anchor text, without carrying the URL itself into any text a
@@ -146,12 +134,12 @@ def slug_words(url: str, limit: int = 20) -> str:
 
 ITEM_FIELDS = (
     "source", "title", "url", "published_at", "author", "tags",
-    "description", "paywalled", "body_excerpt",
+    "description", "body_excerpt",
 )
 
 
 def item(*, source, title, url, published_at, author=None, tags=None,
-         description="", paywalled=None, body_excerpt=None, **extra) -> dict:
+         description="", body_excerpt=None, **extra) -> dict:
     """Build one normalised item. Every feed module returns these.
 
     `extra` carries source-specific signals (reactions, score, discussion_url)
@@ -166,7 +154,6 @@ def item(*, source, title, url, published_at, author=None, tags=None,
         "author": author,
         "tags": tags or [],
         "description": description or "",
-        "paywalled": is_paywalled(url) if paywalled is None else bool(paywalled),
         "body_excerpt": body_excerpt,
     }
     d.update(extra)
