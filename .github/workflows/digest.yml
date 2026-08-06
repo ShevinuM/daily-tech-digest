@@ -76,15 +76,16 @@ jobs:
       - name: Commit reading-hub updates
         working-directory: reading-hub
         run: |
-          # actions/checkout leaves submodules in detached HEAD; move onto
-          # main before committing (the working-tree edits main.py already
-          # made survive this, it's the same tree as origin/main's tip).
-          git checkout main
           git config user.name "daily-tech-digest-bot"
           git config user.email "digest-bot@users.noreply.github.com"
           if [ -n "$(git status --porcelain)" ]; then
             git add -A
             git commit -m "Update newsletters/reading-pace ($(date -u +%F))"
+            # Submodules are checked out detached at the parent-pinned SHA.
+            # Commit on that HEAD, then replay onto latest origin/main so the
+            # push is fast-forward when no conflicts exist.
+            git fetch origin main
+            git rebase origin/main
             git push origin HEAD:main
           else
             echo "no reading-hub changes"
