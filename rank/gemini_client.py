@@ -11,7 +11,8 @@ import urllib.request
 
 API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 TIMEOUT = 60
-MAX_ATTEMPTS = 3
+MAX_ATTEMPTS = 5
+BACKOFF_BASE = 5  # seconds; sleeps are 5, 10, 20, 40 between the 5 attempts (~75s total)
 RETRYABLE_HTTP_CODES = {429, 500, 502, 503, 504}
 
 
@@ -46,7 +47,7 @@ def generate_json(prompt: str, *, api_key: str, model: str = "gemini-2.5-flash",
             reason = getattr(e, "reason", e)
             if attempt == MAX_ATTEMPTS - 1:
                 raise RuntimeError(f"Gemini generateContent -> {reason}") from e
-        time.sleep(2 ** attempt)
+        time.sleep(BACKOFF_BASE * (2 ** attempt))
 
     try:
         text = data["candidates"][0]["content"]["parts"][0]["text"]
