@@ -45,6 +45,15 @@ jobs:
       - name: Install Python dependencies
         run: python -m pip install -r requirements.txt
 
+      - name: Align reading-hub submodule to latest main
+        working-directory: reading-hub
+        run: |
+          # Parent repo pins a submodule SHA, but the hub is updated every run.
+          # Move this checkout onto latest hub/main before generating updates,
+          # so writes are based on current files instead of an older detached SHA.
+          git fetch origin main
+          git checkout -B main origin/main
+
       - name: Cache embedding model + nltk data
         uses: actions/cache@v4
         with:
@@ -81,11 +90,6 @@ jobs:
           if [ -n "$(git status --porcelain)" ]; then
             git add -A
             git commit -m "Update newsletters/reading-pace ($(date -u +%F))"
-            # Submodules are checked out detached at the parent-pinned SHA.
-            # Commit on that HEAD, then replay onto latest origin/main so the
-            # push is fast-forward when no conflicts exist.
-            git fetch origin main
-            git rebase origin/main
             git push origin HEAD:main
           else
             echo "no reading-hub changes"
