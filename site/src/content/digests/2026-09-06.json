@@ -1,0 +1,145 @@
+{
+  "date": "2026-09-06",
+  "title": "Tech Reading Digest — Sunday, September 6, 2026",
+  "generatedAt": "2026-09-06T06:54:10Z",
+  "intro": "Today's digest focuses on resilient backend architecture, practical Git and CI/CD security patterns, and robust multi-agent engineering workflows.",
+  "sections": [
+    {
+      "heading": "🏗️ Backend Architecture & Systems Resilience",
+      "items": [
+        {
+          "url": "https://medium.com/@rkdixit3/8-backend-skills-that-matter-more-than-frameworks-in-2026-856054ce1ec3",
+          "title": "8 Backend Skills That Matter More Than Frameworks in 2026",
+          "source": "medium",
+          "publishedAt": "2026-09-06T06:33:11Z",
+          "tags": [
+            "software-development",
+            "architecture",
+            "database-design",
+            "system-design-interview",
+            "software-engineering"
+          ],
+          "summary": "As backend developers transition toward staff-level systems architecture, relying solely on framework conventions is rarely enough to guarantee operational stability. While frameworks accelerate initial development and shipping, real-world backend resilience depends on foundational system design skills. This write-up highlights key capabilities required to ensure software survives partial failures, traffic spikes, bad input data, and automated retries when serving real users. Mastering these concepts is essential for building robust services that remain dependable under real-world pressure."
+        },
+        {
+          "url": "https://dev.to/1nonlyrus/how-to-track-stripe-api-changes-automatically-before-they-break-your-code-m70",
+          "title": "How to Track Stripe API Changes Automatically (Before They Break Your Code)",
+          "source": "dev.to",
+          "publishedAt": "2026-09-06T04:34:41Z",
+          "tags": [
+            "stripe",
+            "webdev",
+            "javascript",
+            "typescript"
+          ],
+          "summary": "External API updates and webhook deprecations present a subtle yet dangerous risk to backend services. Using Stripe as a case study, this piece illustrates how field deprecations—such as replacing `SubscriptionItem.quantity` with `quantities[]` or removing `Invoice.payment`—can introduce silent failures into production codebases. Webhook payload changes are particularly hazardous because code accessing deprecated properties like `event.data.object.plan` will evaluate to `undefined` without throwing explicit runtime errors. For engineers designing resilient backend integrations in TypeScript, establishing proactive tracking for upstream API changes is critical to prevent silent data corruption and runtime breakage."
+        },
+        {
+          "url": "https://www.sylvainkalache.com/blog/ai-handles-incidents-engineers-lose-touch-with-their-systems",
+          "title": "AI handles incidents, engineers lose touch with their systems",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-05T07:52:50Z",
+          "tags": [],
+          "summary": "As AI-assisted incident response tools become commonplace, routine operational issues are resolved faster, driving down average mean time to resolution (MTTR). However, this automation creates an unexpected risk for engineering organizations: engineers get fewer opportunities to practice deep troubleshooting during routine outages. Comparing software engineering to aviation—where automated systems pilot aircraft until emergency conditions demand human intervention—this article warns that when complex, novel incidents occur that AI cannot handle, responders struggle to investigate because they have lost touch with their systems. Designing high-availability architecture requires maintaining operational intuition alongside automated response mechanisms."
+        }
+      ]
+    },
+    {
+      "heading": "🛠️ Developer Tooling, Git Mechanics & CI/CD",
+      "items": [
+        {
+          "url": "https://dev.to/ankurk91/deploy-to-ec2-from-github-actions-without-opening-port-22-5269",
+          "title": "Deploy to EC2 from GitHub Actions without opening port 22",
+          "source": "dev.to",
+          "publishedAt": "2026-09-05T11:02:47Z",
+          "tags": [
+            "aws",
+            "githubactions",
+            "devops",
+            "cicd"
+          ],
+          "summary": "Standard deployment patterns from CI/CD pipelines to cloud instances frequently rely on storing SSH private keys in repository secrets and opening inbound port 22 on the target server. This guide details a more secure deployment alternative using AWS Systems Manager (SSM) Run Command directly within GitHub Actions. Because the SSM Agent running on the EC2 instance establishes an outbound connection to AWS, deployment commands can be dispatched securely through the AWS SSM API without exposing inbound SSH access to the internet. Securing deployment pipelines by eliminating open ingress ports is a core practice in cloud platform engineering and infrastructure architecture."
+        },
+        {
+          "url": "https://dev.to/mahirhir/git-commit-with-a-pathspec-ignored-my-index-and-committed-the-file-as-it-sat-on-disk-262g",
+          "title": "git commit with a pathspec ignored my index and committed the file as it sat on disk",
+          "source": "dev.to",
+          "publishedAt": "2026-09-05T17:23:59Z",
+          "tags": [
+            "git",
+            "devops",
+            "debugging",
+            "testing"
+          ],
+          "summary": "Understanding low-level version control mechanics prevents subtle bugs in developer workflows. This article explores a surprising Git behavior where passing explicit pathspecs to `git commit` (e.g., `git commit -- file.txt`) bypasses the staging area (index) completely. Even if a specific version of a file was explicitly staged with `git add`, invoking a pathspec commit pulls the raw state directly from the working directory on disk into the commit. Flags like `-i` do not solve this because they simply append the rest of the index. Gaining a precise mental model of Git internals is essential for reliable local scripting and pipeline automation."
+        },
+        {
+          "url": "https://packagemain.tech/p/gitignore-everything-by-default",
+          "title": ".gitignore Everything by Default",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-05T13:19:42Z",
+          "tags": [],
+          "summary": "Repository hygiene and secret prevention often rely on reactive `.gitignore` rules that continuously attempt to block untracked build artifacts, system files like `.DS_Store`, or generated agent logs. This post presents an inverted, opt-in strategy: ignore everything by default using a wildcard rule, and explicitly whitelist only required files using negation patterns (`!.gitignore`, `!.ts`, `!README.md`). By adopting a zero-trust default for file tracking, engineering teams can eliminate accidental leaks of sensitive configuration files or unwanted local dependencies. Implementing clear, fail-safe defaults is a foundational practice for secure developer tooling and repository maintainability."
+        }
+      ]
+    },
+    {
+      "heading": "🤖 Agent Engineering & AI Workflows",
+      "items": [
+        {
+          "url": "https://dev.to/raju_dandigam/multi-agent-does-not-mean-parallel-safe-workflows-with-google-adk-3j3",
+          "title": "Multi-Agent Does Not Mean Parallel: Safe Workflows with Google ADK",
+          "source": "dev.to",
+          "publishedAt": "2026-09-05T15:48:49Z",
+          "tags": [
+            "ai",
+            "googlecloud",
+            "typescript",
+            "architecture"
+          ],
+          "summary": "Designing multi-agent AI systems requires rigorous concurrency management to prevent state conflicts. Using Google ADK and TypeScript, this piece breaks down why multi-agent execution does not automatically imply parallel processing. When one agent branch mutates shared environment state while another concurrently evaluates policy or inventory based on that same state, both agents may execute locally logical decisions that produce an unsafe system state together. While read-only tasks like policy lookup and inventory checks can run concurrently safely, state-changing actions require strictly coordinated, sequential workflows to ensure system integrity."
+        },
+        {
+          "url": "https://github.com/okf-memory/okf-agent-memory",
+          "title": "OKF Agent Memory – Git-native persistent memory for AI coding agents",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-05T22:15:52Z",
+          "tags": [],
+          "summary": "Effective context management is critical when building reliable AI coding agents. OKF Agent Memory introduces a vendor-neutral, Git-native memory specification that stores project context directly in the repository directory (`knowledge/`) using Markdown files structured with YAML frontmatter. Powered by in-memory BM25 retrieval and fast graph validation executing in under a few milliseconds without network roundtrips, this open standard allows agents to maintain structured, persistent project knowledge across sessions. For systems architects, storing context natively alongside codebase version control simplifies state synchronization and eliminates external database dependencies."
+        },
+        {
+          "url": "https://dev.to/artjack/i-built-a-qa-agent-that-audits-itself-nightly-it-has-filed-79-findings-against-its-own-releases-28i2",
+          "title": "I built a QA agent that audits itself nightly. It has filed 79 findings against its own releases.",
+          "source": "dev.to",
+          "publishedAt": "2026-09-05T23:44:01Z",
+          "tags": [
+            "testing",
+            "ai",
+            "claude",
+            "opensource"
+          ],
+          "summary": "Automated testing and AI evals require robust auditing to prevent silent test suite drift. This case study details a self-auditing QA agent harness that tracks finding deltas (`NEW`, `STILL_OPEN`, `RESOLVED`, `REGRESSED`) across runs with stable issue IDs. To ensure high test fidelity, passing runs are required to explicitly declare what went untested, and bug fixes must test unvaried code axes before findings are closed. By deriving mutation catalogues directly from source code rather than existing test lists or fix documentation, the agent successfully identified hidden test gaps, offering valuable insights into building self-improving AI workflows and rigorous evaluation harnesses."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 9,
+    "sourcesScanned": [
+      "dev_to",
+      "hacker_news",
+      "medium",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "dev_to: https://dev.to/api/articles?top=1&per_page=100&page=1 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?tag=node&top=1&per_page=30 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?tag=docker&top=1&per_page=30 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?tag=javascript&top=1&per_page=30 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?tag=react&top=1&per_page=30 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?tag=ai&top=1&per_page=30 -> HTTP Error 429: Too Many Requests",
+      "enrich https://www.wsj.com/business/diamond-mines-are-closing-and-south-africans-have-few-alternatives-fa3b8cbf: HTTP Error 401: HTTP Forbidden"
+    ]
+  }
+}
