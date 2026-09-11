@@ -1,0 +1,156 @@
+{
+  "date": "2026-09-11",
+  "title": "Tech Reading Digest — Friday, September 11, 2026",
+  "generatedAt": "2026-09-11T07:03:15Z",
+  "intro": "Today’s digest highlights resilient system design, TypeScript type safety, Docker networking mechanics, and practical guardrails for agent workflows.",
+  "sections": [
+    {
+      "heading": "🏗️ Backend Architecture & Domain Design",
+      "items": [
+        {
+          "url": "https://dev.to/josec_gc/generalizing-transactions-in-nestjs-a-domain-port-over-typeorm-and-mongodb-4gmj",
+          "title": "Generalizing Transactions in NestJS: A Domain Port over TypeORM and MongoDB",
+          "source": "dev.to",
+          "publishedAt": "2026-09-10T19:16:21Z",
+          "tags": [
+            "nestjs",
+            "typescript",
+            "typeorm",
+            "mongodb"
+          ],
+          "summary": "Designing clean domain boundaries requires isolating data persistence mechanics from core business logic. This piece demonstrates how to generalize database transactions in NestJS by extracting transaction execution into a domain port. Rather than coupling controller handlers or domain services directly to an ORM's entity manager, a concrete transaction executor wraps request handlers to guarantee atomic operations—committing or discarding all writes as a single unit. The author proves the portability of this abstraction by running identical domain use cases and test suites across both TypeORM/PostgreSQL and MongoDB backends. For backend engineers working with Domain-Driven Design and MongoDB, this pattern offers a clear blueprint for dependency inversion and flexible persistence layers."
+        },
+        {
+          "url": "https://medium.com/@ritanshbagal/mastering-load-balancing-in-system-design-from-1-server-to-many-cbf09fccf64e",
+          "title": "Mastering Load Balancing in System Design: From 1 Server to Many",
+          "source": "medium",
+          "publishedAt": "2026-09-11T06:48:03Z",
+          "tags": [
+            "web-development",
+            "devops",
+            "architecture",
+            "software-engineering",
+            "design-systems"
+          ],
+          "summary": "Scaling applications from a single monolithic server to a distributed cluster requires a deep understanding of load balancing fundamentals. This guide breaks down how load balancers act as traffic directors to transform single-instance bottlenecks into resilient, horizontally scalable systems. It covers foundational routing algorithms, automated health check strategies for detecting unhealthy instances, and effective approaches to horizontal scaling. For developers stepping up into system design and staff engineering roles, mastering these load balancing techniques is essential for eliminating single points of failure, maintaining high availability, and managing variable traffic spikes across distributed infrastructure."
+        },
+        {
+          "url": "https://dev.to/alexshev/beyond-the-pin-building-a-production-ready-google-maps-stack-in-2026-480k",
+          "title": "Beyond the Pin: Building a Production-Ready Google Maps Stack in 2026",
+          "source": "dev.to",
+          "publishedAt": "2026-09-10T17:04:47Z",
+          "tags": [
+            "typescript",
+            "webdev",
+            "api",
+            "tutorial"
+          ],
+          "summary": "When building location-aware applications, blurring the boundaries between frontend presentation and backend business logic often leads to fragile systems. This architectural overview outlines a clean separation of concerns for modern map integrations. The browser layer is strictly restricted to rendering maps, handling UI markers, and managing user interactions via the Maps JavaScript API. Meanwhile, sensitive product rules, computational workloads, route calculations, place discovery, caching, and audit logging are maintained entirely within backend services. Decoupling map rendering from server-side computation and database snapshots establishes a robust architecture that secures API keys, enforces access controls, and allows independent scaling of backend business logic."
+        },
+        {
+          "url": "https://medium.com/@giuseppetrisciuoglio/ecs-fargate-microservices-aws-c6a90fcdfd10",
+          "title": "ECS Fargate: Deploying Complex Microservices on AWS",
+          "source": "medium",
+          "publishedAt": "2026-09-11T06:31:01Z",
+          "tags": [
+            "aws",
+            "software-engineering",
+            "aws-ecs",
+            "software-architecture",
+            "devops"
+          ],
+          "summary": "Integrating multiple third-party vendors often introduces complex architectural challenges due to varying external APIs and rate limits. This architecture study details the implementation of a Supplier Gateway microservice pattern on ECS Fargate. By placing a single unified interface in front of multiple hotel room providers—such as Booking.com, Expedia, and HotelBeds—the gateway abstracts away provider-specific nuances and unifies external API calls for downstream services. Deploying this boundary service on containerized infrastructure allows teams to isolate third-party integration churn, maintain consistent domain interfaces, and independently scale request routing, offering valuable design patterns for backend developers structuring complex microservices."
+        }
+      ]
+    },
+    {
+      "heading": "🛠️ Software Craft & Container Tooling",
+      "items": [
+        {
+          "url": "https://dev.to/reactchallenges/5-common-typescript-interview-questions-10jb",
+          "title": "5 common TypeScript interview questions",
+          "source": "dev.to",
+          "publishedAt": "2026-09-10T09:40:33Z",
+          "tags": [
+            "typescript",
+            "javascript",
+            "react",
+            "programming"
+          ],
+          "summary": "Writing maintainable TypeScript requires a precise understanding of its type system mechanics and idioms. This article walks through core concepts often tested in technical discussions, highlighting when to use unknown over any for untyped data like API payloads, JSON.parse outputs, or catch block errors. It clarifies the operational differences between type aliases—which support unions, intersections, and primitives—and interface declarations, which define object shapes and permit declaration merging. While declaration merging allows libraries to extend existing global types, it can also accidentally introduce bugs through unintentional typos. Developing clear conventions around when to employ types versus interfaces strengthens overall code quality and type safety across shared codebases."
+        },
+        {
+          "url": "https://dev.to/ndcodes/day-38-a-tag-is-a-name-not-a-copy-and-running-is-not-reachable-19op",
+          "title": "Day 38: A Tag Is a Name, Not a Copy, and RUNNING Is Not Reachable",
+          "source": "dev.to",
+          "publishedAt": "2026-09-10T17:00:00Z",
+          "tags": [
+            "devops",
+            "docker",
+            "aws",
+            "containers"
+          ],
+          "summary": "Container management and cloud deployments frequently suffer from subtle misunderstandings of core infrastructure mechanics. This practical write-up tackles two common container pitfalls: Docker tagging behaviors and AWS Fargate security group configurations. First, it highlights that running docker tag creates a new label pointing to an identical Image ID rather than copying any data, meaning tags are mutable references that can silently point to different image layers over time. Second, it diagnoses a Fargate deployment failure where enabling a public IP allowed outbound access to pull images from ECR, but restrictive inbound security group rules rendered the running container unreachable. Understanding these container immutability and network traffic directional rules helps developers write more reliable deployment workflows."
+        }
+      ]
+    },
+    {
+      "heading": "🤖 Agent Workflows & AI Tooling",
+      "items": [
+        {
+          "url": "https://dailyprogrammingpro.medium.com/why-andrej-karpathys-claude-md-rules-went-viral-and-how-to-build-one-b17c648e3c9a",
+          "title": "Why Andrej Karpathy’s CLAUDE.md Rules Went Viral (And How to Build One)",
+          "source": "medium",
+          "publishedAt": "2026-09-11T05:04:10Z",
+          "tags": [
+            "developer-productivity",
+            "software-development",
+            "software-engineering",
+            "artificial-intelligence",
+            "programming"
+          ],
+          "summary": "As developers increasingly integrate AI coding agents into their daily development workflows, guiding these models effectively requires clear operational constraints rather than relying solely on larger context windows or smarter base models. This overview explores the architectural mindset behind viral workspace configuration patterns like CLAUDE.md. By establishing explicit project conventions, code style guidelines, and strict behavioral boundaries upfront, engineering teams can prevent agents from making unauthorized architectural changes or writing out-of-scope code. Shifting from conversational prompting to deterministic instruction files allows developers to maintain tight control over agent-generated code while maximizing productivity across complex codebases."
+        },
+        {
+          "url": "https://dev.to/raju_dandigam/three-agent-runs-passed-one-missing-handoff-broke-the-workflow-26kb",
+          "title": "Three Agent Runs Passed. One Missing Handoff Broke the Workflow",
+          "source": "dev.to",
+          "publishedAt": "2026-09-10T14:45:48Z",
+          "tags": [
+            "ai",
+            "debugging",
+            "typescript",
+            "architecture"
+          ],
+          "summary": "Debugging multi-agent LLM systems presents unique observability challenges when individual agent steps succeed in isolation but fail during state transfer. Using a concrete TypeScript example built with agent-inspect, this article illustrates how a silent data loss bug occurs during an agent handoff. In a support workflow where a triage agent successfully categorizes a request and extracts an order reference, individual sub-steps pass validation. However, during the handoff transition to a refund specialist agent, the orderRef payload key is omitted from the handoff metadata. For developers building agentic workflows in TypeScript, this case study underscores the necessity of structured step tracing, payload inspection, and explicit contract validation between agent state boundaries."
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/agents-api/overview",
+          "title": "OpenAI Agents API",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-10T19:43:22Z",
+          "tags": [],
+          "summary": "OpenAI’s Agents API introduces a standardized framework for building autonomous agentic applications. The API centers around four core primitives: Agents, Instructions, Tools, and Model Context Protocol (MCP) servers. Under an OpenAI-hosted session model, client applications stream inputs and listen for events while the platform handles remote execution, state management, and sandboxed environments. Developers configure agent capabilities directly through SDK sessions—specifying models, domain instructions, and tool integrations such as documentation search servers. Understanding this architecture gives developers insight into how managed agent platforms simplify context management, tool execution, and isolated sandboxing when deploying agentic workflows into production."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 9,
+    "sourcesScanned": [
+      "dev_to",
+      "hacker_news",
+      "medium",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "dev_to: https://dev.to/api/articles?tag=devops&top=1&per_page=30 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?top=1&per_page=100&page=2 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?tag=javascript&top=1&per_page=30 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?tag=react&top=1&per_page=30 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?top=1&per_page=100&page=1 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?tag=ai&top=1&per_page=30 -> HTTP Error 429: Too Many Requests"
+    ]
+  }
+}
