@@ -125,6 +125,14 @@ jobs:
           npm ci
           npm run build
 
+      - name: Smoke-test the built site
+        working-directory: site
+        # Asserts against dist/: every digest item and tag rendered, item counts
+        # match stats.itemCount, a page per tag, the brand is right, the theme
+        # toggle is present, and the Pagefind index has no stale/duplicate
+        # fragments. Fails the run before deploying a broken digest.
+        run: npm test
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -1,0 +1,25 @@
+---
+import { withBase } from '../utils/withBase';
+
+interface Props {
+	/** URL-safe slug, e.g. from slugifyStr(tagName). */
+	tag: string;
+	/** Original display string. */
+	tagName: string;
+	size?: 'sm' | 'lg';
+}
+
+const { tag, tagName, size = 'lg' } = Astro.props;
+---
+
+<li>
+	<a
+		href={withBase(`/tags/${tag}/`)}
+		class:list={[
+			'border-foreground hover:border-accent hover:text-accent focus-visible:text-accent inline-flex items-center border-b-2 border-dashed focus-visible:border-none',
+			{ 'text-sm': size === 'sm', 'text-lg': size === 'lg' },
+		]}
+	>
+		#{tagName}
+	</a>
+</li>

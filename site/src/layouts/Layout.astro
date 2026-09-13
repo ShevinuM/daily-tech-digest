@@ -1,9 +1,23 @@
 ---
+import { ClientRouter } from 'astro:transitions';
+import { SITE } from '../config';
+import '../styles/global.css';
+
 interface Props {
-	title: string;
+	title?: string;
 	description?: string;
 }
-const { title, description = 'A daily tech reading digest.' } = Astro.props;
+
+const { title, description = SITE.description } = Astro.props;
+
+// Homepage renders SITE.title alone; every other page appends it, unless the
+// page title already starts with the brand (e.g. digest titles are composed
+// by main.py as "{SITE.title} — {weekday}, {Month} {day}, {year}") — in that
+// case appending would double the brand.
+const pageTitle = !title || title.startsWith(SITE.title) ? (title ?? SITE.title) : `${title} | ${SITE.title}`;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site).href;
+
 // Strip a trailing slash so `${base}/path` never produces a double slash —
 // BASE_URL is "/" at the custom-domain root, and "//path" is a
 // protocol-relative URL browsers resolve to a different host, not a path.
@@ -11,174 +25,65 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={SITE.lang} class="overflow-y-scroll scroll-smooth">
 	<head>
-		<meta charset="utf-8" />
+		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="description" content={description} />
 		<link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+		<link rel="canonical" href={canonicalURL} />
 		<meta name="generator" content={Astro.generator} />
-		<title>{title}</title>
+
+		<!-- Primary meta -->
+		<title>{pageTitle}</title>
+		<meta name="title" content={pageTitle} />
+		<meta name="description" content={description} />
+		<meta name="author" content={SITE.author} />
+		<link rel="sitemap" href={`${base}/sitemap-index.xml`} />
+
+		<!-- Open Graph (no og:image — we have no OG asset to point at) -->
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={SITE.title} />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonicalURL} />
+
+		<!-- Twitter / X -->
+		<meta property="twitter:card" content="summary" />
+		<meta property="twitter:url" content={canonicalURL} />
+		<meta property="twitter:title" content={pageTitle} />
+		<meta property="twitter:description" content={description} />
+
+		<!-- Filled at runtime by theme.ts to match the current background colour -->
+		<meta name="theme-color" content="" />
+
+		<!-- Extra head content injected by child layouts (e.g. JSON-LD, article meta) -->
+		<slot name="head" />
+
+		<!--
+			Inline FOUC-prevention script: sets data-theme on <html> before
+			the browser paints. Runs synchronously, no defer/async.
+		-->
+		<script is:inline>
+			(function () {
+				const stored = localStorage.getItem('theme');
+				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+				const theme = stored ?? (prefersDark ? 'dark' : 'light');
+				const root = document.firstElementChild;
+				root?.setAttribute('data-theme', theme);
+				root?.classList.toggle('dark', theme === 'dark');
+				// Expose value so theme.ts can skip re-detection.
+				window.__theme = { value: theme };
+			})();
+		</script>
+
+		<ClientRouter />
 	</head>
-	<body>
-		<header class="site-header">
-			<a class="brand" href={base || '/'}>Tech Reading Digest</a>
-			<nav>
-				<a href={base || '/'}>Latest</a>
-				<a href={`${base}/archive/`}>Archive</a>
-			</nav>
-		</header>
-		<main>
-			<slot />
-		</main>
-		<footer class="site-footer">
-			<p>
-				Fetched, ranked, and summarized on a schedule —
-				<a href="https://github.com/ShevinuM/daily-tech-digest">source</a>.
-			</p>
-		</footer>
+	<body
+		class="bg-background font-app text-foreground selection:bg-accent/75 selection:text-accent-foreground flex min-h-svh flex-col"
+	>
+		<slot />
+		<script>
+			import '../scripts/theme';
+		</script>
 	</body>
 </html>
-
-<style is:global>
-	:root {
-		color-scheme: light dark;
-		--bg: #ffffff;
-		--fg: #1a1a1a;
-		--muted: #6b6b6b;
-		--border: #e3e3e3;
-		--accent: #2454ff;
-		--card-bg: #f7f7f8;
-	}
-	@media (prefers-color-scheme: dark) {
-		:root {
-			--bg: #0f1115;
-			--fg: #eaeaea;
-			--muted: #9a9a9a;
-			--border: #2a2d34;
-			--accent: #6c9bff;
-			--card-bg: #171a20;
-		}
-	}
-	* {
-		box-sizing: border-box;
-	}
-	html,
-	body {
-		margin: 0;
-		padding: 0;
-	}
-	body {
-		background: var(--bg);
-		color: var(--fg);
-		font-family:
-			-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-		line-height: 1.55;
-	}
-	a {
-		color: var(--accent);
-		text-decoration: none;
-	}
-	a:hover {
-		text-decoration: underline;
-	}
-	.site-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		max-width: 760px;
-		margin: 0 auto;
-		padding: 1.5rem 1.25rem 1rem;
-		border-bottom: 1px solid var(--border);
-	}
-	.brand {
-		font-weight: 700;
-		color: var(--fg);
-	}
-	.site-header nav {
-		display: flex;
-		gap: 1.25rem;
-	}
-	main {
-		max-width: 760px;
-		margin: 0 auto;
-		padding: 1.5rem 1.25rem 3rem;
-	}
-	.site-footer {
-		max-width: 760px;
-		margin: 0 auto;
-		padding: 1.5rem 1.25rem 3rem;
-		color: var(--muted);
-		font-size: 0.85rem;
-		border-top: 1px solid var(--border);
-	}
-	h1 {
-		font-size: 1.7rem;
-		margin-bottom: 0.25rem;
-	}
-	.intro {
-		color: var(--muted);
-		font-style: italic;
-		margin-top: 0;
-	}
-	.meta {
-		color: var(--muted);
-		font-size: 0.85rem;
-	}
-	section.digest-section {
-		margin-top: 2rem;
-	}
-	section.digest-section h2 {
-		font-size: 1.25rem;
-		border-bottom: 1px solid var(--border);
-		padding-bottom: 0.4rem;
-	}
-	article.item {
-		background: var(--card-bg);
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		padding: 1rem 1.1rem;
-		margin: 1rem 0;
-	}
-	article.item h3 {
-		margin: 0 0 0.4rem;
-		font-size: 1.05rem;
-	}
-	article.item .item-meta {
-		color: var(--muted);
-		font-size: 0.8rem;
-		margin-bottom: 0.5rem;
-	}
-	article.item .tags {
-		margin-top: 0.6rem;
-		display: flex;
-		gap: 0.4rem;
-		flex-wrap: wrap;
-	}
-	article.item .tag {
-		font-size: 0.72rem;
-		color: var(--muted);
-		border: 1px solid var(--border);
-		border-radius: 999px;
-		padding: 0.1rem 0.55rem;
-	}
-	.archive-list {
-		list-style: none;
-		padding: 0;
-	}
-	.archive-list li {
-		border-bottom: 1px solid var(--border);
-		padding: 0.85rem 0;
-		display: flex;
-		justify-content: space-between;
-		gap: 1rem;
-		align-items: baseline;
-	}
-	.empty-state {
-		color: var(--muted);
-		border: 1px dashed var(--border);
-		border-radius: 10px;
-		padding: 2rem;
-		text-align: center;
-	}
-</style>

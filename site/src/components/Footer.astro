@@ -1,0 +1,22 @@
+---
+import { SITE, SOCIALS } from '../config';
+
+const currentYear = new Date().getFullYear();
+const sourceLink = SOCIALS.find((social) => social.name === 'github') ?? SOCIALS[0];
+---
+
+<footer class="app-layout mt-auto">
+	<div
+		class="border-border flex flex-col items-center justify-center gap-1 border-t py-6 text-center sm:flex-row sm:py-4"
+	>
+		<span class="whitespace-nowrap">{SITE.author} &#169; {currentYear}</span>
+		<span class="hidden sm:inline">&nbsp;|&nbsp;</span>
+		<span>
+			Fetched, ranked, and summarized on a schedule — <a
+				href={sourceLink.url}
+				title={sourceLink.linkTitle ?? sourceLink.name}
+				class="hover:text-accent underline decoration-dashed underline-offset-4"
+			>source</a>.
+		</span>
+	</div>
+</footer>

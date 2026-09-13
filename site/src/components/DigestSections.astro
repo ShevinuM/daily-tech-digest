@@ -1,0 +1,65 @@
+---
+import { slugifyStr } from '../utils/slugify';
+import Tag from './Tag.astro';
+import Datetime from './Datetime.astro';
+
+interface Item {
+	url: string;
+	title: string;
+	source: string;
+	publishedAt: string;
+	tags: string[];
+	summary: string;
+}
+interface Section {
+	heading: string;
+	items: Item[];
+}
+interface Props {
+	sections: Section[];
+	indexable?: boolean;
+}
+
+const { sections, indexable = true } = Astro.props;
+---
+
+<div {...(indexable ? { 'data-pagefind-body': true } : { 'data-pagefind-ignore': true })}>
+	{
+		sections.map((section) => (
+			<section class="mt-8">
+				<h2 class="border-border border-b pb-2 text-xl font-semibold">{section.heading}</h2>
+				<ul class="mt-4 space-y-6">
+					{section.items.map((item) => (
+						<li>
+							<article data-digest-item class="border-border rounded-lg border p-4">
+								<h3 class="text-lg font-medium">
+									<a
+										href={item.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										class="text-accent hover:underline"
+									>
+										{item.title}
+									</a>
+								</h3>
+								<p class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2 text-sm">
+									<span>{item.source}</span>
+									<span>&middot;</span>
+									<Datetime dateStr={item.publishedAt} />
+								</p>
+								<p class="mt-2">{item.summary}</p>
+								{item.tags.length > 0 && (
+									<ul class="mt-3 flex flex-wrap gap-x-3 gap-y-1">
+										{item.tags.map((tagName) => (
+											<Tag tag={slugifyStr(tagName)} tagName={tagName} size="sm" />
+										))}
+									</ul>
+								)}
+							</article>
+						</li>
+					))}
+				</ul>
+			</section>
+		))
+	}
+</div>

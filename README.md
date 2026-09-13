@@ -2,9 +2,9 @@
 
 This is a prototype. I'm working on backend + frontend rewrite for this. And I'm working on new features listed on Issues.
 
-# Daily Tech Digest
+# Shevinu's Digest
 
-A daily tech reading digest: fetched, filtered, ranked, and summarized on a
+A daily digest of tech reading: fetched, filtered, ranked, and summarized on a
 schedule by GitHub Actions, published to a small [Astro](https://astro.build)
 site on GitHub Pages. No server to run, no SaaS bill — a scheduled workflow,
 a free-tier AI call, and a static site.

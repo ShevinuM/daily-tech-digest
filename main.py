@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Daily tech digest — entry point.
+Daily digest — entry point.
 
     python3 main.py feeds                       list discovered feeds
     python3 main.py fetch [--verbose]           fetch everything -> digest_feed.json
@@ -407,7 +407,7 @@ def cmd_digest(args) -> int:
 
     # 9. Write site content
     date_str = now.strftime("%Y-%m-%d")
-    site_title = cfg.get("site", {}).get("title", "Tech Reading Digest")
+    site_title = cfg.get("site", {}).get("title", "Shevinu's Digest")
     title = f"{site_title} — {now.strftime('%A, %B ')}{now.day}, {now.year}"
     item_count = sum(len(s.get("items", [])) for s in digest.get("sections", []))
     stats = {

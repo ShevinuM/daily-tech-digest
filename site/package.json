@@ -7,11 +7,25 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro check && astro build && rm -rf dist/pagefind && pagefind --site dist && rm -rf public/pagefind && cp -r dist/pagefind public/",
+    "check": "astro check",
     "preview": "astro preview",
+    "test": "node tests/smoke.mjs",
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^7.1.6"
+    "astro": "^7.1.6",
+    "tailwindcss": "^4.3.2",
+    "@tailwindcss/vite": "^4.3.2",
+    "@astrojs/sitemap": "^3.7.3",
+    "lodash.kebabcase": "^4.1.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "typescript": "^6.0.3",
+    "@tailwindcss/typography": "^0.5.20",
+    "@types/lodash.kebabcase": "^4.1.9",
+    "pagefind": "^1.5.2",
+    "@pagefind/default-ui": "^1.5.2"
   }
 }

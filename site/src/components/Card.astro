@@ -1,0 +1,27 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { withBase } from '../utils/withBase';
+import Datetime from './Datetime.astro';
+
+interface Props {
+	entry: CollectionEntry<'digests'>;
+}
+
+const { entry } = Astro.props;
+const { title, intro, generatedAt, stats } = entry.data;
+---
+
+<li class="my-6">
+	<a
+		href={withBase(`/digest/${entry.id}/`)}
+		class="text-accent inline-block text-lg font-medium decoration-dashed underline-offset-4 hover:underline focus-visible:no-underline focus-visible:underline-offset-0"
+	>
+		<h2>{title}</h2>
+	</a>
+	<div class="text-muted-foreground flex flex-wrap items-center gap-x-2">
+		<Datetime dateStr={generatedAt} />
+		<span>&middot;</span>
+		<span>{stats.itemCount} item{stats.itemCount === 1 ? '' : 's'}</span>
+	</div>
+	<p class="mt-1">{intro}</p>
+</li>

@@ -1,0 +1,21 @@
+---
+import { SITE } from '../config';
+
+interface Props {
+	/** ISO datetime string or a bare `YYYY-MM-DD` date string. */
+	dateStr: string;
+	class?: string;
+}
+
+const { dateStr, class: className = '' } = Astro.props;
+
+const date = new Date(dateStr);
+const formatted = new Intl.DateTimeFormat('en-US', {
+	timeZone: SITE.timezone,
+	day: 'numeric',
+	month: 'short',
+	year: 'numeric',
+}).format(date);
+---
+
+<time datetime={date.toISOString()} class:list={['text-sm', className]}>{formatted}</time>

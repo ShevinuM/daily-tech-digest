@@ -1,6 +1,6 @@
 {
   "date": "2026-09-07",
-  "title": "Tech Reading Digest — Monday, September 7, 2026",
+  "title": "Shevinu's Digest — Monday, September 7, 2026",
   "generatedAt": "2026-09-07T07:03:36Z",
   "intro": "Today's digest focuses on zero-downtime deployment caveats, decision debt in system architecture, and moving AI engineering from generation to deterministic verification.",
   "sections": [

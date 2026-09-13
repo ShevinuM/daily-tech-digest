@@ -1,39 +1,80 @@
 ---
-import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import Main from '../../components/Main.astro';
+import Datetime from '../../components/Datetime.astro';
+import { getSortedDigests } from '../../utils/getSortedDigests';
+import { withBase } from '../../utils/withBase';
+import type { CollectionEntry } from 'astro:content';
 
-const digests = (await getCollection('digests')).sort((a, b) => b.id.localeCompare(a.id));
-// Strip a trailing slash — BASE_URL is "/" at the custom-domain root, and
-// "//path" is a protocol-relative URL, not a same-site path.
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const digests = await getSortedDigests();
 
-function formatDate(dateStr: string) {
-	return new Date(`${dateStr}T00:00:00Z`).toLocaleDateString('en-US', {
-		weekday: 'long',
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric',
-		timeZone: 'UTC',
-	});
+interface MonthGroup {
+	month: string;
+	entries: CollectionEntry<'digests'>[];
+}
+interface YearGroup {
+	year: string;
+	months: MonthGroup[];
+}
+
+// `digests` is already sorted newest-first, so grouping preserves that order
+// both across years and within each year's months.
+const groups: YearGroup[] = [];
+for (const entry of digests) {
+	const date = new Date(`${entry.id}T00:00:00Z`);
+	const year = String(date.getUTCFullYear());
+	const month = new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(date);
+
+	let yearGroup = groups.find((g) => g.year === year);
+	if (!yearGroup) {
+		yearGroup = { year, months: [] };
+		groups.push(yearGroup);
+	}
+	let monthGroup = yearGroup.months.find((m) => m.month === month);
+	if (!monthGroup) {
+		monthGroup = { month, entries: [] };
+		yearGroup.months.push(monthGroup);
+	}
+	monthGroup.entries.push(entry);
 }
 ---
 
-<Layout title="Archive — Tech Reading Digest">
-	<h1>Archive</h1>
-	{
-		digests.length === 0 ? (
-			<div class="empty-state">
+<Layout title="Archive">
+	<Header />
+	<Main pageTitle="Archive" pageDesc="Every digest, grouped by year and month.">
+		{
+			digests.length === 0 ? (
 				<p>No digests published yet.</p>
-			</div>
-		) : (
-			<ul class="archive-list">
-				{digests.map((entry) => (
-					<li>
-						<a href={`${base}/digest/${entry.id}/`}>{formatDate(entry.id)}</a>
-						<span class="meta">{entry.data.stats.itemCount} items</span>
-					</li>
-				))}
-			</ul>
-		)
-	}
+			) : (
+				groups.map((yearGroup) => (
+					<section class="mt-8">
+						<h2 class="text-2xl font-semibold">{yearGroup.year}</h2>
+						{yearGroup.months.map((monthGroup) => (
+							<div class="mt-4">
+								<h3 class="text-muted-foreground text-lg font-medium">{monthGroup.month}</h3>
+								<ul class="mt-2 space-y-2">
+									{monthGroup.entries.map((entry) => (
+										<li class="flex flex-wrap items-baseline justify-between gap-x-4">
+											<a
+												href={withBase(`/digest/${entry.id}/`)}
+												class="text-accent hover:underline decoration-dashed underline-offset-4 focus-visible:no-underline"
+											>
+												<Datetime dateStr={entry.id} />
+											</a>
+											<span class="text-muted-foreground text-sm">
+												{entry.data.stats.itemCount} item{entry.data.stats.itemCount === 1 ? '' : 's'}
+											</span>
+										</li>
+									))}
+								</ul>
+							</div>
+						))}
+					</section>
+				))
+			)
+		}
+	</Main>
+	<Footer />
 </Layout>

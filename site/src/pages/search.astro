@@ -1,0 +1,52 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Main from '../components/Main.astro';
+---
+
+<Layout title="Search">
+	<Header />
+	<Main pageTitle="Search" pageDesc="Search every digest item ever published.">
+		<div id="pagefind-search" class="mt-4"></div>
+	</Main>
+	<Footer />
+</Layout>
+
+<script>
+	import { PagefindUI } from '@pagefind/default-ui';
+	import '@pagefind/default-ui/css/ui.css';
+
+	// Pagefind's bundle lives at `${base}/pagefind/` — `npm run build` copies
+	// `dist/pagefind` there, and `astro dev` serves it from `public/pagefind`
+	// (see step 11).
+	const bundlePath = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/pagefind/`;
+
+	function mountSearch() {
+		const container = document.querySelector('#pagefind-search');
+		if (!container) return;
+		container.innerHTML = '';
+		new PagefindUI({
+			element: '#pagefind-search',
+			bundlePath,
+			showSubResults: true,
+			showImages: false,
+		});
+	}
+
+	mountSearch();
+	document.addEventListener('astro:after-swap', mountSearch);
+</script>
+
+<style>
+	:global(.pagefind-ui) {
+		--pagefind-ui-primary: var(--accent);
+		--pagefind-ui-text: var(--foreground);
+		--pagefind-ui-background: var(--background);
+		--pagefind-ui-border: var(--border);
+		--pagefind-ui-tag: var(--muted);
+		--pagefind-ui-border-width: 1px;
+		--pagefind-ui-border-radius: 8px;
+		--pagefind-ui-font: var(--font-app);
+	}
+</style>

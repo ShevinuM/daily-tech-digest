@@ -2,6 +2,9 @@
 dist/
 # generated types
 .astro/
+# Pagefind's dev-serving copy — `npm run build` copies dist/pagefind here
+# after each build so `astro dev` can serve search locally.
+public/pagefind/
 
 # dependencies
 node_modules/

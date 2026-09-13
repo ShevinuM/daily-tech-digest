@@ -1,35 +1,87 @@
 ---
-import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
-import DigestBody from '../components/DigestBody.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Card from '../components/Card.astro';
+import DigestSections from '../components/DigestSections.astro';
+import Datetime from '../components/Datetime.astro';
+import { SITE } from '../config';
+import { getSortedDigests } from '../utils/getSortedDigests';
+import { withBase } from '../utils/withBase';
 
-const digests = await getCollection('digests');
-const latest = digests.sort((a, b) => b.id.localeCompare(a.id))[0];
-// Strip a trailing slash — BASE_URL is "/" at the custom-domain root, and
-// "//path" is a protocol-relative URL, not a same-site path.
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const digests = await getSortedDigests();
+const [latest, ...rest] = digests;
+const recent = rest.slice(0, 4);
 ---
 
-<Layout title={latest ? latest.data.title : 'Tech Reading Digest'}>
-	{
-		latest ? (
-			<DigestBody
-				title={latest.data.title}
-				intro={latest.data.intro}
-				sections={latest.data.sections}
-				stats={latest.data.stats}
-			/>
-		) : (
-			<div class="empty-state">
-				<p>No digest published yet — check back after the next scheduled run.</p>
-			</div>
-		)
-	}
-	{
-		digests.length > 1 && (
-			<p class="meta">
-				<a href={`${base}/archive/`}>See all {digests.length} past digests →</a>
-			</p>
-		)
-	}
+<Layout>
+	<Header />
+	<main id="main-content" class="app-layout pb-4">
+		<section id="hero" class="border-border border-b pt-8 pb-6">
+			<h1 class="my-4 inline-block text-4xl font-bold sm:my-8 sm:text-5xl">{SITE.title}</h1>
+			<p>{SITE.description}</p>
+		</section>
+
+		{
+			latest ? (
+				<article class="pt-8 pb-6">
+					<h2 class="text-2xl font-semibold tracking-wide">Latest digest</h2>
+					<div class="mt-4">
+						<a
+							href={withBase(`/digest/${latest.id}/`)}
+							class="text-accent inline-block text-xl font-medium decoration-dashed underline-offset-4 hover:underline focus-visible:no-underline focus-visible:underline-offset-0"
+						>
+							<h3>{latest.data.title}</h3>
+						</a>
+						<div class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2">
+							<Datetime dateStr={latest.data.generatedAt} />
+							<span>&middot;</span>
+							<span>
+								{latest.data.stats.itemCount} item{latest.data.stats.itemCount === 1 ? '' : 's'}
+							</span>
+						</div>
+						{latest.data.intro && <p class="mt-3 italic">{latest.data.intro}</p>}
+						<DigestSections sections={latest.data.sections} indexable={false} />
+						{latest.data.stats.errors.length > 0 && (
+							<p class="text-muted-foreground mt-4 text-sm">
+								{latest.data.stats.errors.length} source error(s) this run — see the run's GitHub
+								Actions log for detail.
+							</p>
+						)}
+					</div>
+				</article>
+			) : (
+				<div class="py-16 text-center">
+					<p>No digest published yet — check back after the next scheduled run.</p>
+				</div>
+			)
+		}
+
+		{
+			recent.length > 0 && (
+				<section id="recent-digests" class="border-border border-t pt-12 pb-6">
+					<h2 class="text-2xl font-semibold tracking-wide">Recent digests</h2>
+					<ul>
+						{recent.map((entry) => (
+							<Card entry={entry} />
+						))}
+					</ul>
+				</section>
+			)
+		}
+
+		{
+			digests.length > 1 && (
+				<div class="my-8 text-center">
+					<a
+						href={withBase('/archive/')}
+						class="text-accent inline-block underline decoration-dashed underline-offset-4 hover:no-underline focus-visible:no-underline"
+					>
+						See all {digests.length} past digests →
+					</a>
+				</div>
+			)
+		}
+	</main>
+	<Footer />
 </Layout>

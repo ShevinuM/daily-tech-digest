@@ -1,5 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import tailwindcss from '@tailwindcss/vite';
+import sitemap from '@astrojs/sitemap';
 
 // Custom domain, served from the root (not a /daily-tech-digest subpath) —
 // digest.shevinum.dev is a dedicated subdomain, since www.shevinum.dev is
@@ -8,4 +10,8 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
 	site: 'https://digest.shevinum.dev',
 	base: '/',
+	integrations: [sitemap()],
+	vite: {
+		plugins: [tailwindcss()],
+	},
 });
