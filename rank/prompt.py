@@ -36,6 +36,13 @@ Your job:
 1. Pick the best {target_count} items for today's digest (±1 is fine if
    there genuinely aren't enough good candidates — never pad with low-value
    items to hit the count), rank them best-first.
+   Every candidate marked `"pinned": true` MUST appear in your selection.
+   Those are blogs the reader follows directly and are not subject to your
+   editorial filtering — include them regardless of how they compare to the
+   rest. Fill the remaining slots (up to {target_count} items in total,
+   pinned included) with the best of the unpinned candidates. If the pinned
+   items alone meet or exceed {target_count}, include all of them and
+   nothing else.
 2. Group them into sections you invent from the content (a topic grouping
    like "Agent & AI-Engineering Craft" or "Developer Tooling & Craft"), each
    with a short heading carrying one leading emoji.
@@ -92,8 +99,14 @@ def build_digest_prompt(interests_text: str, items: list[dict], target_count: in
         title = _scrub(it.get("title", "")) or utils.slug_words(it.get("url", "")) or "Untitled"
         tags = [_scrub(t) for t in (it.get("tags") or [])]
         summary = _scrub(it.get("summary", ""))
-        payload.append({"i": i, "title": title, "source": it.get("source", ""),
-                         "tags": tags, "summary": summary})
+        entry = {"i": i, "title": title, "source": it.get("source", ""),
+                  "tags": tags, "summary": summary}
+        # Only on pinned items — an explicit `"pinned": false` on every other
+        # candidate is pure payload weight in a prompt that's deliberately kept
+        # small enough for a free-tier token-per-minute cap (see llm_client.py).
+        if it.get("priority"):
+            entry["pinned"] = True
+        payload.append(entry)
     return DIGEST_INSTRUCTIONS.format(
         target_count=target_count,
         candidate_count=len(payload),

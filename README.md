@@ -52,9 +52,11 @@ digest *output* stays public.
 
 ```
 main.py                  CLI: feeds / fetch / digest / pools / delete-threads
-utils.py                 http, RSS parsing, dates, item shape
+utils.py                 http, RSS/Atom parsing, dates, item shape
 feeds/                   one module per source, auto-discovered
-  dev_to.py  medium.py  pragmatic_engineer.py  hacker_news.py
+  discovery:  dev_to.py  medium.py  hacker_news.py
+  priority:   pragmatic_engineer.py  jason_wei.py  ken_walger.py
+              alperen_keles.py  martin_fowler.py
 newsletters/             AgentMail REST client, classification, unsubscribe
 rank/
   pools.py               pool 1 -> pool 2: per-source thresholds/caps
@@ -109,6 +111,43 @@ python3 main.py fetch --only lobsters  # try it in isolation
 
 Raising inside `fetch` is fine — it's recorded as an error and the run
 continues with the other feeds.
+
+## Priority sources
+
+Most sources are *discovery* — dev.to, Hacker News, Medium — where the point
+is to surface what's worth reading out of a firehose. A handful are blogs read
+directly, and those shouldn't have to win a relevance contest to appear.
+Listing a source in `config.json` under `pools.priority_sources` pins it:
+
+```json
+"pools": {
+  "priority_sources": [
+    "jason_wei", "ken_walger", "pragmatic_engineer",
+    "alperen_keles", "martin_fowler"
+  ]
+}
+```
+
+A pinned item **skips**:
+
+- the non-tech drop in `rank/relevance.py` (a career or sports essay from a
+  blog you follow is still something you want to read),
+- the pool-3 top-N cut and per-source cap — and it doesn't consume a
+  `pool3.size` slot either, so the 25-deep merit pool stays 25 deep,
+- the LLM's editorial selection: the prompt marks it must-include, and
+  `main.py:_ensure_pinned` inserts it afterwards if the model ignored that.
+
+A pinned item **still faces** the freshness cutoff (`digest.freshness_hours`)
+and URL dedupe, like everything else, and it spends from the same
+`digest.target_read_minutes` budget — so pinned items push discovery items
+out of the digest rather than lengthening it.
+
+Matching is on an item's `source` field, so a post that arrives by newsletter
+instead (`source="newsletter:<sender>"`) isn't pinned. When both arrive, the
+dedupe in `rank/merge.py` keeps the feed copy, which is.
+
+`main.py pools` marks pinned rows `PIN` and prints the count, and
+`main.py pools --json` puts a boolean `priority` on every pool-3 entry.
 
 ## Local development
 

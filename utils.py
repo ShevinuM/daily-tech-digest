@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import json
 import re
 import ssl
@@ -105,13 +106,107 @@ def rss_categories(block: str, limit: int = 6) -> list[str]:
     )[:limit]
 
 
-def strip_html(s: str, limit: int) -> str:
-    """Tags first, whitespace second.
+# --------------------------------------------------------------------------
+# Atom
+#
+# Same job as the rss_* family above, different vocabulary: <entry> not
+# <item>, ISO-8601 dates not RFC-822, and the permalink in a link element's
+# href attribute rather than its text. Static-site generators (Zola, Hugo,
+# Jekyll) emit Atom by default, so this is the shape a personal blog usually
+# has — see feeds/alperen_keles.py.
+# --------------------------------------------------------------------------
 
-    The other order leaves a double space wherever a tag was removed - that was
-    a real bug, caught by tests/test_offline.py.
+_ATOM_LINK_RE = re.compile(r"<link\b([^>]*)>", re.I)
+
+
+def atom_entries(xml: str) -> list[str]:
+    return [m.group(1) for m in
+            re.finditer(r"<entry[^>]*>(.*?)</entry>", xml or "", re.S)]
+
+
+def atom_link(block: str) -> str | None:
+    """The permalink, from the href of the entry's alternate link.
+
+    Atom allows several links per entry (alternate, related, enclosure) and
+    defines a missing `rel` as meaning "alternate", so a bare `<link href>`
+    counts. Anything else is only used as a last resort — better a related
+    link than no url at all, since merge.assemble drops url-less items.
     """
-    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", s or "")).strip()[:limit]
+    fallback = None
+    for m in _ATOM_LINK_RE.finditer(block or ""):
+        attrs = m.group(1)
+        href = re.search(r'href="([^"]*)"', attrs)
+        if not href:
+            continue
+        rel = re.search(r'rel="([^"]*)"', attrs)
+        if rel is None or rel.group(1).lower() == "alternate":
+            return html.unescape(href.group(1))
+        if fallback is None:
+            fallback = html.unescape(href.group(1))
+    return fallback
+
+
+def atom_date(block: str) -> datetime | None:
+    """<published> first, <updated> only as a fallback.
+
+    They mean different things: `updated` is the last edit. Preferring it
+    would let a years-old post that got a typo fix today land inside the
+    freshness window as if it were new.
+    """
+    return (parse_iso(rss_field(block, "published"))
+            or parse_iso(rss_field(block, "updated")))
+
+
+def atom_author(block: str) -> str | None:
+    """<author><name>. Scoped to the author element rather than grabbing the
+    first <name> in the entry, which in Atom could belong to a contributor."""
+    author = rss_field(block, "author")
+    return rss_field(author, "name") if author else None
+
+
+def atom_categories(block: str, limit: int = 6) -> list[str]:
+    """Atom puts the tag in a `term` attribute on a self-closing element
+    (`<category term="bliki"/>`), where RSS uses element text — so
+    rss_categories silently returns [] on an Atom entry rather than failing.
+    Prefers the human-readable `label` when a feed supplies one."""
+    out = []
+    for attrs in re.findall(r"<category\b([^>]*)>", block or "", re.I):
+        m = (re.search(r'label="([^"]*)"', attrs)
+             or re.search(r'term="([^"]*)"', attrs))
+        if m and m.group(1):
+            out.append(html.unescape(m.group(1)))
+    return out[:limit]
+
+
+def atom_content(block: str) -> str:
+    """Entry body as HTML, ready for strip_html.
+
+    `<content type="html">` holds HTML that was escaped to survive as XML
+    text (`&lt;p&gt;`), so it takes one unescape to become HTML again before
+    strip_html can strip it as HTML. Skipping that step doesn't fail loudly —
+    it quietly yields text with visible `<p>` tags in it. Doing it here keeps
+    the two-step out of every feed module. Falls back to <summary> for feeds
+    that publish only a dek.
+    """
+    raw = rss_field(block, "content") or rss_field(block, "summary") or ""
+    return html.unescape(raw)
+
+
+def strip_html(s: str, limit: int) -> str:
+    """Tags first, entities second, whitespace third.
+
+    Tags-before-whitespace: the other order leaves a double space wherever a
+    tag was removed - that was a real bug, caught by tests/test_offline.py.
+
+    Entities-after-tags, not before: WordPress feeds (feeds/ken_walger.py) put
+    real entities in their text (&#8217;, &#8220;), which would otherwise reach
+    the site verbatim. But a post *quoting* markup writes it escaped
+    (&lt;b&gt;), and unescaping first would turn that back into a live tag for
+    the tag pass to eat - silently deleting the very thing the author was
+    showing. Unescaping after means the quoted markup survives as text.
+    Whitespace last because unescaping can introduce its own (&nbsp;).
+    """
+    return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", s or ""))).strip()[:limit]
 
 
 def clean_url(url: str) -> str:
@@ -144,11 +239,17 @@ def item(*, source, title, url, published_at, author=None, tags=None,
 
     `extra` carries source-specific signals (reactions, score, discussion_url)
     that the digest can use for ranking.
+
+    The title is entity-decoded here rather than in each feed module: it's the
+    one field that reaches the site as-is, never passing through strip_html,
+    and more than one source ships it escaped (WordPress writes &#8217; for an
+    apostrophe, the HN API escapes &quot;). A title is plain text by
+    definition, so decoding it is always right.
     """
     url = clean_url(url)
     d = {
         "source": source,
-        "title": (title or "").strip(),
+        "title": html.unescape(title or "").strip(),
         "url": url,
         "published_at": published_at,
         "author": author,

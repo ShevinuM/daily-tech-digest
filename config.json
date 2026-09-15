@@ -21,11 +21,19 @@
 
   "pools": {
     "_comment": "Pool-2 thresholds/caps are deterministic and source-specific.",
+
+    "_priority_comment": "Blogs read directly rather than discovered. These bypass the non-tech drop and the pool3 top-N cut in rank/relevance.py, and are marked must-include for the digest LLM with a deterministic backstop in main.py:_ensure_pinned. They still face the freshness cutoff and URL dedupe like everything else. Matched on an item's `source` field, so newsletter-delivered copies (source=newsletter:<sender>) are not covered - the feed copy wins dedupe when both arrive.",
+    "priority_sources": ["jason_wei", "ken_walger", "pragmatic_engineer", "alperen_keles", "martin_fowler"],
+
     "pool2": {
       "dev.to":              {"min_reactions": 2, "cap": 25, "sort_key": "reactions"},
       "hacker_news":         {"min_score": 40,    "cap": 25, "sort_key": "score"},
       "medium":              {"cap": null},
       "pragmatic_engineer":  {"cap": null},
+      "jason_wei":           {"cap": null},
+      "ken_walger":          {"cap": null},
+      "alperen_keles":       {"cap": null},
+      "martin_fowler":       {"cap": null},
       "newsletter":          {"cap": null}
     },
     "pool3": {"size": 25, "max_per_source": {"dev.to": 10, "hacker_news": 10, "medium": 3}}

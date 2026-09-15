@@ -33,7 +33,8 @@ import feeds  # noqa: E402
 import main as M  # noqa: E402
 import newsletters  # noqa: E402
 import utils  # noqa: E402
-from feeds import dev_to, hacker_news, medium, pragmatic_engineer  # noqa: E402
+from feeds import (alperen_keles, dev_to, hacker_news, jason_wei,  # noqa: E402
+                    ken_walger, martin_fowler, medium, pragmatic_engineer)
 from newsletters import agentmail_client  # noqa: E402
 from newsletters import classify  # noqa: E402
 from newsletters import unsubscribe as unsub  # noqa: E402
@@ -95,6 +96,89 @@ PRAG_XML = f"""<rss><channel>
 <pubDate>{rfc(STALE)}</pubDate><description>old</description></item>
 </channel></rss>"""
 
+# Atom (Zola), not RSS: <entry>, ISO dates, permalink in a link href, and a
+# body that is HTML escaped into XML text. Entry 1 carries a decoy related
+# link and writes href before rel; entry 2 is stale by <published> but fresh
+# by <updated>; entry 3 has a bare link with no rel at all (Atom defaults it
+# to "alternate").
+ATOM_XML = f"""<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+<link rel="self" href="https://ak.com/atom.xml"/>
+<entry xml:lang="en">
+    <title>Fresh Atom</title>
+    <published>{utils.iso(FRESH)}</published><updated>{utils.iso(FRESH)}</updated>
+    <author>
+      <name>
+
+          Alperen Keles
+
+      </name>
+    </author>
+    <link rel="related" type="text/html" href="https://ak.com/posts/decoy/"/>
+    <link href="https://ak.com/posts/fresh/" rel="alternate" type="text/html"/>
+    <id>https://ak.com/posts/fresh/</id>
+    <content type="html" xml:base="https://ak.com/posts/fresh/">&lt;p&gt;Full &lt;em&gt;body&lt;&#x2F;em&gt; here.&lt;&#x2F;p&gt;</content>
+</entry>
+<entry>
+    <title>Edited Old Atom</title>
+    <published>{utils.iso(STALE)}</published><updated>{utils.iso(FRESH)}</updated>
+    <link rel="alternate" href="https://ak.com/posts/edited/"/>
+    <content type="html">&lt;p&gt;old&lt;&#x2F;p&gt;</content>
+</entry>
+<entry>
+    <title>Bare Link Atom</title>
+    <published>{utils.iso(FRESH)}</published>
+    <link href="https://ak.com/posts/bare/"/>
+    <content type="html">&lt;p&gt;bare&lt;&#x2F;p&gt;</content>
+</entry>
+</feed>"""
+
+# Atom again, but this site publishes no <published> at all — only <updated>
+# — and tags it with Atom `term` attributes, one of which is site plumbing
+# rather than a subject.
+MF_XML = f"""<feed xmlns="http://www.w3.org/2005/Atom">
+<link href="https://mf.com/feed.atom" rel="self"/>
+<author><name>Feed Level Author</name></author>
+<entry>
+    <title>Fresh MF</title>
+    <link href="https://mf.com/articles/fresh.html"/>
+    <updated>{utils.iso(FRESH)}</updated>
+    <category term="bliki"/><category term="skip-home-page"/>
+    <category term="ddd" label="Domain-Driven Design"/>
+    <author><name>Martin Fowler</name><email>m@mf.com</email></author>
+    <content type="html">&lt;p&gt;A fresh &lt;b&gt;post&lt;/b&gt; body.&lt;/p&gt;</content>
+</entry>
+<entry>
+    <title>Stale MF</title>
+    <link href="https://mf.com/articles/stale.html"/>
+    <updated>{utils.iso(STALE)}</updated>
+    <author><name>Rachel Laycock</name></author>
+    <content type="html">&lt;p&gt;old&lt;/p&gt;</content>
+</entry>
+</feed>"""
+
+# Squarespace: full post in <description>, no content:encoded, no categories.
+JASON_WEI_XML = f"""<rss><channel>
+<item><title>Fresh JW</title><link>https://www.jasonwei.net/blog/fresh</link>
+<dc:creator>Jason Wei</dc:creator><pubDate>{rfc(FRESH)}</pubDate>
+<description><![CDATA[<p>Full <em>essay</em> body.</p>]]></description></item>
+<item><title>Stale JW</title><link>https://www.jasonwei.net/blog/stale</link>
+<pubDate>{rfc(STALE)}</pubDate><description><![CDATA[old]]></description></item>
+</channel></rss>"""
+
+# WordPress: excerpt in <description>, full post in content:encoded, real
+# categories, and a dc:creator of "admin" that must never reach the byline.
+KEN_WALGER_XML = f"""<rss><channel>
+<item><title><![CDATA[Fresh KW]]></title>
+<link>https://www.kenwalger.com/blog/ai-engineering/fresh/</link>
+<dc:creator><![CDATA[admin]]></dc:creator><pubDate>{rfc(FRESH)}</pubDate>
+<category><![CDATA[AI Engineering]]></category><category><![CDATA[Architecture]]></category>
+<description><![CDATA[<p>The dek.</p>]]></description>
+<content:encoded><![CDATA[<h3>Full</h3> <p>article <b>body</b> here.</p>]]></content:encoded></item>
+<item><title><![CDATA[Stale KW]]></title>
+<link>https://www.kenwalger.com/blog/career/stale/</link>
+<pubDate>{rfc(STALE)}</pubDate><description><![CDATA[old]]></description></item>
+</channel></rss>"""
+
 DEVTO = [
     {"title": "Fresh A", "url": "https://dev.to/a/fresh-a", "path": "/a/fresh-a",
      "published_at": FRESH.strftime("%Y-%m-%dT%H:%M:%SZ"), "user": {"username": "a"},
@@ -127,6 +211,14 @@ def fake_get(url, as_json=False, timeout=None):
         return MEDIUM_XML
     if "pragmaticengineer" in url:
         return PRAG_XML
+    if "jasonwei.net" in url:
+        return JASON_WEI_XML
+    if "kenwalger.com" in url:
+        return KEN_WALGER_XML
+    if "alperenkeles.com" in url:
+        return ATOM_XML
+    if "martinfowler.com" in url:
+        return MF_XML
     if "topstories" in url:
         return HN_IDS
     if "/v0/item/" in url:
@@ -158,8 +250,81 @@ def test_utils():
           repr(utils.strip_html("<div><p>a</p>\n<p>b</p></div>", 50)))
     check("strip_html truncates",
           utils.strip_html("<b>" + "x" * 100 + "</b>", 10) == "x" * 10)
+    check("strip_html decodes entities — WordPress feeds ship &#8217;/&#8220; in real "
+          "prose, which used to reach the site verbatim",
+          utils.strip_html("<p>Don&#8217;t &amp; &#8220;quote&#8221;</p>", 50)
+          == "Don’t & “quote”",
+          repr(utils.strip_html("<p>Don&#8217;t &amp; &#8220;quote&#8221;</p>", 50)))
+    check("entities are decoded AFTER tags are stripped, so markup an author quoted "
+          "escaped (&lt;b&gt;) survives as text instead of being eaten as a tag",
+          utils.strip_html("<p>use &lt;b&gt;bold&lt;/b&gt;</p>", 50) == "use <b>bold</b>",
+          repr(utils.strip_html("<p>use &lt;b&gt;bold&lt;/b&gt;</p>", 50)))
+    check("whitespace is collapsed after decoding, so &nbsp; can't survive as a gap",
+          utils.strip_html("a&nbsp;&nbsp;b", 50) == "a b",
+          repr(utils.strip_html("a&nbsp;&nbsp;b", 50)))
     check("clean_url strips ?source=",
           utils.clean_url("https://a.com/b?source=rss--1") == "https://a.com/b")
+
+    section("utils / atom")
+    entries = utils.atom_entries(ATOM_XML)
+    check("atom_entries finds every <entry>, attributes and all", len(entries) == 3,
+          len(entries))
+    check("atom_entries doesn't mistake the feed-level <link> for an entry",
+          all("rel=\"self\"" not in e for e in entries))
+    check("atom_link prefers rel=alternate over an earlier rel=related, regardless "
+          "of whether href is written before or after rel",
+          utils.atom_link(entries[0]) == "https://ak.com/posts/fresh/",
+          utils.atom_link(entries[0]))
+    check("atom_link treats a missing rel as alternate",
+          utils.atom_link(entries[2]) == "https://ak.com/posts/bare/",
+          utils.atom_link(entries[2]))
+    check("atom_link falls back to a non-alternate link rather than returning None "
+          "(a url-less item is dropped by merge.assemble)",
+          utils.atom_link('<link rel="related" href="https://ak.com/only/"/>')
+          == "https://ak.com/only/")
+    check("atom_link decodes entities in the href",
+          utils.atom_link('<link href="https://ak.com/a?x=1&amp;y=2"/>')
+          == "https://ak.com/a?x=1&y=2",
+          utils.atom_link('<link href="https://ak.com/a?x=1&amp;y=2"/>'))
+    check("atom_link returns None when there is no link at all",
+          utils.atom_link("<title>no link</title>") is None)
+    check("atom_date reads <published>", utils.atom_date(entries[0]) == FRESH.replace(
+          microsecond=0), utils.atom_date(entries[0]))
+    check("atom_date prefers <published> over a later <updated>",
+          utils.atom_date(entries[1]) == STALE.replace(microsecond=0),
+          utils.atom_date(entries[1]))
+    check("atom_date falls back to <updated> when <published> is absent",
+          utils.atom_date(f"<updated>{utils.iso(FRESH)}</updated>")
+          == FRESH.replace(microsecond=0))
+    check("atom_date returns None on an undated entry",
+          utils.atom_date("<title>x</title>") is None)
+    check("atom_author scopes to <author><name>, not any <name> in the entry",
+          utils.atom_author(entries[0]) == "Alperen Keles", utils.atom_author(entries[0]))
+    check("atom_author returns None with no author element",
+          utils.atom_author("<contributor><name>Someone Else</name></contributor>") is None)
+    check("atom_content unescapes once, yielding HTML for strip_html to strip",
+          utils.atom_content(entries[0]) == "<p>Full <em>body</em> here.</p>",
+          repr(utils.atom_content(entries[0])))
+    check("atom_content falls back to <summary> for dek-only feeds",
+          utils.atom_content("<summary>&lt;p&gt;dek&lt;/p&gt;</summary>") == "<p>dek</p>")
+    check("atom_content returns empty string, never None, with neither element",
+          utils.atom_content("<title>x</title>") == "")
+    mf_entry = utils.atom_entries(MF_XML)[0]
+    check("atom_categories reads the term attribute of a self-closing <category/>",
+          utils.atom_categories(mf_entry)[:2] == ["bliki", "skip-home-page"],
+          utils.atom_categories(mf_entry))
+    check("atom_categories prefers a human-readable label over the slug term",
+          "Domain-Driven Design" in utils.atom_categories(mf_entry),
+          utils.atom_categories(mf_entry))
+    check("atom_categories decodes entities in a term",
+          utils.atom_categories('<category term="R&amp;D"/>') == ["R&D"])
+    check("atom_categories honours its limit",
+          len(utils.atom_categories('<category term="a"/>' * 10, limit=3)) == 3)
+    check("atom_categories ignores a category with no term or label",
+          utils.atom_categories('<category scheme="https://x/"/>') == [])
+    check("rss_categories returns [] on Atom rather than raising — the two formats "
+          "put the tag in different places, which is why atom_categories exists",
+          utils.rss_categories(mf_entry) == [], utils.rss_categories(mf_entry))
 
     section("utils / item")
     it = utils.item(source="s", title=" T ", url="https://wsj.com/a?source=x",
@@ -168,6 +333,11 @@ def test_utils():
           it["url"] == "https://wsj.com/a" and it["title"] == "T", it)
     check("item has every required field",
           all(k in it for k in utils.ITEM_FIELDS))
+    it_esc = utils.item(source="s", title="Shouldn&#8217;t say &quot;no&quot;",
+                        url="https://a.com/1", published_at="")
+    check("item decodes entities in the title — it's the one field that reaches the "
+          "site without passing through strip_html",
+          it_esc["title"] == 'Shouldn’t say "no"', it_esc["title"])
     it2 = utils.item(source="s", title="T", url="https://dev.to/a",
                      published_at="x", score=9)
     check("item keeps source-specific extras", it2["score"] == 9)
@@ -185,9 +355,10 @@ def test_discovery():
     section("feeds / auto-discovery")
     mods = feeds.discover()
     names = [m.NAME for m in mods]
-    check("finds all four feed modules", len(mods) == 4, names)
+    check("finds all eight feed modules", len(mods) == 8, names)
     check("expected names present",
-          set(names) == {"dev_to", "medium", "pragmatic_engineer", "hacker_news"},
+          set(names) == {"dev_to", "medium", "pragmatic_engineer", "hacker_news",
+                          "jason_wei", "ken_walger", "alperen_keles", "martin_fowler"},
           names)
     check("every feed exposes callable fetch",
           all(callable(m.fetch) for m in mods))
@@ -241,6 +412,69 @@ def test_feeds():
     check("full body from content:encoded",
           p[0]["body_excerpt"] == "Full body here.", repr(p[0]["body_excerpt"]))
 
+    section("feeds / jason_wei")
+    j, _ = jason_wei.fetch(CUTOFF, verbose=False)
+    check("drops stale", len(j) == 1, len(j))
+    check("body comes from description — this feed has no content:encoded",
+          j[0]["body_excerpt"] == "Full essay body.", repr(j[0]["body_excerpt"]))
+    check("description is the same text under the shorter budget",
+          j[0]["description"] == "Full essay body.", repr(j[0]["description"]))
+    check("author read from dc:creator", j[0]["author"] == "Jason Wei", j[0]["author"])
+    check("no categories in this feed, so no tags", j[0]["tags"] == [], j[0]["tags"])
+
+    section("feeds / ken_walger")
+    k, _ = ken_walger.fetch(CUTOFF, verbose=False)
+    check("drops stale", len(k) == 1, len(k))
+    check("full body from content:encoded, not the dek",
+          k[0]["body_excerpt"] == "Full article body here.", repr(k[0]["body_excerpt"]))
+    check("dek kept separately as the description",
+          k[0]["description"] == "The dek.", repr(k[0]["description"]))
+    check("byline is the real author, never the WordPress 'admin' in dc:creator",
+          k[0]["author"] == "Ken W. Alger", k[0]["author"])
+    check("categories parsed as tags",
+          k[0]["tags"] == ["AI Engineering", "Architecture"], k[0]["tags"])
+
+    section("feeds / alperen_keles")
+    ak, _ = alperen_keles.fetch(CUTOFF, verbose=False)
+    check("drops stale", len(ak) == 2, [i["title"] for i in ak])
+    check("freshness is judged on <published>, not <updated> — an old post edited "
+          "today must not re-enter the window as if it were new",
+          all(i["title"] != "Edited Old Atom" for i in ak), [i["title"] for i in ak])
+    check("url comes from the alternate link's href, not the decoy related link "
+          "and not the element text",
+          ak[0]["url"] == "https://ak.com/posts/fresh/", ak[0]["url"])
+    check("a bare <link href> with no rel counts as alternate (Atom's default)",
+          ak[1]["url"] == "https://ak.com/posts/bare/", ak[1]["url"])
+    check("escaped-HTML content is unescaped before tags are stripped — otherwise "
+          "the body reads as literal '<p>' text",
+          ak[0]["body_excerpt"] == "Full body here.", repr(ak[0]["body_excerpt"]))
+    check("author read from <author><name>, whitespace and all",
+          ak[0]["author"] == "Alperen Keles", repr(ak[0]["author"]))
+    check("ISO published date normalised to our item shape",
+          ak[0]["published_at"] == utils.iso(FRESH), ak[0]["published_at"])
+    check("no categories in this feed, so no tags", ak[0]["tags"] == [], ak[0]["tags"])
+
+    section("feeds / martin_fowler")
+    mf, _ = martin_fowler.fetch(CUTOFF, verbose=False)
+    check("drops stale", len(mf) == 1, [i["title"] for i in mf])
+    check("freshness falls back to <updated> — this feed publishes no <published> "
+          "at all, so requiring it would yield zero items forever",
+          mf[0]["published_at"] == utils.iso(FRESH), mf[0]["published_at"])
+    check("url from the bare link href", mf[0]["url"] == "https://mf.com/articles/fresh.html",
+          mf[0]["url"])
+    check("entry author wins over the feed-level one",
+          mf[0]["author"] == "Martin Fowler", mf[0]["author"])
+    check("tags come from Atom term attributes, which rss_categories can't see",
+          "bliki" in mf[0]["tags"], mf[0]["tags"])
+    check("SKIP_TERMS drops site plumbing — 'skip-home-page' is a rendering directive "
+          "and would otherwise become a public tag page on the digest site",
+          "skip-home-page" not in mf[0]["tags"], mf[0]["tags"])
+    check("a category's human-readable label beats its slug term",
+          "Domain-Driven Design" in mf[0]["tags"] and "ddd" not in mf[0]["tags"],
+          mf[0]["tags"])
+    check("escaped content unescaped before stripping",
+          mf[0]["body_excerpt"] == "A fresh post body.", repr(mf[0]["body_excerpt"]))
+
     section("feeds / hacker_news")
     h, _ = hacker_news.fetch(CUTOFF, verbose=False)
     check("score floor applied",
@@ -252,8 +486,9 @@ def test_feeds():
               for i in h))
 
     section("feeds / shared contract")
-    for name, items in (("dev_to", d), ("medium", m),
-                        ("pragmatic_engineer", p), ("hacker_news", h)):
+    for name, items in (("dev_to", d), ("medium", m), ("pragmatic_engineer", p),
+                        ("hacker_news", h), ("jason_wei", j), ("ken_walger", k),
+                        ("alperen_keles", ak), ("martin_fowler", mf)):
         check(f"{name} returns the normalised item shape",
               all(all(k in i for k in utils.ITEM_FIELDS) for i in items))
 
@@ -870,6 +1105,62 @@ def test_relevance_math():
           sum(1 for it in pool3_cap if it["source"] == "small_src") == 2)
 
 
+def test_relevance_priority():
+    section("rank / relevance - priority sources bypass the non-tech drop and the top-N cut")
+    e_topic = [1, 0, 0, 0, 0]
+    e_stack = [0, 1, 0, 0, 0]
+    e_dial_up = [0, 0, 1, 0, 0]
+    e_dial_down = [0, 0, 0, 1, 0]
+    e_non_tech = [0, 0, 0, 0, 1]
+
+    v_topical = [0.9, 0.1, 0, 0, 0.05]      # comfortably tech
+    v_nontech = [0.1, 0, 0, 0, 0.5]         # non_tech > topic -> drop rule fires
+
+    # Two items with *identical* vectors, differing only by source: one from a
+    # priority blog, one not. The priority one must survive the drop that kills
+    # its twin — that's the whole feature in one assertion.
+    items = [
+        utils.item(source="dev.to", title="a", url="https://x.com/1", published_at=""),
+        utils.item(source="dev.to", title="b", url="https://x.com/2", published_at=""),
+        utils.item(source="ken_walger", title="c", url="https://x.com/3", published_at=""),
+    ]
+    vectors = ([v_topical, v_nontech, v_nontech]
+               + [e_topic, e_topic, e_stack, e_dial_up, e_dial_down]
+               + [e_non_tech] * 5)
+
+    cfg = {
+        "relevance": {"weights": {"stack": 0.30, "dial_up": 0.35, "dial_down": 0.60},
+                       "drop_non_tech": True, "never_drop_sources": []},
+        # size=1 as well, so the priority item is also competing against a cut
+        # it could not win on score — it scores strictly below the topical one.
+        "pools": {"priority_sources": ["ken_walger", "jason_wei"],
+                   "pool3": {"size": 1, "max_per_source": {}}},
+    }
+    pool3, dropped = rank_relevance.rank(items, _INTERESTS_STUB, cfg,
+                                          encode=lambda t: np.asarray(vectors, dtype=float))
+
+    check("the non-priority twin is still dropped as non-tech",
+          [it["url"] for it in dropped] == ["https://x.com/2"], dropped)
+    check("the priority item survives the identical non-tech score",
+          any(it["source"] == "ken_walger" for it in pool3), pool3)
+    check("pinned items don't consume a pool3.size slot: size=1 yields 1 merit item "
+          "plus the pinned one",
+          len(pool3) == 2, [(it["source"], it["url"]) for it in pool3])
+    check("pinned items lead pool3, ahead of the merit-ranked rest",
+          pool3[0]["source"] == "ken_walger", [it["source"] for it in pool3])
+    check("priority items are still scored, not just waved through",
+          pool3[0]["relevance"]["score"] < pool3[1]["relevance"]["score"],
+          [it["relevance"]["score"] for it in pool3])
+    check("every item carries a boolean `priority` flag for downstream stages",
+          [it["priority"] for it in pool3] == [True, False],
+          [(it["source"], it.get("priority")) for it in pool3])
+
+    section("rank / relevance - priority_sources also implies never-drop, without "
+            "needing a second config list")
+    check("never_drop_sources can stay empty — priority_sources unions into it",
+          cfg["relevance"]["never_drop_sources"] == [])
+
+
 def test_relevance_fallback():
     section("rank / relevance - fallback on encoder failure")
 
@@ -913,6 +1204,30 @@ def test_relevance_fallback():
           "(uncapped, only 5 available) takes all of them",
           len(by_source.get("dev.to", [])) == 20 and len(by_source.get("hacker_news", [])) == 5,
           by_source)
+
+    section("rank / relevance - the fallback path keeps priority items pinned too")
+    # Without this, a cold model cache in CI silently demotes the whole
+    # priority tier back into the round-robin — where a 30-item dev.to day
+    # can push it out entirely.
+    pinned_item = utils.item(source="jason_wei", title="pinned", published_at="",
+                              url="https://www.jasonwei.net/blog/x")
+    pinned_item["pool2_rank"] = 999  # dead last on engagement order
+    cfg_pri = {
+        "relevance": {"weights": {"stack": 0.3, "dial_up": 0.35, "dial_down": 0.6},
+                       "drop_non_tech": True, "never_drop_sources": []},
+        "pools": {"priority_sources": ["jason_wei"],
+                   "pool3": {"size": 25, "max_per_source": {"dev.to": 10}}},
+    }
+    with contextlib.redirect_stderr(io.StringIO()):
+        pool3_pri, _ = rank_relevance.rank(items + [pinned_item], _INTERESTS_STUB, cfg_pri,
+                                            encode=raising_encode)
+    check("the pinned item survives a fallback run despite ranking dead last",
+          pool3_pri[0]["source"] == "jason_wei", [it["source"] for it in pool3_pri[:3]])
+    check("and does not consume a size slot there either",
+          len(pool3_pri) == 26, len(pool3_pri))
+    check("fallback pinned items still carry the fallback marker",
+          pool3_pri[0]["relevance"] == {"score": 0.0, "fallback": True},
+          pool3_pri[0]["relevance"])
 
 
 def test_relevance_scoring_errors_propagate():
@@ -995,6 +1310,19 @@ def test_prompt():
           "http" not in prompt.split("=== CANDIDATES")[1].split("=== END CANDIDATES")[0])
     check("indices are contiguous from 0",
           '"i": 0' in prompt and '"i": 1' in prompt)
+
+    section("rank / prompt - the pinned flag reaches the model, on pinned items only")
+    items[1]["priority"] = True
+    payload = json.loads(rank_prompt.build_digest_prompt("# Interests", items, 9)
+                          .split("=== CANDIDATES (JSON array) ===")[1]
+                          .split("=== END CANDIDATES ===")[0].strip())
+    check("a priority item is marked pinned", payload[1].get("pinned") is True, payload[1])
+    check("an ordinary item carries no pinned key at all — an explicit false on every "
+          "candidate is pure payload weight in a token-capped prompt",
+          "pinned" not in payload[0], payload[0])
+    check("the must-include rule is stated in the instructions",
+          "MUST appear in your selection" in rank_prompt.DIGEST_INSTRUCTIONS)
+    items[1].pop("priority")
 
 
 def test_prompt_url_scrub():
@@ -1215,6 +1543,9 @@ def test_pools_json_output():
               set(payload))
         check("pool3 entries always carry title + source",
               all("title" in e and "source" in e for e in payload["pool3"]), payload["pool3"])
+        check("pool3 entries carry an always-present boolean `priority`, so 'did my blogs "
+              "get in' is answerable from --json without re-deriving it from config",
+              all(e.get("priority") is False for e in payload["pool3"]), payload["pool3"])
         check("fallback pool3 entries surface fallback=True with no topic/stack breakdown "
               "(the partial-relevance shape doesn't crash the JSON assembly)",
               bool(payload["pool3"])
@@ -1291,6 +1622,56 @@ def test_digest_helpers():
     check("a section with only invalid indices is dropped entirely",
           all_invalid["sections"] == [], all_invalid)
 
+    section("main / _ensure_pinned - a priority item the model omitted is inserted anyway")
+    pinned = utils.item(source="ken_walger", title="Pinned Post", tags=["ai"],
+                         url="https://www.kenwalger.com/blog/x/",
+                         published_at="2026-09-14T12:33:00Z")
+    pinned["priority"] = True
+    pinned["summary"] = "the extractive summary main.py step 7 computed"
+    pool3_pinned = [pool3[0], pinned]
+
+    ignored = M._reconcile_digest(
+        {"intro": "hook", "sections": [{"heading": "🛠 Tooling", "items": [
+            {"i": 0, "summary": "model prose"}]}]}, pool3_pinned)
+    buf = io.StringIO()
+    with contextlib.redirect_stderr(buf):
+        repaired = M._ensure_pinned(ignored, pool3_pinned)
+
+    check("the model's own section is left untouched",
+          repaired["sections"][0]["heading"] == "🛠 Tooling"
+          and len(repaired["sections"][0]["items"]) == 1, repaired["sections"][0])
+    check("the omitted priority item is appended in its own trailing section",
+          repaired["sections"][-1]["heading"] == M.PINNED_SECTION_HEADING
+          and len(repaired["sections"][-1]["items"]) == 1, repaired["sections"][-1])
+    inserted = repaired["sections"][-1]["items"][0]
+    check("inserted item carries our factual fields and the extractive summary",
+          inserted["url"] == pinned["url"] and inserted["title"] == "Pinned Post"
+          and inserted["source"] == "ken_walger" and inserted["tags"] == ["ai"]
+          and inserted["publishedAt"] == "2026-09-14T12:33:00Z"
+          and inserted["summary"] == pinned["summary"], inserted)
+    check("the backstop firing is logged to stderr, never into stats.errors (the site "
+          "renders errors.length as 'N source error(s) this run')",
+          "pinned backstop" in buf.getvalue(), buf.getvalue())
+
+    section("main / _ensure_pinned - inert when the model complied")
+    complied = M._reconcile_digest(
+        {"intro": "hook", "sections": [{"heading": "🛠 Tooling", "items": [
+            {"i": 0, "summary": "model prose"},
+            {"i": 1, "summary": "model prose for the pinned one"}]}]}, pool3_pinned)
+    before = json.dumps(complied, sort_keys=True)
+    after = M._ensure_pinned(complied, pool3_pinned)
+    check("no extra section, no duplicate item, when the pinned item was included",
+          json.dumps(after, sort_keys=True) == before, after)
+    check("and the model's prose is kept for it, not replaced by the extractive one",
+          after["sections"][0]["items"][1]["summary"] == "model prose for the pinned one")
+
+    section("main / _ensure_pinned - nothing pinned in pool3 is a no-op")
+    plain = M._reconcile_digest(
+        {"intro": "hook", "sections": [{"heading": "h", "items": [
+            {"i": 0, "summary": "s"}]}]}, pool3)
+    check("a pool3 with no priority items is returned unchanged",
+          M._ensure_pinned(plain, pool3) == plain, plain)
+
 
 def main():
     test_utils()
@@ -1307,6 +1688,7 @@ def main():
     test_interests_parse()
     test_doc_text_budget()
     test_relevance_math()
+    test_relevance_priority()
     test_relevance_fallback()
     test_relevance_scoring_errors_propagate()
     test_relevance_no_topics()

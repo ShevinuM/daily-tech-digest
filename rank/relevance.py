@@ -3,6 +3,11 @@ model2vec sentence embeddings, drop items that read as non-tech, then take
 the top `pool3.size` with a per-source cap. Replaces the LLM's old
 freshness/tech-only/topic-relevance judgement with something cheap, fast,
 and comparable across sources — see PLAN.md Findings 1-4.
+
+One exception: items from `pools.priority_sources` (blogs read directly
+rather than discovered) are pinned. They're still scored, but neither the
+non-tech drop nor the top-N cut applies to them, and they don't consume a
+`pool3.size` slot. Every item leaves here carrying a boolean `priority`.
 """
 from __future__ import annotations
 
@@ -151,7 +156,8 @@ def _max_sim(doc_vec: np.ndarray, anchor_vecs: np.ndarray) -> float:
 # --------------------------------------------------------------------------
 
 def _score_and_select(items, parsed, vectors, n_docs, *, w_stack, w_dial_up, w_dial_down,
-                       drop_non_tech, never_drop_sources, size, max_per_source):
+                       drop_non_tech, never_drop_sources, size, max_per_source,
+                       priority_sources=()):
     """Pure numpy/dict work — scoring, the non-tech drop, sorting, and the
     per-source cap. Deliberately unguarded: unlike the encode() call in
     rank(), a bug here is a real bug and should crash loudly rather than be
@@ -170,10 +176,13 @@ def _score_and_select(items, parsed, vectors, n_docs, *, w_stack, w_dial_up, w_d
     dial_down_vecs = vectors[idx:idx + len(dial_down_texts)]; idx += len(dial_down_texts)
     non_tech_vecs = vectors[idx:idx + len(NON_TECH_ANCHORS)]; idx += len(NON_TECH_ANCHORS)
 
+    priority_sources = set(priority_sources or ())
+
     scored: list[dict] = []
     dropped: list[dict] = []
     for i, item in enumerate(items):
         doc_vec = doc_vecs[i]
+        item["priority"] = item.get("source", "") in priority_sources
 
         if topic_vecs.size:
             topic_sims = doc_vec @ topic_vecs.T
@@ -207,28 +216,38 @@ def _score_and_select(items, parsed, vectors, n_docs, *, w_stack, w_dial_up, w_d
 
     scored.sort(key=lambda it: -it["relevance"]["score"])
 
-    pool3: list[dict] = []
+    # Priority-source items are pinned: they skip the top-`size` cut and the
+    # per-source cap entirely, and sit ahead of the merit-ranked rest. They
+    # deliberately do NOT consume a `size` slot either — the point of the tier
+    # is that a blog you read directly never displaces the 25-deep merit pool,
+    # and vice versa. They're still scored above (main.py pools reports it,
+    # and the score orders them among themselves), just not filtered on.
+    pinned = [it for it in scored if it.get("priority")]
+    rest = [it for it in scored if not it.get("priority")]
+
+    selected: list[dict] = []
     overflow: list[dict] = []
     counts: dict[str, int] = {}
-    for item in scored:
-        if len(pool3) >= size:
+    for item in rest:
+        if len(selected) >= size:
             break
         cap = max_per_source.get(item.get("source", ""))
         if cap is not None and counts.get(item.get("source", ""), 0) >= cap:
             overflow.append(item)
             continue
-        pool3.append(item)
+        selected.append(item)
         counts[item.get("source", "")] = counts.get(item.get("source", ""), 0) + 1
 
     for item in overflow:
-        if len(pool3) >= size:
+        if len(selected) >= size:
             break
-        pool3.append(item)
+        selected.append(item)
 
-    return pool3, dropped
+    return pinned + selected, dropped
 
 
-def _fallback_rank(items: list[dict], size: int, max_per_source: dict | None = None) -> list[dict]:
+def _fallback_rank(items: list[dict], size: int, max_per_source: dict | None = None,
+                    priority_sources=()) -> list[dict]:
     """Deterministic ordering used when the embedding model can't be
     loaded: interleave sources round-robin in their existing engagement
     order (`pool2_rank`, already sorted by reactions/score for dev.to/HN in
@@ -237,8 +256,19 @@ def _fallback_rank(items: list[dict], size: int, max_per_source: dict | None = N
     exactly the situation where a single noisy source running away with the
     digest is most likely. Every returned item carries a `relevance` key
     (score 0.0, `fallback: True`) so callers/`main.py pools` can tell a
-    fallback ranking apart from a real score of zero."""
+    fallback ranking apart from a real score of zero.
+
+    Priority sources are pinned here exactly as in the scored path — without
+    this, a cold model cache in CI would silently demote the whole tier back
+    into the round-robin and quietly drop it on a busy day."""
     max_per_source = max_per_source or {}
+    priority_sources = set(priority_sources or ())
+
+    for item in items:
+        item["priority"] = item.get("source", "") in priority_sources
+    pinned = [it for it in items if it["priority"]]
+    items = [it for it in items if not it["priority"]]
+
     groups: dict[str, list[dict]] = {}
     for item in items:
         groups.setdefault(item.get("source", ""), []).append(item)
@@ -275,6 +305,9 @@ def _fallback_rank(items: list[dict], size: int, max_per_source: dict | None = N
             break
         picked.append(item)
 
+    pinned.sort(key=lambda it: it.get("pool2_rank", 0))
+    picked = pinned + picked
+
     for item in picked:
         item.setdefault("relevance", {"score": 0.0, "fallback": True})
     return picked
@@ -292,11 +325,16 @@ def rank(items: list[dict], interests_text: str, cfg: dict, *, encode=None
     w_dial_up = weights.get("dial_up", 0.35)
     w_dial_down = weights.get("dial_down", 0.60)
     drop_non_tech = relevance_cfg.get("drop_non_tech", True)
-    never_drop_sources = set(relevance_cfg.get("never_drop_sources") or [])
     doc_body_chars = relevance_cfg.get("doc_body_chars", DOC_BODY_CHARS)
-    pool3_cfg = cfg.get("pools", {}).get("pool3", {})
+    pools_cfg = cfg.get("pools", {})
+    pool3_cfg = pools_cfg.get("pool3", {})
     size = pool3_cfg.get("size", 25)
     max_per_source = pool3_cfg.get("max_per_source") or {}
+    # A priority source is never-drop by definition — one config list, not two.
+    # `never_drop_sources` keeps its narrower meaning for anything you want
+    # exempt from the non-tech drop but still ranked on merit.
+    priority_sources = set(pools_cfg.get("priority_sources") or [])
+    never_drop_sources = set(relevance_cfg.get("never_drop_sources") or []) | priority_sources
 
     parsed = parse_interests(interests_text)
     active_encode = encode or _default_encode(model_name)
@@ -323,11 +361,12 @@ def rank(items: list[dict], interests_text: str, cfg: dict, *, encode=None
         # must crash loudly, not be swallowed as "the model is unavailable".
         utils.log(f"relevance: embedding scoring unavailable ({e}); falling back to "
                   f"deterministic engagement-sorted ordering", verbose=True)
-        return _fallback_rank(items, size, max_per_source), []
+        return _fallback_rank(items, size, max_per_source, priority_sources), []
 
     vectors = _l2_normalize(np.asarray(raw_vectors, dtype=float))
 
     return _score_and_select(
         items, parsed, vectors, len(doc_texts), w_stack=w_stack, w_dial_up=w_dial_up,
         w_dial_down=w_dial_down, drop_non_tech=drop_non_tech,
-        never_drop_sources=never_drop_sources, size=size, max_per_source=max_per_source)
+        never_drop_sources=never_drop_sources, size=size, max_per_source=max_per_source,
+        priority_sources=priority_sources)

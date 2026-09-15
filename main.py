@@ -202,6 +202,7 @@ def cmd_pools(args) -> int:
             "dropped": [{"title": i.get("title", ""), "source": i.get("source", ""),
                          **i.get("relevance", {})} for i in dropped],
             "pool3": [{"title": i.get("title", ""), "source": i.get("source", ""),
+                       "priority": bool(i.get("priority")),
                        **i.get("relevance", {})} for i in pool3],
         }
         print(json.dumps(payload, ensure_ascii=False, indent=2))
@@ -222,10 +223,12 @@ def cmd_pools(args) -> int:
         print(f"  non={rel.get('non_tech', 0):.3f} topic={rel.get('topic_raw', 0):.3f}  "
               f"[{item.get('source', '')}] {item.get('title', '')}")
 
-    print(f"\npool3: {len(pool3)} item(s)")
+    pinned_count = sum(1 for i in pool3 if i.get("priority"))
+    print(f"\npool3: {len(pool3)} item(s) ({pinned_count} pinned)")
     for item in pool3:
         rel = item.get("relevance", {})
-        print(f"  {rel.get('score', 0):.3f}  topic={rel.get('topic', 0):.3f} "
+        print(f"  {'PIN' if item.get('priority') else '   '} "
+              f"{rel.get('score', 0):.3f}  topic={rel.get('topic', 0):.3f} "
               f"stack={rel.get('stack', 0):.3f} up={rel.get('dial_up', 0):.3f} "
               f"down={rel.get('dial_down', 0):.3f}  [{item.get('source', '')}] "
               f"{item.get('title', '')}")
@@ -298,6 +301,49 @@ def _reconcile_digest(digest, pool3: list[dict]) -> dict:
             })
     intro = digest.get("intro", "") if isinstance(digest, dict) else ""
     return {"intro": intro if isinstance(intro, str) else "", "sections": sections_out}
+
+
+PINNED_SECTION_HEADING = "📌 From the blogs you follow"
+
+
+def _ensure_pinned(digest: dict, pool3: list[dict]) -> dict:
+    """Deterministic backstop for the priority tier: any `pools.priority_sources`
+    item the model left out is appended anyway, using the extractive summary
+    step 7 already computed for every pool-3 item. The prompt asks for these
+    must-include; this is what makes it a guarantee rather than a request.
+
+    Deliberately called *after* cmd_digest's empty-sections guard, not folded
+    into _reconcile_digest. Inside, it would make `sections` non-empty on any
+    day with a pinned item and turn that guard into dead code — a garbage
+    model response would publish a pinned-only page with an empty intro
+    instead of failing the run, which is not how a hard LLM failure behaves.
+
+    Matching is by url: _reconcile_digest copies each item's url verbatim out
+    of pool3, so a url present in the digest is exactly a pool-3 item the
+    model used.
+    """
+    present = {item.get("url") for section in digest.get("sections", [])
+               for item in section.get("items", [])}
+    missing = [it for it in pool3 if it.get("priority") and it.get("url") not in present]
+    if not missing:
+        return digest
+
+    items_out = []
+    for cand in missing:
+        utils.log(f"pinned backstop: model omitted a priority item, inserting it with "
+                  f"its extractive summary — [{cand.get('source', '')}] "
+                  f"{cand.get('title', '')}", verbose=True)
+        items_out.append({
+            "url": cand["url"],
+            "title": cand.get("title", ""),
+            "source": cand.get("source", ""),
+            "publishedAt": cand.get("published_at", ""),
+            "tags": cand.get("tags") or [],
+            "summary": cand.get("summary", ""),
+        })
+
+    digest["sections"].append({"heading": PINNED_SECTION_HEADING, "items": items_out})
+    return digest
 
 
 def cmd_digest(args) -> int:
@@ -404,6 +450,7 @@ def cmd_digest(args) -> int:
     if not digest["sections"]:
         print("LLM digest call returned no items matching the candidate list", file=sys.stderr)
         return 2
+    digest = _ensure_pinned(digest, pool3)
 
     # 9. Write site content
     date_str = now.strftime("%Y-%m-%d")
