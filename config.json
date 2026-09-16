@@ -30,6 +30,7 @@
       "hacker_news":         {"min_score": 40,    "cap": 25, "sort_key": "score"},
       "medium":              {"cap": null},
       "bytebytego":          {"cap": null},
+      "gary_marcus":         {"cap": null},
       "pragmatic_engineer":  {"cap": null},
       "jason_wei":           {"cap": null},
       "ken_walger":          {"cap": null},

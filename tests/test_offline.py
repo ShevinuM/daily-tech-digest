@@ -33,9 +33,9 @@ import feeds  # noqa: E402
 import main as M  # noqa: E402
 import newsletters  # noqa: E402
 import utils  # noqa: E402
-from feeds import (alperen_keles, bytebytego, dev_to, hacker_news,  # noqa: E402
-                    jason_wei, ken_walger, martin_fowler, medium,
-                    pragmatic_engineer)
+from feeds import (alperen_keles, bytebytego, dev_to, gary_marcus,  # noqa: E402
+                    hacker_news, jason_wei, ken_walger, martin_fowler,
+                    medium, pragmatic_engineer)
 from newsletters import agentmail_client  # noqa: E402
 from newsletters import classify  # noqa: E402
 from newsletters import unsubscribe as unsub  # noqa: E402
@@ -191,6 +191,18 @@ BBG_XML = f"""<rss><channel>
 <pubDate>{rfc(STALE)}</pubDate><description><![CDATA[old]]></description></item>
 </channel></rss>"""
 
+# Substack again, but this feed carries no dc:creator and no <author> at all.
+GM_XML = f"""<rss><channel>
+<item><title><![CDATA[Fresh GM]]></title>
+<link>https://garymarcus.substack.com/p/fresh</link>
+<pubDate>{rfc(FRESH)}</pubDate>
+<description><![CDATA[<p>The dek.</p>]]></description>
+<content:encoded><![CDATA[<p>Full <em>opinion</em> body.</p>]]></content:encoded></item>
+<item><title><![CDATA[Stale GM]]></title>
+<link>https://garymarcus.substack.com/p/stale</link>
+<pubDate>{rfc(STALE)}</pubDate><description><![CDATA[old]]></description></item>
+</channel></rss>"""
+
 DEVTO = [
     {"title": "Fresh A", "url": "https://dev.to/a/fresh-a", "path": "/a/fresh-a",
      "published_at": FRESH.strftime("%Y-%m-%dT%H:%M:%SZ"), "user": {"username": "a"},
@@ -231,6 +243,8 @@ def fake_get(url, as_json=False, timeout=None):
         return ATOM_XML
     if "bytebytego.com" in url:
         return BBG_XML
+    if "garymarcus.substack.com" in url:
+        return GM_XML
     if "martinfowler.com" in url:
         return MF_XML
     if "topstories" in url:
@@ -375,7 +389,7 @@ def test_discovery():
     PAUSED = {"dev_to", "medium"}
     ALL_MODULES = {"dev_to", "medium", "pragmatic_engineer", "hacker_news",
                    "jason_wei", "ken_walger", "alperen_keles", "martin_fowler",
-                   "bytebytego"}
+                   "bytebytego", "gary_marcus"}
 
     mods = feeds.discover()
     names = [m.NAME for m in mods]
@@ -516,6 +530,15 @@ def test_feeds():
           bbg[0]["description"] == "The dek.", repr(bbg[0]["description"]))
     check("author from dc:creator", bbg[0]["author"] == "ByteByteGo", bbg[0]["author"])
 
+    section("feeds / gary_marcus")
+    gm, _ = gary_marcus.fetch(CUTOFF, verbose=False)
+    check("drops stale", len(gm) == 1, [i["title"] for i in gm])
+    check("full body from content:encoded",
+          gm[0]["body_excerpt"] == "Full opinion body.", repr(gm[0]["body_excerpt"]))
+    check("byline comes from AUTHOR — this feed has neither dc:creator nor <author>, "
+          "so parsing it would leave every item unattributed",
+          gm[0]["author"] == "Gary Marcus", gm[0]["author"])
+
     section("feeds / hacker_news")
     h, _ = hacker_news.fetch(CUTOFF, verbose=False)
     check("score floor applied",
@@ -530,7 +553,7 @@ def test_feeds():
     for name, items in (("dev_to", d), ("medium", m), ("pragmatic_engineer", p),
                         ("hacker_news", h), ("jason_wei", j), ("ken_walger", k),
                         ("alperen_keles", ak), ("martin_fowler", mf),
-                        ("bytebytego", bbg)):
+                        ("bytebytego", bbg), ("gary_marcus", gm)):
         check(f"{name} returns the normalised item shape",
               all(all(k in i for k in utils.ITEM_FIELDS) for i in items))
 
