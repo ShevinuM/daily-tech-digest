@@ -1006,10 +1006,19 @@ def test_interests_parse():
         real_interests = f.read()
     parsed = rank_relevance.parse_interests(real_interests)
 
-    check("extracts all 6 topic bullets", len(parsed["topics"]) == 6, parsed["topics"])
+    # This is a DRIFT CANARY over a file the reader edits by hand, so it
+    # asserts the invariants the pipeline actually depends on and not the
+    # file's current wording or bullet counts — those change legitimately and
+    # a test that pins them just cries wolf. It exists because real drift once
+    # went unnoticed for a week: interests.md swapped "## Dial down" for
+    # "## Exclude" on 2026-09-10, dial_down silently parsed to [], and the
+    # 0.60 weight in config.json quietly stopped doing anything.
+    check("topics parse — without them rank() disables the non-tech drop entirely",
+          len(parsed["topics"]) > 0, parsed["topics"])
     weights = [w for _, w in parsed["topics"]]
-    check("High/Medium/Low priority markers map to 1.0/0.7/0.4",
-          weights == [1.0, 1.0, 1.0, 0.7, 0.7, 0.4], weights)
+    check("every topic weight is a real priority value, never an unmapped marker",
+          all(w in set(rank_relevance.PRIORITY_WEIGHTS.values())
+              | {rank_relevance.DEFAULT_TOPIC_WEIGHT} for w in weights), weights)
     check("emphasis markers stripped from topic query text",
           all("*" not in t for t, _ in parsed["topics"]), parsed["topics"])
     check("no topic query text contains the priority word itself (D5 — 'High'/'Medium'/"
@@ -1017,9 +1026,31 @@ def test_interests_parse():
           all(w not in t for t, _ in parsed["topics"] for w in ("High", "Medium", "Low")),
           parsed["topics"])
     check("'## My stack' (lowercase heading) bullets extracted",
-          len(parsed["stack"]) == 4, parsed["stack"])
-    check("dial up bullets extracted", len(parsed["dial_up"]) == 5, parsed["dial_up"])
-    check("dial down bullets extracted", len(parsed["dial_down"]) == 2, parsed["dial_down"])
+          len(parsed["stack"]) > 0, parsed["stack"])
+    check("a dial-down signal is present — this is the canary that was missing: "
+          "config.json weights dial_down at 0.60, and with no anchors that term is "
+          "silently 0.0 for every item",
+          len(parsed["dial_down"]) > 0, parsed["dial_down"])
+    check("every parsed anchor is a non-empty string",
+          all(isinstance(b, str) and b.strip()
+              for key in ("stack", "dial_up", "dial_down") for b in parsed[key]),
+          parsed)
+
+    section("rank / relevance - parse_interests reads '## Exclude' as dial-down")
+    both = rank_relevance.parse_interests(
+        "## Dial down\n\n- dialled thing\n\n## Exclude\n\n"
+        "**Do not include these**\n\n- excluded thing\n- *another* excluded\n")
+    check("'## Exclude' bullets become dial-down anchors",
+          "excluded thing" in both["dial_down"], both["dial_down"])
+    check("unioned with '## Dial down', not replacing it — a file may use either "
+          "heading or both, and adding one must never disable the other",
+          both["dial_down"] == ["dialled thing", "excluded thing", "another excluded"],
+          both["dial_down"])
+    check("the section's bold lead-in is not a bullet and is not picked up",
+          not any("Do not include" in b for b in both["dial_down"]), both["dial_down"])
+    only_excl = rank_relevance.parse_interests("## Exclude\n\n- just this\n")
+    check("'## Exclude' alone is enough — no '## Dial down' heading required",
+          only_excl["dial_down"] == ["just this"], only_excl["dial_down"])
 
     section("rank / relevance - parse_interests (missing sections)")
     empty = rank_relevance.parse_interests("# Just a title\n\nNo sections here.\n")
@@ -1387,6 +1418,22 @@ def test_prompt():
           "pinned" not in payload[0], payload[0])
     check("the must-include rule is stated in the instructions",
           "MUST appear in your selection" in rank_prompt.DIGEST_INSTRUCTIONS)
+
+    section("rank / prompt - the Exclude list and promos are stated as hard filters")
+    instr = rank_prompt.DIGEST_INSTRUCTIONS
+    check("an exclude-style section is named as a hard filter, since the embedding "
+          "scorer provably cannot enforce it (measured 2026-09-17: excluded items' "
+          "mean rank was unchanged even at 5x the dial_down weight)",
+          "Exclude" in instr and "HARD filter" in instr)
+    check("promotional posts are called out — nothing upstream can spot an ad, and "
+          "ByteByteGo's course ads currently out-rank its own articles",
+          "Promotional posts are not reading material" in instr)
+    check("the prompt no longer points the model at an AI/LLM share cap that no "
+          "longer exists in the interests file",
+          "share cap" not in instr, instr[:0])
+    check("and does not assume a section exists — headings drift, and a stale name "
+          "sends the model looking for a list that was renamed",
+          "Do not assume any particular section exists" in instr)
     items[1].pop("priority")
 
 

@@ -73,9 +73,29 @@ def _bullets(body: str) -> list[str]:
     return [m.group(1).strip() for m in _BULLET_RE.finditer(body or "")]
 
 
+# Headings whose bullets become dial-down anchors. "Dial down" and "Exclude"
+# are the same signal written at two strengths — both name things the reader
+# wants less of — so both feed the one term the scorer has for it. Read as a
+# union, not a fallback: a file can use either heading or both, and adding one
+# never silently disables the other.
+#
+# This exists because the split was a silent failure mode. The hub's
+# interests.md replaced "## Dial down" with "## Exclude" on 2026-09-10; nothing
+# errored, but dial_down parsed to [] for a week, `dial_down_sim` was 0.0 for
+# every item, and the 0.60 weight in config.json did nothing — while the file
+# said in plain English which categories to keep out.
+_DIAL_DOWN_HEADINGS = ("dial down", "exclude")
+
+
 def parse_interests(text: str) -> dict:
     """Sections are matched case-insensitively; the live file uses lowercase
-    `## My stack`. A missing section yields an empty list, never a crash."""
+    `## My stack`. A missing section yields an empty list, never a crash.
+
+    Note the asymmetry between what `## Exclude` says and what it does: the
+    file reads "Do not include these", but these anchors only subtract
+    `weights.dial_down` from an item's score — they demote, they don't drop.
+    A hard exclusion would need its own rule.
+    """
     sections = _split_sections(text)
 
     topics = []
@@ -85,11 +105,14 @@ def parse_interests(text: str) -> dict:
         query = _PRIORITY_MARKER_RE.sub("", bullet)  # weight is metadata, not query text
         topics.append((_strip_emphasis(query), weight))
 
+    dial_down = [b for heading in _DIAL_DOWN_HEADINGS
+                 for b in _bullets(sections.get(heading, ""))]
+
     return {
         "topics": topics,
         "stack": [_strip_emphasis(b) for b in _bullets(sections.get("my stack", ""))],
         "dial_up": [_strip_emphasis(b) for b in _bullets(sections.get("dial up", ""))],
-        "dial_down": [_strip_emphasis(b) for b in _bullets(sections.get("dial down", ""))],
+        "dial_down": [_strip_emphasis(b) for b in dial_down],
     }
 
 

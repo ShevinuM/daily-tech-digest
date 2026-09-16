@@ -55,10 +55,22 @@ Your job:
    "N most worth-reading", read-time estimates, "every item links to its
    source").
 
-Respect the Interests & Rules file's topic priorities, "My stack" filter,
-"Dial up" / "Dial down" lists, the AI/LLM share cap, and its preference for
-accessible, practical writing over dense academic or deep infra-internals
-pieces.
+Respect the Interests & Rules file in full — its topic priorities, its
+"My stack" filter, and its stated preferences about tone and format.
+
+Two things it asks for are HARD filters, not preferences, and they override
+how well an item scored or how strong it looks on its own:
+
+- Any section naming things to leave out (headed "Exclude", "Dial down", or
+  similar) — do not select an item that matches one, even if it is the
+  single best candidate in the list.
+- Promotional posts are not reading material: course and cohort
+  enrollments, event or webinar announcements, product launches and
+  sponsored placements. Publications that mix these in with their writing
+  are common in the candidate list. Skip them.
+
+Do not assume any particular section exists — read the headings actually
+present in the file below and honour those.
 
 === INTERESTS & RULES ===
 {interests}
