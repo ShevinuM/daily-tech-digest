@@ -353,28 +353,45 @@ def test_utils():
 
 def test_discovery():
     section("feeds / auto-discovery")
+    # dev_to and medium are PAUSED (ENABLED = False, 2026-09-16), not removed:
+    # their modules and every test below still exercise them, so re-enabling is
+    # one flag and not a revalidation. Asserting the paused set explicitly means
+    # flipping either flag back on fails here — re-enabling stays a deliberate
+    # act with a test to update, rather than something that drifts back silently.
+    PAUSED = {"dev_to", "medium"}
+    ALL_MODULES = {"dev_to", "medium", "pragmatic_engineer", "hacker_news",
+                   "jason_wei", "ken_walger", "alperen_keles", "martin_fowler"}
+
     mods = feeds.discover()
     names = [m.NAME for m in mods]
-    check("finds all eight feed modules", len(mods) == 8, names)
-    check("expected names present",
-          set(names) == {"dev_to", "medium", "pragmatic_engineer", "hacker_news",
-                          "jason_wei", "ken_walger", "alperen_keles", "martin_fowler"},
+    check("discovers every enabled feed module", len(mods) == len(ALL_MODULES - PAUSED),
           names)
+    check("expected names present", set(names) == ALL_MODULES - PAUSED, names)
+    check("paused sources are absent from discovery",
+          not (set(names) & PAUSED), sorted(set(names) & PAUSED))
+    check("paused modules still exist on disk and are importable — a pause must not "
+          "cost us the working code",
+          all(callable(getattr(m, "fetch", None)) for m in (dev_to, medium)))
     check("every feed exposes callable fetch",
           all(callable(m.fetch) for m in mods))
     check("--only filter works",
-          [m.NAME for m in feeds.discover(only=["dev_to"])] == ["dev_to"])
+          [m.NAME for m in feeds.discover(only=["hacker_news"])] == ["hacker_news"])
+    check("--only on a paused feed returns nothing — ENABLED wins over an explicit "
+          "request, so `fetch --only medium` can't quietly resurrect a paused source",
+          feeds.discover(only=["medium"]) == [])
     check("unknown --only returns nothing", feeds.discover(only=["nope"]) == [])
     check("names() helper matches discover()", set(feeds.names()) == set(names))
 
     # A module with ENABLED = False must be skipped without deleting the file.
-    medium.ENABLED = False
+    # Toggled on a live feed, since medium is already paused above.
+    hacker_news.ENABLED = False
     try:
         check("ENABLED = False excludes a feed",
-              "medium" not in [m.NAME for m in feeds.discover()])
+              "hacker_news" not in [m.NAME for m in feeds.discover()])
     finally:
-        medium.ENABLED = True
-    check("re-enabling restores it", "medium" in [m.NAME for m in feeds.discover()])
+        hacker_news.ENABLED = True
+    check("re-enabling restores it",
+          "hacker_news" in [m.NAME for m in feeds.discover()])
 
 
 def test_feeds():

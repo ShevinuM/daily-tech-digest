@@ -54,7 +54,8 @@ digest *output* stays public.
 main.py                  CLI: feeds / fetch / digest / pools / delete-threads
 utils.py                 http, RSS/Atom parsing, dates, item shape
 feeds/                   one module per source, auto-discovered
-  discovery:  dev_to.py  medium.py  hacker_news.py
+  discovery:  hacker_news.py
+              dev_to.py  medium.py        (PAUSED — ENABLED = False)
   priority:   pragmatic_engineer.py  jason_wei.py  ken_walger.py
               alperen_keles.py  martin_fowler.py
 newsletters/             AgentMail REST client, classification, unsubscribe
@@ -108,6 +109,14 @@ def fetch(cutoff, *, verbose=False, **opts):
 python3 main.py feeds                  # confirm it was picked up
 python3 main.py fetch --only lobsters  # try it in isolation
 ```
+
+To pause a source without removing it, set `ENABLED = False` in its module.
+It drops out of discovery — and out of `--only`, so `fetch --only medium`
+can't resurrect it — while the module, its tests, and its `pools`/`relevance`
+config entries all stay put. Re-enabling is that one flag.
+
+**Currently paused:** `dev_to`, `medium` (since 2026-09-16). With both off the
+candidate pool is Hacker News, the priority blogs, and newsletters.
 
 Raising inside `fetch` is fine — it's recorded as an error and the run
 continues with the other feeds.

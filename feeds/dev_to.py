@@ -12,7 +12,10 @@ NAME = "dev_to"
 # The item-level `source` field dev.to items actually carry — distinct from
 # NAME. feeds.body_fetcher() and rank/pools.py key off this, not NAME.
 SOURCE = "dev.to"
-ENABLED = True
+# Paused 2026-09-16 at Shevinu's request — temporary, not a removal. Flip
+# back to True to resume; nothing else needs editing (the pools/relevance
+# config entries for "dev.to" stay put and go inert while this is False).
+ENABLED = False
 
 API = "https://dev.to/api/articles"
 
