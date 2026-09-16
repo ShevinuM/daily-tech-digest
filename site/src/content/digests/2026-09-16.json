@@ -1,0 +1,144 @@
+{
+  "date": "2026-09-16",
+  "title": "Shevinu's Digest — Wednesday, September 16, 2026",
+  "generatedAt": "2026-09-16T07:18:56Z",
+  "intro": "Today's focus centers on balancing system modularity, refining AI context economics, and streamlining technical execution.",
+  "sections": [
+    {
+      "heading": "🏛️ Systems Architecture & Migration Craft",
+      "items": [
+        {
+          "url": "https://medium.com/@abhishekninja2018/why-we-stopped-chasing-microservices-the-case-for-the-modular-monolith-in-2026-91ed422c552e",
+          "title": "Why We Stopped Chasing Microservices: The Case for the Modular Monolith in 2026",
+          "source": "medium",
+          "publishedAt": "2026-09-16T07:13:23Z",
+          "tags": [
+            "microservices",
+            "software-engineering",
+            "programming",
+            "web-development",
+            "software-architecture"
+          ],
+          "summary": "Distributed system overhead, cross-service network latency, and complex deployment pipelines are prompting many organizations to re-evaluate microservice architectures in favor of modular monoliths. This article examines why encapsulating domain logic into strictly bounded modules within a single deployment unit offers a far more sustainable model for modern application development. By replacing distributed RPCs with disciplined internal module boundaries, engineering teams eliminate distributed transaction failures and deployment friction while preserving clear logical separation. For backend developers managing Domain-Driven Design (DDD) bounded contexts, this architectural shift reinforces the core principle that domain decoupling does not strictly require physical service fragmentation. Embracing modular monoliths allows teams to preserve clean architectural boundaries and high delivery velocity without incurring premature microservice operational costs."
+        },
+        {
+          "url": "https://dev.to/techwithhari/i-spent-a-month-on-architecture-the-migration-took-two-days-2kij",
+          "title": "I Spent a Month on Architecture The Migration Took Two Days",
+          "source": "dev.to",
+          "publishedAt": "2026-09-15T07:22:06Z",
+          "tags": [
+            "cloud",
+            "devops",
+            "aws",
+            "architecture"
+          ],
+          "summary": "Successful system migrations are rarely driven by seamless execution during go-live; they are won during the weeks of upfront architectural validation. Reflecting on a major infrastructure transition, the author details how spending a month thoroughly stress-testing system assumptions reduced the actual migration cutover to just two days. Key insights emphasize running realistic concurrent load tests rather than relying on arbitrary autoscaling policies, thoroughly auditing inherited permission models, and verifying state replication before execution. For senior engineers and domain architects, this serves as a practical lesson in risk mitigation. Investing deeply in validating assumptions around service identity, load handling, and data migration prevents catastrophic runtime surprises, proving that meticulous architectural preparation drastically simplifies complex deployments."
+        }
+      ]
+    },
+    {
+      "heading": "🤖 AI Infrastructure & Token Economics",
+      "items": [
+        {
+          "url": "https://www.kenwalger.com/blog/uncategorized/hidden-taxes-of-prompt-only-ai/",
+          "title": "The Hidden Taxes of Prompt-Only AI",
+          "source": "ken_walger",
+          "publishedAt": "2026-09-15T12:58:00Z",
+          "tags": [
+            "Architecture",
+            "Uncategorized",
+            "Agentic AI",
+            "AI Systems Design",
+            "AI Token Economics",
+            "Attention Budget"
+          ],
+          "summary": "As AI capabilities integrate deeper into backend platforms, treating model memory as an oversized prompt rather than core infrastructure introduces severe architectural inefficiencies. Large prompts consume significant attention budgets, raise API latency, and complicate system orchestration by forcing models to isolate signal from ambient noise. This piece introduces the 'Tax Model' framework from the Sovereign Systems Specification, analyzing recurring operational taxes—the predictable costs associated with retrieving, storing, validating, and moving data across AI systems. For engineers transitioning toward staff-level systems design, framing context management through an explicit tax model helps balance cost, context window limits, and response latencies. Instead of continually ballooning prompts, robust architecture requires disciplined decisions about when information moves, where it resides, and what each state transition costs."
+        },
+        {
+          "url": "https://medium.com/skillstuff/how-to-build-ai-powered-web-features-without-skyrocketing-api-costs-b4eca5417363",
+          "title": "How to Build AI-Powered Web Features Without Skyrocketing API Costs",
+          "source": "medium",
+          "publishedAt": "2026-09-16T07:03:11Z",
+          "tags": [
+            "coding",
+            "software-engineering",
+            "software-development",
+            "programming",
+            "productivity"
+          ],
+          "summary": "Integrating generative AI features into production web services without strict architectural guardrails can quickly result in runaway infrastructure costs. This breakdown explores practical patterns for optimizing token economics and managing latency in web applications. Key practices include implementing semantic caching to serve recurring prompt intents, enforcing client-side token budgets, employing streaming UI states to improve perceived performance, and introducing dynamic model routing based on task complexity. For backend developers designing services around LLM APIs, these techniques bridge the gap between basic integrations and resilient, cost-aware systems design. Establishing intelligent model routing and caching layers ensures high service throughput and cost predictability, protecting operational budgets as application usage scales."
+        },
+        {
+          "url": "https://dev.to/raju_dandigam/your-agent-eval-set-is-rotting-build-a-failure-mining-loop-for-google-adk-1moc",
+          "title": "Your Agent Eval Set Is Rotting: Build a Failure-Mining Loop for Google ADK",
+          "source": "dev.to",
+          "publishedAt": "2026-09-15T19:18:29Z",
+          "tags": [
+            "google",
+            "ai",
+            "testing",
+            "devops"
+          ],
+          "summary": "Maintaining reliable AI agents in production requires moving beyond static test suites toward continuous failure-mining evaluation loops. Static evaluation sets degrade over time because they rely on happy-path development scenarios that miss unpredictable production failures. Rather than blindly copying raw production transcripts into test folders, this guide outlines a structured pipeline for capturing and curating failure candidates. Effective evaluation sets analyze failures across key dimensions: tool execution errors, trajectory anomalies, escalation behavior, and prompt or model version drift. For backend engineers building agentic workflows, constructing a feedback loop that systematically transforms real-world production edge cases into reproducible tests is crucial for long-term system stability and software reliability."
+        }
+      ]
+    },
+    {
+      "heading": "🎯 Leadership, Delivery & Security",
+      "items": [
+        {
+          "url": "https://martinfowler.com/articles/never-send-slides/nail-your-narrative.html",
+          "title": "Nail the Narrative",
+          "source": "martin_fowler",
+          "publishedAt": "2026-09-15T15:11:00Z",
+          "tags": [],
+          "summary": "Technical leaders often struggle to communicate complex architectural decisions because they focus on slide design rather than narrative coherence. Sumeet Gayathri Moghe breaks down why technical presentations collapse when authors assemble decks before establishing a unified narrative structure. The core recommendation centers on three foundational habits: distilling your central thesis into a single compelling idea, explicitly mapping the audience's baseline understanding, and constructing a deliberate storyline prior to drafting slides. As software engineers climb toward staff roles, persuasive communication becomes as vital as system architecture. Whether proposing a domain refactoring or presenting a technical roadmap to executive stakeholders, driving alignment relies on framing technical choices as a narrative of problem, constraint, and trade-off."
+        },
+        {
+          "url": "https://zerocodingstartup.medium.com/your-developers-arent-slow-their-work-is-waiting-ae45ec76f5a9",
+          "title": "Your Developers Aren’t Slow. Their Work Is Waiting.",
+          "source": "medium",
+          "publishedAt": "2026-09-15T15:12:06Z",
+          "tags": [
+            "developer-productivity",
+            "software-development",
+            "teamwork",
+            "engineering-culture",
+            "korean-tech"
+          ],
+          "summary": "When engineering output stalls, the root cause is rarely slow developers writing code—it is work trapped in handoff queues, delayed code reviews, and sluggish continuous integration pipelines. This piece highlights how a single-line code change submitted before lunch often takes until after dinner to reach production due to operational bottlenecks and unoptimized feedback loops. For staff engineers and technical leaders focusing on engineering effectiveness, optimizing delivery flow requires diagnosing queue wait times rather than pressuring individual coding velocity. By streamlining pull request workflows, automating pipeline validation, and minimizing context switching, software teams can systematically remove deployment friction and dramatically accelerate value delivery to production."
+        },
+        {
+          "url": "https://www.strix.ai/blog/baseten-harbor-github-pat-takeover",
+          "title": "We got admin access to Baseten's production GitHub",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-15T18:11:24Z",
+          "tags": [],
+          "summary": "A critical security exposure at Baseten demonstrates how subtle CI/CD and container build artifacts can expose elevated production access. Security researchers discovered an active admin token embedded deep within the build history of a publicly downloadable Docker image manifest from 2023. The unrotated token granted full read/write access to core source repositories, GitOps orchestration flows, and private customer code. This incident highlights a common blind spot in modern container supply chains: intermediate build layers frequently preserve secret variables long after images are published. For systems architects and codeowners, reinforcing automated secret scanning across continuous integration pipelines and enforcing strict token expiration policies are non-negotiable practices for maintaining secure infrastructure boundaries."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 8,
+    "sourcesScanned": [
+      "alperen_keles",
+      "dev_to",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "medium",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "dev_to: https://dev.to/api/articles?tag=typescript&top=1&per_page=30 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?top=1&per_page=100&page=1 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?tag=javascript&top=1&per_page=30 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?tag=node&top=1&per_page=30 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?top=1&per_page=100&page=2 -> HTTP Error 429: Too Many Requests",
+      "dev_to: https://dev.to/api/articles?tag=ai&top=1&per_page=30 -> HTTP Error 429: Too Many Requests"
+    ]
+  }
+}
