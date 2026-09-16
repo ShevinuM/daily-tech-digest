@@ -29,6 +29,7 @@
       "dev.to":              {"min_reactions": 2, "cap": 25, "sort_key": "reactions"},
       "hacker_news":         {"min_score": 40,    "cap": 25, "sort_key": "score"},
       "medium":              {"cap": null},
+      "bytebytego":          {"cap": null},
       "pragmatic_engineer":  {"cap": null},
       "jason_wei":           {"cap": null},
       "ken_walger":          {"cap": null},
@@ -44,7 +45,8 @@
     "model": "minishlab/potion-retrieval-32M",
     "weights": {"stack": 0.30, "dial_up": 0.35, "dial_down": 0.60},
     "drop_non_tech": true,
-    "never_drop_sources": [],
+    "_never_drop_comment": "Exempt from the non-tech drop only - still merit-ranked and still subject to the digest model's editorial pick, unlike pools.priority_sources. bytebytego is here because the drop rule misfires badly on it: measured 2026-09-16, 4 of 20 genuinely technical posts (git internals, application networking, model distillation, inference runtimes) scored non_tech_sim > raw_topic_sim and were silently dropped. Deliberately not pinned - roughly 1 post in 10 is course marketing that no fetch-time signal can distinguish, so it needs to stay in front of the model that can.",
+    "never_drop_sources": ["bytebytego"],
     "doc_body_chars": 600,
     "enrich_all_pool2": true
   },

@@ -54,7 +54,7 @@ digest *output* stays public.
 main.py                  CLI: feeds / fetch / digest / pools / delete-threads
 utils.py                 http, RSS/Atom parsing, dates, item shape
 feeds/                   one module per source, auto-discovered
-  discovery:  hacker_news.py
+  discovery:  hacker_news.py  bytebytego.py
               dev_to.py  medium.py        (PAUSED — ENABLED = False)
   priority:   pragmatic_engineer.py  jason_wei.py  ken_walger.py
               alperen_keles.py  martin_fowler.py
@@ -157,6 +157,23 @@ dedupe in `rank/merge.py` keeps the feed copy, which is.
 
 `main.py pools` marks pinned rows `PIN` and prints the count, and
 `main.py pools --json` puts a boolean `priority` on every pool-3 entry.
+
+### The middle tier: `relevance.never_drop_sources`
+
+Between "competes on merit" and "pinned" there's a source you trust to be
+*on topic* but still want ranked and editorially filtered. That's
+`relevance.never_drop_sources` — it exempts a source from the non-tech drop
+and nothing else.
+
+`bytebytego` is there. Measured on 2026-09-16, the drop rule misfired on 4 of
+its 20 posts — git internals, application networking, model distillation and
+inference runtimes all scored `non_tech_sim > raw_topic_sim` and were
+silently discarded. It is deliberately *not* pinned: roughly one ByteByteGo
+post in ten is course marketing, indistinguishable from editorial at fetch
+time (identical `dc:creator`/`enclosure`/`guid`, and length doesn't separate
+them — ads run ~6.3-6.6k chars against genuine short posts at ~6.9-7.0k), so
+it needs to stay in front of the digest model, which is the only stage that
+can recognise an ad.
 
 ## Local development
 

@@ -33,8 +33,9 @@ import feeds  # noqa: E402
 import main as M  # noqa: E402
 import newsletters  # noqa: E402
 import utils  # noqa: E402
-from feeds import (alperen_keles, dev_to, hacker_news, jason_wei,  # noqa: E402
-                    ken_walger, martin_fowler, medium, pragmatic_engineer)
+from feeds import (alperen_keles, bytebytego, dev_to, hacker_news,  # noqa: E402
+                    jason_wei, ken_walger, martin_fowler, medium,
+                    pragmatic_engineer)
 from newsletters import agentmail_client  # noqa: E402
 from newsletters import classify  # noqa: E402
 from newsletters import unsubscribe as unsub  # noqa: E402
@@ -179,6 +180,17 @@ KEN_WALGER_XML = f"""<rss><channel>
 <pubDate>{rfc(STALE)}</pubDate><description><![CDATA[old]]></description></item>
 </channel></rss>"""
 
+BBG_XML = f"""<rss><channel>
+<item><title><![CDATA[Fresh BBG]]></title>
+<link>https://blog.bytebytego.com/p/fresh</link>
+<dc:creator><![CDATA[ByteByteGo]]></dc:creator><pubDate>{rfc(FRESH)}</pubDate>
+<description><![CDATA[<p>The dek.</p>]]></description>
+<content:encoded><![CDATA[<p>Full <em>article</em> body.</p>]]></content:encoded></item>
+<item><title><![CDATA[Stale BBG]]></title>
+<link>https://blog.bytebytego.com/p/stale</link>
+<pubDate>{rfc(STALE)}</pubDate><description><![CDATA[old]]></description></item>
+</channel></rss>"""
+
 DEVTO = [
     {"title": "Fresh A", "url": "https://dev.to/a/fresh-a", "path": "/a/fresh-a",
      "published_at": FRESH.strftime("%Y-%m-%dT%H:%M:%SZ"), "user": {"username": "a"},
@@ -217,6 +229,8 @@ def fake_get(url, as_json=False, timeout=None):
         return KEN_WALGER_XML
     if "alperenkeles.com" in url:
         return ATOM_XML
+    if "bytebytego.com" in url:
+        return BBG_XML
     if "martinfowler.com" in url:
         return MF_XML
     if "topstories" in url:
@@ -360,7 +374,8 @@ def test_discovery():
     # act with a test to update, rather than something that drifts back silently.
     PAUSED = {"dev_to", "medium"}
     ALL_MODULES = {"dev_to", "medium", "pragmatic_engineer", "hacker_news",
-                   "jason_wei", "ken_walger", "alperen_keles", "martin_fowler"}
+                   "jason_wei", "ken_walger", "alperen_keles", "martin_fowler",
+                   "bytebytego"}
 
     mods = feeds.discover()
     names = [m.NAME for m in mods]
@@ -492,6 +507,15 @@ def test_feeds():
     check("escaped content unescaped before stripping",
           mf[0]["body_excerpt"] == "A fresh post body.", repr(mf[0]["body_excerpt"]))
 
+    section("feeds / bytebytego")
+    bbg, _ = bytebytego.fetch(CUTOFF, verbose=False)
+    check("drops stale", len(bbg) == 1, [i["title"] for i in bbg])
+    check("full body from content:encoded, not the dek",
+          bbg[0]["body_excerpt"] == "Full article body.", repr(bbg[0]["body_excerpt"]))
+    check("dek kept separately as the description",
+          bbg[0]["description"] == "The dek.", repr(bbg[0]["description"]))
+    check("author from dc:creator", bbg[0]["author"] == "ByteByteGo", bbg[0]["author"])
+
     section("feeds / hacker_news")
     h, _ = hacker_news.fetch(CUTOFF, verbose=False)
     check("score floor applied",
@@ -505,7 +529,8 @@ def test_feeds():
     section("feeds / shared contract")
     for name, items in (("dev_to", d), ("medium", m), ("pragmatic_engineer", p),
                         ("hacker_news", h), ("jason_wei", j), ("ken_walger", k),
-                        ("alperen_keles", ak), ("martin_fowler", mf)):
+                        ("alperen_keles", ak), ("martin_fowler", mf),
+                        ("bytebytego", bbg)):
         check(f"{name} returns the normalised item shape",
               all(all(k in i for k in utils.ITEM_FIELDS) for i in items))
 
