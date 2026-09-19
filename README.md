@@ -1,279 +1,68 @@
-## !!Still In Progress
-
-This is a prototype. I'm working on backend + frontend rewrite for this. And I'm working on new features listed on Issues.
-
 # Shevinu's Digest
 
-A daily digest of tech reading: fetched, filtered, ranked, and summarized on a
-schedule by GitHub Actions, published to a small [Astro](https://astro.build)
-site on GitHub Pages. No server to run, no SaaS bill — a scheduled workflow,
-a free-tier AI call, and a static site.
+A daily digest of tech reading — fetched, filtered, ranked, and summarized on
+a schedule, then published as a static site. No server, no SaaS bill: a cron'd
+GitHub Actions workflow, one free-tier LLM call, and GitHub Pages.
 
-## Architecture
+Live at **[digest.shevinum.dev](https://digest.shevinum.dev)**.
 
-```
-GitHub Actions (cron, .github/workflows/digest.yml)
-  1. checkout, with the private reading-hub submodule
-  2. main.py fetch          feeds/*.py, auto-discovered -> digest_feed.json
-  3. newsletters/           AgentMail REST -> classified, date-verified items
-  4. rank/pools.py          pool 1 (raw) -> pool 2: per-source thresholds/caps
-  5. rank/enrich.py         fetch + extract article text for items with no
-                             description, so relevance scoring is comparable
-                             across sources
-  6. rank/relevance.py      pool 2 -> pool 3 (top ~25): model2vec embeddings
-                             vs reading-hub/interests.md, non-tech drop,
-                             per-source caps — no LLM call
-  7. rank/summarize.py      sumy TextRank extractive summary per pool-3 item
-  8. rank/prompt.py + llm_client.py   ONE batched LLM call (Gemini, falling
-                             back to Groq/OpenRouter): pick, group, and write
-                             prose for the pre-scored, pre-summarized items
-  9. write site/src/content/digests/<date>.json
-  10. update reading-hub/newsletters.json + reading-hub/reading-pace.json
-  11. commit + push both repos
-  12. astro build -> deploy to GitHub Pages
-```
+> **Prototype.** A backend + frontend rewrite is in progress, and further
+> features are tracked in [Issues](https://github.com/ShevinuM/daily-tech-digest/issues).
 
-Deterministic work — fetching, filtering, deduping, date-verifying,
-per-source thresholds, topic-relevance scoring, and extractive
-summarization — is plain Python (stdlib plus model2vec/sumy/trafilatura, no
-LLM calls). What's left for the model is genuine judgement: which of the
-~25 pre-scored candidates to keep, how to group them, and rewriting each
-extractive summary into prose — one batched call per run (~6-7k tokens, down
-from ~35k when an LLM did the filtering too), using Google AI Studio's free
-tier, falling back to Groq/OpenRouter if it's down.
+## How it works
 
-The reading hub — your topics, priorities, "dial up/down" list, newsletter
-registry, and reading-pace log — lives in a **separate private repo**
-(`daily-tech-digest-hub`), linked here as a git submodule at `reading-hub/`.
-That keeps personal reading habits and email addresses private while the
-digest *output* stays public.
+`.github/workflows/digest.yml` runs daily at 02:00 UTC: fetch every source in
+`feeds/` plus newsletters from AgentMail, cut the pool down with per-source
+thresholds, score what's left against `reading-hub/interests.md` using
+model2vec embeddings, summarize each survivor with TextRank — then make **one**
+batched LLM call to pick, group, and write prose. The result is committed as
+`site/src/content/digests/<date>.json` and deployed to Pages.
 
-## Layout
+Everything deterministic is plain Python. What's left for the model is genuine
+judgement, which is why a run costs ~6-7k tokens instead of ~35k.
 
-```
-main.py                  CLI: feeds / fetch / digest / pools / delete-threads
-utils.py                 http, RSS/Atom parsing, dates, item shape
-feeds/                   one module per source, auto-discovered
-  discovery:  hacker_news.py  bytebytego.py  gary_marcus.py
-              dev_to.py  medium.py        (PAUSED — ENABLED = False)
-  priority:   pragmatic_engineer.py  jason_wei.py  ken_walger.py
-              alperen_keles.py  martin_fowler.py
-newsletters/             AgentMail REST client, classification, unsubscribe
-rank/
-  pools.py               pool 1 -> pool 2: per-source thresholds/caps
-  enrich.py               fetch + extract article body text, markdown/URL scrub
-  relevance.py            pool 2 -> pool 3: model2vec scoring vs interests.md
-  summarize.py            sumy TextRank extractive summaries
-  prompt.py               the one LLM prompt template
-  llm_client.py           Gemini -> Groq -> OpenRouter fallback, plain urllib
-  merge.py                cutoff/dedupe assembly (used by pools.py)
-  write_site_content.py   site-content + reading-hub JSON writer
-site/                    Astro site (content collection `digests`)
-reading-hub/             git submodule -> private daily-tech-digest-hub repo
-config.json               non-secret tunables, incl. pools/relevance/summarize
-scripts/check-secrets.sh pre-push gate; also usable as a pre-commit hook
-tests/test_offline.py    offline tests, no network
-.github/workflows/digest.yml
+Your topics, newsletter registry, and reading-pace log live in a **separate
+private repo** (`daily-tech-digest-hub`), wired in as a submodule at
+`reading-hub/`. Reading habits and email addresses stay private; the digest
+output stays public.
+
+Full pipeline and repo layout: [`docs/architecture.md`](docs/architecture.md).
+
+## Stack
+
+Python 3.12 (stdlib + model2vec, sumy, trafilatura), [Astro](https://astro.build)
+with Tailwind v4 and Pagefind for the site, Gemini (free tier) with Groq and
+OpenRouter as fallbacks, all on GitHub Actions and GitHub Pages.
+
+## Commands
+
+Set up once — `rank/relevance.py` needs Python **3.12+**, and pip silently
+back-solves to an incompatible model2vec on 3.9:
+
+```sh
+python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
+git submodule update --init
 ```
 
-## Adding or removing a feed source
+| Command | What it does |
+| --- | --- |
+| `.venv/bin/python main.py feeds` | List the auto-discovered sources |
+| `.venv/bin/python main.py fetch --verbose` | Fetch only — real network |
+| `.venv/bin/python main.py pools --verbose` | Fetch → rank, no LLM call, no writes. The tool for tuning `relevance.weights` |
+| `.venv/bin/python main.py digest --dry-run` | Full pipeline, writes locally, doesn't push or delete |
+| `.venv/bin/python tests/test_offline.py` | Offline tests, no network, no model download |
+| `./scripts/check-secrets.sh` | Pre-push gate — must exit 0 |
+| `cd site && npm run build && npm test` | Build and smoke-test the site |
 
-Sources are plug-ins. Drop a file in `feeds/` to add one; delete it to
-remove one. Nothing else needs editing.
+## Docs
 
-```python
-# feeds/lobsters.py
-"""Lobsters — public JSON API."""
-import utils
+- [Architecture](docs/architecture.md) — the pipeline stage by stage, and the repo layout
+- [Sources](docs/sources.md) — adding, pausing, and pinning a feed; priority and never-drop tiers
+- [Operations](docs/operations.md) — local setup, Actions secrets, tests, secret scanning, known limitations
+- [`site/README.md`](site/README.md) — the Astro front end
 
-NAME = "lobsters"
-ENABLED = True          # set False to disable without deleting the file
+## Licence
 
-def fetch(cutoff, *, verbose=False, **opts):
-    """Return (items, errors). Items come from utils.item()."""
-    stories = utils.http_get("https://lobste.rs/hottest.json", as_json=True)
-    out = []
-    for s in stories:
-        when = utils.parse_iso(s["created_at"])
-        if not when or when < cutoff:
-            continue
-        out.append(utils.item(
-            source=NAME, title=s["title"], url=s["url"],
-            published_at=utils.iso(when), author=s["submitter_user"],
-            tags=s.get("tags", []), score=s.get("score", 0),
-        ))
-    return out, []
-```
-
-```bash
-python3 main.py feeds                  # confirm it was picked up
-python3 main.py fetch --only lobsters  # try it in isolation
-```
-
-To pause a source without removing it, set `ENABLED = False` in its module.
-It drops out of discovery — and out of `--only`, so `fetch --only medium`
-can't resurrect it — while the module, its tests, and its `pools`/`relevance`
-config entries all stay put. Re-enabling is that one flag.
-
-**Currently paused:** `dev_to`, `medium` (since 2026-09-16). With both off the
-candidate pool is Hacker News, the priority blogs, and newsletters.
-
-Raising inside `fetch` is fine — it's recorded as an error and the run
-continues with the other feeds.
-
-## Priority sources
-
-Most sources are *discovery* — dev.to, Hacker News, Medium — where the point
-is to surface what's worth reading out of a firehose. A handful are blogs read
-directly, and those shouldn't have to win a relevance contest to appear.
-Listing a source in `config.json` under `pools.priority_sources` pins it:
-
-```json
-"pools": {
-  "priority_sources": [
-    "jason_wei", "ken_walger", "pragmatic_engineer",
-    "alperen_keles", "martin_fowler"
-  ]
-}
-```
-
-A pinned item **skips**:
-
-- the non-tech drop in `rank/relevance.py` (a career or sports essay from a
-  blog you follow is still something you want to read),
-- the pool-3 top-N cut and per-source cap — and it doesn't consume a
-  `pool3.size` slot either, so the 25-deep merit pool stays 25 deep,
-- the LLM's editorial selection: the prompt marks it must-include, and
-  `main.py:_ensure_pinned` inserts it afterwards if the model ignored that.
-
-A pinned item **still faces** the freshness cutoff (`digest.freshness_hours`)
-and URL dedupe, like everything else, and it spends from the same
-`digest.target_read_minutes` budget — so pinned items push discovery items
-out of the digest rather than lengthening it.
-
-Matching is on an item's `source` field, so a post that arrives by newsletter
-instead (`source="newsletter:<sender>"`) isn't pinned. When both arrive, the
-dedupe in `rank/merge.py` keeps the feed copy, which is.
-
-`main.py pools` marks pinned rows `PIN` and prints the count, and
-`main.py pools --json` puts a boolean `priority` on every pool-3 entry.
-
-### The middle tier: `relevance.never_drop_sources`
-
-Between "competes on merit" and "pinned" there's a source you trust to be
-*on topic* but still want ranked and editorially filtered. That's
-`relevance.never_drop_sources` — it exempts a source from the non-tech drop
-and nothing else.
-
-`bytebytego` is there. Measured on 2026-09-16, the drop rule misfired on 4 of
-its 20 posts — git internals, application networking, model distillation and
-inference runtimes all scored `non_tech_sim > raw_topic_sim` and were
-silently discarded. It is deliberately *not* pinned: roughly one ByteByteGo
-post in ten is course marketing, indistinguishable from editorial at fetch
-time (identical `dc:creator`/`enclosure`/`guid`, and length doesn't separate
-them — ads run ~6.3-6.6k chars against genuine short posts at ~6.9-7.0k), so
-it needs to stay in front of the digest model, which is the only stage that
-can recognise an ad.
-
-## Local development
-
-`rank/relevance.py` (model2vec) needs Python **3.12+** — pip silently
-back-solves to an older, incompatible version on 3.9. Set up a dedicated venv
-once:
-
-```bash
-brew install python@3.12
-python3.12 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-```
-
-Every command below assumes `.venv/bin/python`/`.venv/bin/python3`. CI
-already uses 3.12.
-
-```bash
-.venv/bin/python tests/test_offline.py          # offline, no network
-.venv/bin/python main.py feeds
-.venv/bin/python main.py fetch --verbose        # real network
-.venv/bin/python main.py pools --verbose        # fetch -> pool2 -> enrich -> relevance,
-                                                 # no LLM call, no writes — the tool for
-                                                 # tuning relevance.weights in config.json
-.venv/bin/python main.py digest --dry-run       # full pipeline, writes locally, doesn't push/delete
-cd site && npm install && npm run build
-./scripts/check-secrets.sh                      # must exit 0 before any push
-```
-
-`main.py digest` needs `reading-hub/` checked out (`git submodule update
---init`) and reads `GEMINI_API_KEY` from the environment (required — or
-`GROQ_API_KEY`/`OPENROUTER_API_KEY` as a fallback) and
-`AGENTMAIL_API_KEY`/`AGENTMAIL_INBOX` (optional — without them it degrades
-to feed-only, same as a source returning nothing). The embedding model
-(~125 MB) and nltk's sentence-tokenizer data download on first use, cached
-under `~/.cache/huggingface` and `~/nltk_data`.
-
-## Secrets and variables (GitHub Actions)
-
-Set these under the repo's Settings → Secrets and variables → Actions:
-
-| Name | What |
-|---|---|
-| `GEMINI_API_KEY` | Google AI Studio API key (free tier) |
-| `GROQ_API_KEY` | optional — fallback if Gemini is down |
-| `OPENROUTER_API_KEY` | optional — fallback if both of the above are down |
-| `AGENTMAIL_API_KEY` | AgentMail REST API key |
-| `AGENTMAIL_INBOX` | the AgentMail inbox address newsletters arrive at |
-| `HUB_REPO_TOKEN` | fine-grained PAT, Contents Read+Write on **both** this repo and the private hub repo — `GITHUB_TOKEN` can't check out or push to a separate private repo |
-
-Non-secret tunables (`target_read_minutes`, `freshness_hours`, LLM model
-names, site title, and the `pools`/`relevance`/`summarize` blocks) live in
-the tracked `config.json` — no secrets are stored there, so there's nothing
-to keep out of the public repo.
-
-Also required once, by hand:
-- Settings → Pages → Source → **GitHub Actions**.
-- Uncomment the `schedule:` trigger in `.github/workflows/digest.yml` after
-  a manual `workflow_dispatch` run has been verified end to end.
-
-## Tests
-
-```bash
-.venv/bin/python tests/test_offline.py
-```
-
-Covers utils, every feed module, plug-in discovery, newsletter
-classification/date-verification/unsubscribe-link extraction, pool
-assembly/caps, interests.md parsing, relevance-scoring math (via a stubbed
-encoder — no model download), the prompt template, and index-keyed
-reconciliation. **Deliberately offline and model-free** — nothing here
-downloads model2vec weights or nltk data. **Not covered:** live HTTP or the
-actual sumy/model2vec output quality — run `main.py fetch --verbose`,
-`main.py pools --verbose`, and `main.py digest --dry-run` by hand after
-changing anything that makes a request or touches scoring/summarization.
-
-## Secrets scanning
-
-`scripts/check-secrets.sh` fails if a generated artefact or an
-instruction/plan `.md` file is tracked, or a common credential pattern
-matches anywhere in a tracked file. Run it before pushing, or install it as
-a hook:
-
-```bash
-ln -sf ../../scripts/check-secrets.sh .git/hooks/pre-commit
-```
-
-## Known limitations
-
-- **Newsletter item dates are verified, not trusted.** Newsletters routinely
-  resurface 1-2 day old stories; an item is only kept if its original
-  publish date can be established from its URL (a `/YYYY/MM/DD/` path, or an
-  X/Twitter snowflake ID) — otherwise it's dropped rather than guessed at.
-- **Reading-pace calibration is semi-manual.** An unattended run can only
-  log an *estimated* read time; edit `reading-hub/reading-pace.json` by hand
-  whenever you want to record an actual one.
-- **A failed run doesn't carry its content forward.** The freshness window
-  is always `now - 24h`, not "since the last successful publish" — if a run
-  fails partway (Gemini quota, both pushes rejected, etc.), that day's
-  candidate items simply age out of the next run's window rather than being
-  retried. AgentMail cleanup is deliberately deferred until after both
-  pushes succeed (`main.py delete-threads`, a separate workflow step) so a
-  failed run at least doesn't also delete its own source newsletters — but
-  there's no automatic retry of a failed day's content.
+The site's layout and theme are ported from [AstroPaper](https://github.com/satnaing/astro-paper)
+under MIT — see [`site/THEME-LICENSE`](site/THEME-LICENSE), which that port is
+required to retain.
