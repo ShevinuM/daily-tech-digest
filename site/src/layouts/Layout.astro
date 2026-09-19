@@ -18,6 +18,10 @@ const pageTitle = !title || title.startsWith(SITE.title) ? (title ?? SITE.title)
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site).href;
 
+// Social preview card. Must be an absolute URL — crawlers do not resolve
+// relative og:image paths. Regenerate with `node scripts/generate-og.mjs`.
+const ogImageURL = new URL('/og.png', Astro.site).href;
+
 // Strip a trailing slash so `${base}/path` never produces a double slash —
 // BASE_URL is "/" at the custom-domain root, and "//path" is a
 // protocol-relative URL browsers resolve to a different host, not a path.
@@ -40,18 +44,25 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 		<meta name="author" content={SITE.author} />
 		<link rel="sitemap" href={`${base}/sitemap-index.xml`} />
 
-		<!-- Open Graph (no og:image — we have no OG asset to point at) -->
+		<!-- Open Graph -->
 		<meta property="og:type" content="website" />
 		<meta property="og:site_name" content={SITE.title} />
 		<meta property="og:title" content={pageTitle} />
 		<meta property="og:description" content={description} />
 		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:image" content={ogImageURL} />
+		<meta property="og:image:type" content="image/png" />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:image:alt" content={`${SITE.title} — ${SITE.description}`} />
 
 		<!-- Twitter / X -->
-		<meta property="twitter:card" content="summary" />
+		<meta property="twitter:card" content="summary_large_image" />
 		<meta property="twitter:url" content={canonicalURL} />
 		<meta property="twitter:title" content={pageTitle} />
 		<meta property="twitter:description" content={description} />
+		<meta property="twitter:image" content={ogImageURL} />
+		<meta property="twitter:image:alt" content={`${SITE.title} — ${SITE.description}`} />
 
 		<!-- Filled at runtime by theme.ts to match the current background colour -->
 		<meta name="theme-color" content="" />

@@ -35,6 +35,10 @@ src/utils/
   getSortedDigests.ts   getUniqueTags.ts   getItemsByTag.ts
   slugify.ts (lodash.kebabcase wrapper)   withBase.ts
 src/scripts/theme.ts        localStorage + prefers-color-scheme toggle
+scripts/generate-og.mjs     regenerates public/og.png (run by hand, not
+                            part of the build)
+public/og.png               the social preview card, referenced as
+                            og:image/twitter:image on every page
 src/pages/
   index.astro                latest digest + recent list
   archive/index.astro        every digest, grouped by year/month
@@ -57,7 +61,15 @@ npm run build     # astro check && astro build && pagefind --site dist
                    # can serve search)
 npm run preview
 npm test          # node tests/smoke.mjs — run AFTER `npm run build`
+
+node scripts/generate-og.mjs   # regenerate public/og.png, then commit it
 ```
+
+The social preview card (`public/og.png`) is static and committed, not built.
+Regenerate it only after changing `SITE.title`/`SITE.description` or the theme
+colours. It is deliberately outside `npm run build` so CI needs no font
+packages — the card's SVG resolves a system monospace face, which differs
+between macOS and the Ubuntu runner.
 
 There's nothing to configure locally — drop a `src/content/digests/YYYY-MM-DD.json`
 matching the schema in `src/content.config.ts` to preview a digest.

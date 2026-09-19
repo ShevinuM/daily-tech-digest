@@ -117,6 +117,7 @@ const requiredFiles = [
 	'search/index.html',
 	'robots.txt',
 	'sitemap-index.xml',
+	'og.png',
 	'pagefind/pagefind.js',
 ];
 for (const rel of requiredFiles) {
@@ -160,6 +161,7 @@ assert(allHtmlFiles.length > 0, 'at least one built HTML page found');
 
 const FORBIDDEN_STRINGS = ['Tech Reading Digest', 'Daily Tech Digest', 'AstroPaper'];
 const BRAND = "Shevinu's Digest";
+const SITE_URL = 'https://digest.shevinum.dev';
 
 for (const fullPath of allHtmlFiles) {
 	const relPath = path.relative(DIST, fullPath);
@@ -190,6 +192,19 @@ for (const fullPath of allHtmlFiles) {
 
 	// 7. No protocol-relative internal hrefs.
 	assert(!/href="\/\//.test(raw), `dist/${relPath} has no href="//..." (protocol-relative URL)`);
+
+	// 9. Social preview card is advertised on every page, as an absolute URL —
+	// crawlers do not resolve a relative og:image against the page.
+	const ogImageMatch = raw.match(/<meta property="og:image" content="([^"]*)"/);
+	assert(Boolean(ogImageMatch), `dist/${relPath} has an og:image meta tag`);
+	assert(
+		ogImageMatch[1] === `${SITE_URL}/og.png`,
+		`dist/${relPath} og:image is ${SITE_URL}/og.png (got ${JSON.stringify(ogImageMatch[1])})`,
+	);
+	assert(
+		raw.includes('<meta property="twitter:card" content="summary_large_image"'),
+		`dist/${relPath} uses twitter:card=summary_large_image (required for the image to show)`,
+	);
 }
 
 // 4 (continued). Header brand text is exactly "Shevinu's Digest" (checked on
