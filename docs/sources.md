@@ -98,3 +98,25 @@ time (identical `dc:creator`/`enclosure`/`guid`, and length doesn't separate
 them — ads run ~6.3-6.6k chars against genuine short posts at ~6.9-7.0k), so
 it needs to stay in front of the digest model, which is the only stage that
 can recognise an ad.
+
+### Paywalled sources
+
+A source with a paid tier needs one more thing from its feed module: a way
+to tell a free post from a gated one, because the platforms ship both in the
+same public feed.
+
+`ed_zitron` is the case in the tree. Ghost gates the content *before* the
+RSS is rendered and leaves no flag, category or element behind — a paid post
+comes through as either a teaser truncated at the paywall break (with Ghost's
+own `<!--members-only-->` marker sliced off) or an item whose
+`content:encoded` is empty. So the module infers it from the body: anything
+under `MIN_BODY_CHARS` is a teaser or an empty shell, and a body that runs
+longer but carries one of `PAYWALL_PHRASES` (the author's own sign-off
+before the break, which survives as ordinary prose) is dropped too.
+
+The threshold is deliberately loose — this blog publishes long essays, so it
+sits far from anything genuine. Where the two could be confused, drop: a free
+post lost is one item missing from a digest, a premium teaser kept is a dead
+link the reader clicks. Each run logs the drop count
+(`ed_zitron: N fresh, M premium dropped`), so a change in the blog's
+publishing shape shows up in the run log rather than as a quietly empty feed.

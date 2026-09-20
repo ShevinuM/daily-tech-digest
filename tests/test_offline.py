@@ -33,9 +33,9 @@ import feeds  # noqa: E402
 import main as M  # noqa: E402
 import newsletters  # noqa: E402
 import utils  # noqa: E402
-from feeds import (alperen_keles, bytebytego, dev_to, gary_marcus,  # noqa: E402
-                    hacker_news, jason_wei, ken_walger, martin_fowler,
-                    medium, pragmatic_engineer)
+from feeds import (alperen_keles, bytebytego, dev_to, ed_zitron,  # noqa: E402
+                    gary_marcus, hacker_news, jason_wei, ken_walger,
+                    martin_fowler, medium, pragmatic_engineer)
 from newsletters import agentmail_client  # noqa: E402
 from newsletters import classify  # noqa: E402
 from newsletters import unsubscribe as unsub  # noqa: E402
@@ -203,6 +203,45 @@ GM_XML = f"""<rss><channel>
 <pubDate>{rfc(STALE)}</pubDate><description><![CDATA[old]]></description></item>
 </channel></rss>"""
 
+# Ghost. Four fresh items covering every shape the paywall leaves behind:
+# a free post published in full, a gated post truncated at the paywall
+# break, a gated post Ghost emptied entirely, and a long teaser that only
+# the author's own sign-off gives away.
+EZ_FREE_BODY = "Some real argument about the AI bubble. " * 60
+EZ_LONG_TEASER = "A long wind-up that runs past the length floor. " * 40
+EZ_XML = f"""<rss><channel>
+<item><title><![CDATA[Free EZ]]></title>
+<link>https://www.wheresyoured.at/free/</link>
+<pubDate>{rfc(FRESH)}</pubDate>
+<dc:creator><![CDATA[Ed Zitron]]></dc:creator>
+<category><![CDATA[AI]]></category>
+<description><![CDATA[<p>The dek.</p>]]></description>
+<content:encoded><![CDATA[<p>{EZ_FREE_BODY}</p>]]></content:encoded></item>
+<item><title><![CDATA[Premium teaser EZ]]></title>
+<link>https://www.wheresyoured.at/premium-teaser/</link>
+<pubDate>{rfc(FRESH)}</pubDate>
+<dc:creator><![CDATA[Ed Zitron]]></dc:creator>
+<description><![CDATA[<p>Paid dek.</p>]]></description>
+<content:encoded><![CDATA[<p>Two paragraphs of wind-up, then nothing.</p>]]></content:encoded></item>
+<item><title><![CDATA[Premium empty EZ]]></title>
+<link>https://www.wheresyoured.at/premium-empty/</link>
+<pubDate>{rfc(FRESH)}</pubDate>
+<dc:creator><![CDATA[Ed Zitron]]></dc:creator>
+<description><![CDATA[<p>Paid dek.</p>]]></description>
+<content:encoded><![CDATA[]]></content:encoded></item>
+<item><title><![CDATA[Premium long teaser EZ]]></title>
+<link>https://www.wheresyoured.at/premium-long/</link>
+<pubDate>{rfc(FRESH)}</pubDate>
+<dc:creator><![CDATA[Ed Zitron]]></dc:creator>
+<description><![CDATA[<p>Paid dek.</p>]]></description>
+<content:encoded><![CDATA[<p>{EZ_LONG_TEASER}</p>
+<p>This post is for paying subscribers only.</p>]]></content:encoded></item>
+<item><title><![CDATA[Stale EZ]]></title>
+<link>https://www.wheresyoured.at/stale/</link>
+<pubDate>{rfc(STALE)}</pubDate>
+<content:encoded><![CDATA[<p>{EZ_FREE_BODY}</p>]]></content:encoded></item>
+</channel></rss>"""
+
 DEVTO = [
     {"title": "Fresh A", "url": "https://dev.to/a/fresh-a", "path": "/a/fresh-a",
      "published_at": FRESH.strftime("%Y-%m-%dT%H:%M:%SZ"), "user": {"username": "a"},
@@ -245,6 +284,8 @@ def fake_get(url, as_json=False, timeout=None):
         return BBG_XML
     if "garymarcus.substack.com" in url:
         return GM_XML
+    if "wheresyoured.at" in url:
+        return EZ_XML
     if "martinfowler.com" in url:
         return MF_XML
     if "topstories" in url:
@@ -389,7 +430,7 @@ def test_discovery():
     PAUSED = {"dev_to", "medium"}
     ALL_MODULES = {"dev_to", "medium", "pragmatic_engineer", "hacker_news",
                    "jason_wei", "ken_walger", "alperen_keles", "martin_fowler",
-                   "bytebytego", "gary_marcus"}
+                   "bytebytego", "gary_marcus", "ed_zitron"}
 
     mods = feeds.discover()
     names = [m.NAME for m in mods]
@@ -539,6 +580,37 @@ def test_feeds():
           "so parsing it would leave every item unattributed",
           gm[0]["author"] == "Gary Marcus", gm[0]["author"])
 
+    section("feeds / ed_zitron")
+    ez, _ = ed_zitron.fetch(CUTOFF, verbose=False)
+    titles = [i["title"] for i in ez]
+    check("drops stale", "Stale EZ" not in titles, titles)
+    check("keeps the free post", titles == ["Free EZ"], titles)
+    check("a gated post truncated at the paywall break is dropped — Ghost slices "
+          "its own <!--members-only--> marker off, so the short teaser body is the "
+          "only thing left to recognise it by",
+          "Premium teaser EZ" not in titles, titles)
+    check("a gated post with no paywall break is dropped — Ghost blanks html "
+          "entirely, leaving an item with a dek and no article",
+          "Premium empty EZ" not in titles, titles)
+    check("a long teaser is still dropped, on the author's own sign-off, once it "
+          "runs past the length floor",
+          "Premium long teaser EZ" not in titles, titles)
+    check("length floor and phrase check are independent — a body over the floor "
+          "with no paywall phrasing is free",
+          not ed_zitron._is_premium("x" * ed_zitron.MIN_BODY_CHARS))
+    check("the phrase check is case-insensitive",
+          ed_zitron._is_premium("x" * ed_zitron.MIN_BODY_CHARS
+                                + " THIS POST IS FOR PAYING SUBSCRIBERS only."))
+    check("an empty body reads as premium, not as a post",
+          ed_zitron._is_premium(""))
+    check("full body from content:encoded, not the dek",
+          ez[0]["body_excerpt"].startswith("Some real argument"),
+          repr(ez[0]["body_excerpt"][:40]))
+    check("dek kept separately as the description",
+          ez[0]["description"] == "The dek.", repr(ez[0]["description"]))
+    check("author from dc:creator", ez[0]["author"] == "Ed Zitron", ez[0]["author"])
+    check("tags from <category>", ez[0]["tags"] == ["AI"], ez[0]["tags"])
+
     section("feeds / hacker_news")
     h, _ = hacker_news.fetch(CUTOFF, verbose=False)
     check("score floor applied",
@@ -553,7 +625,8 @@ def test_feeds():
     for name, items in (("dev_to", d), ("medium", m), ("pragmatic_engineer", p),
                         ("hacker_news", h), ("jason_wei", j), ("ken_walger", k),
                         ("alperen_keles", ak), ("martin_fowler", mf),
-                        ("bytebytego", bbg), ("gary_marcus", gm)):
+                        ("bytebytego", bbg), ("gary_marcus", gm),
+                        ("ed_zitron", ez)):
         check(f"{name} returns the normalised item shape",
               all(all(k in i for k in utils.ITEM_FIELDS) for i in items))
 

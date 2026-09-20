@@ -44,6 +44,7 @@ main.py                  CLI: feeds / fetch / digest / pools / delete-threads
 utils.py                 http, RSS/Atom parsing, dates, item shape
 feeds/                   one module per source, auto-discovered
   discovery:  hacker_news.py  bytebytego.py  gary_marcus.py
+              ed_zitron.py
               dev_to.py  medium.py        (PAUSED — ENABLED = False)
   priority:   pragmatic_engineer.py  jason_wei.py  ken_walger.py
               alperen_keles.py  martin_fowler.py
