@@ -1,0 +1,95 @@
+{
+  "date": "2026-09-20",
+  "title": "Shevinu's Digest — Sunday, September 20, 2026",
+  "generatedAt": "2026-09-20T07:30:08Z",
+  "intro": "Today’s digest highlights open-source agent automation, bandwidth-efficient model deployment, zero-knowledge cryptographic verification, and practical algorithmic craft.",
+  "sections": [
+    {
+      "heading": "🛠️ Developer Tooling & Automation",
+      "items": [
+        {
+          "url": "https://github.com/trycua/cua",
+          "title": "Show HN: CUA-S1 – A System One Model for Computer Use",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-19T15:52:51Z",
+          "tags": [],
+          "summary": "Operating system desktop automation is emerging as a critical frontier for computer-use AI agents. CUA-S1 presents an open-source ecosystem designed to build, run, and evaluate desktop automation agents across macOS, Linux, and Windows environments. The project offers isolated cloud desktop fleets, specialist decision models, and sandbox SDKs that allow agents to inspect and control native desktop applications and web browsers. Developers on Apple Silicon can manage local macOS and Linux virtual machines directly using Apple's Virtualization Framework, while a Python-based benchmarking suite integrations with Playwright to run reproducible tasks and evaluate success rewards. For engineers interested in modern agentic architectures, this toolchain provides hands-on infrastructure to experiment with agent execution, safety guardrails, and automated desktop interaction."
+        },
+        {
+          "url": "https://ooni.org/install",
+          "title": "Measure internet censorship",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-19T20:00:59Z",
+          "tags": [],
+          "summary": "Network monitoring and global observability require robust open tooling to detect interference and measure connectivity accurately. The OONI Probe project offers an open-source network measurement framework that generates real-time, public dataset records on internet censorship and connectivity performance. By running OONI Probe, systems engineers and security practitioners can test whether specific web endpoints are blocked, evaluate network speed using the NDT performance test built with M-Lab, and verify the viability of circumvention tools. Test results are published automatically to a global repository, contributing to open internet measurement data. For developers building distributed systems or privacy-conscious software, understanding network measurement methodologies and automated probing infrastructure offers valuable perspective on real-world connectivity resilience."
+        }
+      ]
+    },
+    {
+      "heading": "🧠 AI Engineering & Model Optimization",
+      "items": [
+        {
+          "url": "https://laya.convaiinnovations.com/",
+          "title": "I built non-autoregressive decision models with RL a year ago",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-19T10:46:58Z",
+          "tags": [],
+          "summary": "When integrating large machine learning models into production services, download footprints and model selection directly impact startup latency and execution accuracy. This technical breakdown explores how using Hugging Face's allow_patterns parameter and targeted subfolder requests in model SDKs can dramatically reduce asset bloat—fetching only a 647 MB multilingual module rather than a full 2.5 GB repository bundle. Beyond asset optimization, the piece highlights findings from a 51-language evaluation on the MASSIVE benchmark, showing how English-centric decision models degrade significantly when processing non-Latin scripts. For backend engineers and AI developers, this illustrates the dual importance of bandwidth-efficient model deployment strategies and intelligent language routing mechanisms to ensure fast, accurate inference across global workloads."
+        },
+        {
+          "url": "https://john.hartnup.uk/2026/06/07/ai-event-posters.html",
+          "title": "AI-generated posters don’t have to be horrible",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-19T09:20:58Z",
+          "tags": [],
+          "summary": "Generative tools often struggle with visual layout quality when prompts lack precise design terminology and architectural structure. This guide breaks down how principles from the Bauhaus tradition, geometric minimalism, and Swiss International Typographic Style can be systematically applied to create clean, purposeful visual designs. By prioritizing function over decoration, asymmetrical layouts, geometric abstraction, high-contrast limited palettes, and strict grid-based alignment, designers can systematically guide model output toward clear hierarchy and legibility. For software developers and product builders crafting visual components or prompt pipelines, translating timeless design systems into explicit, structured descriptions offers a reliable method for elevating machine-generated visuals above generic stock aesthetics."
+        }
+      ]
+    },
+    {
+      "heading": "🔒 Cryptography & Software Craft",
+      "items": [
+        {
+          "url": "https://eprint.iacr.org/2026/2039",
+          "title": "ZK-JPEG: Zero-Knowledge Image Editing and Compression",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-19T19:23:23Z",
+          "tags": [],
+          "summary": "Verifying the integrity and provenance of media files without exposing sensitive underlying raw data is a challenging problem in cryptography and systems design. While zero-knowledge (ZK) proofs have previously been applied to track digital image edits, standard cryptographic proofs frequently break under lossy encodings like JPEG compression, which introduces subtle pixel modifications to optimize file size. ZK-JPEG introduces a cryptographic scheme specifically designed to survive JPEG compression, enabling a publisher to prove that an image was accurately transformed and compressed from a secret, committed original source. For software architects and security engineers working on content authenticity and privacy-preserving data pipelines, this work demonstrates how zero-knowledge cryptographic primitives can be adapted to real-world, lossy media protocols."
+        },
+        {
+          "url": "https://www.redblobgames.com/blog/2026-09-16-english-a-vs-an/",
+          "title": "English: A vs. An",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-19T20:41:26Z",
+          "tags": [],
+          "summary": "Implementing correct natural language formatting rules in text generation pipelines requires moving beyond naive character inspection to underlying domain semantics. When implementing an article selection helper like a_or_an(word), relying solely on leading vowel letters fails for common English words like 'unicorn' (which starts with a consonant sound /j/) or 'hour' (which starts with a vowel sound /aʊ/). This technical note explores solving the problem algorithmically by parsing phonetic representations using tools like the CMU Pronouncing Dictionary and IPA transcriptions. For developers building templating engines, procedural text generators, or localized developer tools, this breakdown serves as a practical lesson in identifying hidden edge cases and leveraging phonetic metadata to ensure robust linguistic logic in code."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 6,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://erichgrunewald.substack.com/p/why-you-should-almost-never-use-ai: HTTP Error 403: Forbidden",
+      "enrich https://chrono.fandom.com/wiki/Dream_Devourer: HTTP Error 403: Forbidden",
+      "enrich https://www.reddit.com/r/nextfuckinglevel/comments/1wkn561/largest_wildlife_overpass_in_north_america/: HTTP Error 403: Blocked",
+      "enrich https://www.wsj.com/opinion/the-hugging-face-hack-wasnt-what-it-was-cracked-up-to-be-e00cf3fa: HTTP Error 401: HTTP Forbidden",
+      "enrich https://erichgrunewald.substack.com/p/why-you-should-almost-never-use-ai: HTTP Error 403: Forbidden",
+      "enrich https://chrono.fandom.com/wiki/Dream_Devourer: HTTP Error 403: Forbidden",
+      "enrich https://www.wsj.com/opinion/the-hugging-face-hack-wasnt-what-it-was-cracked-up-to-be-e00cf3fa: HTTP Error 401: HTTP Forbidden"
+    ]
+  }
+}
