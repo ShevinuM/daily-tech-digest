@@ -20,6 +20,8 @@ import time
 import urllib.error
 import urllib.request
 
+import utils
+
 TIMEOUT = 60
 SERVER_ERROR_ATTEMPTS = 5
 SERVER_ERROR_BACKOFF_BASE = 5  # seconds; sleeps are 5, 10, 20, 40 (~75s total)
@@ -38,7 +40,10 @@ def _request_with_retry(url: str, headers: dict, body: bytes, *, timeout: int = 
     server_attempts = 0
     rate_limit_attempts = 0
     while True:
-        req = urllib.request.Request(url, method="POST", data=body, headers=headers)
+        # Groq sits behind Cloudflare, which rejects urllib's default
+        # "Python-urllib/x.y" User-Agent with a 403 "error code: 1010".
+        req = urllib.request.Request(url, method="POST", data=body,
+                                     headers={"User-Agent": utils.UA, **headers})
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 return json.loads(resp.read())
