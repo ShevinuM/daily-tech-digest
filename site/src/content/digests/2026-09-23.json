@@ -1,0 +1,108 @@
+{
+  "date": "2026-09-23",
+  "title": "Shevinu's Digest — Wednesday, September 23, 2026",
+  "generatedAt": "2026-09-23T20:29:14Z",
+  "intro": "Today's digest focuses on advanced AI tooling, security practices, and career development strategies for backend engineers transitioning toward staff roles.",
+  "sections": [
+    {
+      "heading": "🤖 AI & LLMs",
+      "items": [
+        {
+          "url": "https://strandsagents.com/blog/introducing-strands-harness/",
+          "title": "Strands Harness",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-23T15:05:46Z",
+          "tags": [],
+          "summary": "Strands Harness is a fully assembled, state-of-the-art agent harness designed for local execution or deployment to cloud providers. Built on the Strands Harness SDK, it offers default configurations for prompt caching and context management, enabling developers to run or export the entire system with minimal setup. The accompanying Strands CLI extends this capability, allowing seamless iteration on agent workflows. For developers building autonomous agents, this reduces friction between experimentation and production, accelerating the feedback loop between idea and implementation."
+        },
+        {
+          "url": "https://blog.bytebytego.com/p/how-to-customize-a-model-to-learn",
+          "title": "How to Customize a Model to Learn New Tricks",
+          "source": "bytebytego",
+          "publishedAt": "2026-09-23T15:30:40Z",
+          "tags": [],
+          "summary": "Customizing models to learn new tricks involves techniques like LoRA and QLoRA, which allow fine-grained adaptation without massive computational overhead. Understanding how instructions shape model behavior—and how to structure prompts effectively—is crucial for efficient AI integration. This skill directly supports backend engineers who need to tailor foundation models to domain-specific requirements, improving reliability and reducing inference costs in production systems."
+        },
+        {
+          "url": "https://www.interconnects.ai/p/the-current-balance-of-power-in-open",
+          "title": "The current balance of power in open models",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-22T22:03:46Z",
+          "tags": [],
+          "summary": "The current balance of power in open models reveals significant gaps between open-weight and closed models globally, with open-weight models trailing by several months. Supporting open-source AI ecosystems becomes strategically important for architects and engineers who must navigate trade-offs between proprietary control and community-driven innovation. This landscape informs decisions around model selection, licensing, and long-term system resilience."
+        },
+        {
+          "url": "https://www.usenix.org/publications/loginonline/data-only-attacks-are-easier-you-think",
+          "title": "Data-only attacks are easier than you think (2024)",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-23T03:49:28Z",
+          "tags": [],
+          "summary": "Research indicates that data-only attacks are often easier to execute than anticipated, challenging traditional perimeter-based security assumptions. For developers responsible for codebase integrity and supply chain hygiene, understanding these vectors is essential. Proactive monitoring and robust access controls can mitigate risks that bypass conventional network defenses."
+        }
+      ]
+    },
+    {
+      "heading": "🛠️ Developer Tooling",
+      "items": [
+        {
+          "url": "https://blog.szypowi.cz/p/claude-code-reads-agents.md-only-when-telemetry-is-on/",
+          "title": "Claude Code reads AGENTS.md only when telemetry is on [fixed]",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-23T12:15:33Z",
+          "tags": [],
+          "summary": "The Claude Code plugin sometimes fails to read AGENTS.md files when telemetry is disabled, causing silent failures in automated workflows. A simple workaround involves temporarily creating a CLAUDE.md file with the desired content, which forces the plugin to load the configuration correctly. This demonstrates the importance of graceful handling of optional features and provides a practical debugging technique for developers integrating AI assistants into their development pipelines."
+        },
+        {
+          "url": "https://radicle.dev/2026/09/23/disclosure-of-vulnerability-in-network-protocol",
+          "title": "Radicle: Disclosure of Vulnerability in the Network Protocol",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-23T15:23:05Z",
+          "tags": [],
+          "summary": "Radicle is a tool that discloses vulnerabilities in network protocols used for tracking private repository changes. By identifying and blocking unintended modifications to sensitive code, it strengthens the security posture of collaborative development environments. For teams adopting remote development or continuous integration, implementing such visibility tools helps prevent accidental or malicious alterations to codebases."
+        }
+      ]
+    },
+    {
+      "heading": "📈 Career Growth & Leadership",
+      "items": [
+        {
+          "url": "https://michaelheap.com/i-dont-want-the-details/",
+          "title": "I don't want the details",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-23T13:04:44Z",
+          "tags": [],
+          "summary": "Effective organizational change requires shifting from blaming individuals to addressing systemic issues. The insight that saying \"I don't want the details\" often signals a desire for structural reform rather than personal accountability can guide managers and senior engineers in fostering healthier cultures. This mindset is particularly valuable for developers aspiring to staff engineering roles where leadership and cross-team collaboration are paramount."
+        },
+        {
+          "url": "https://unlisted.careers/ghost-jobs/report/2026-09",
+          "title": "28% of job postings on company career sites have been open over 90 days",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-23T16:35:34Z",
+          "tags": [],
+          "summary": "Analytics showing that 28% of job postings remain open for over 90 days highlight stagnant hiring practices across industries. For backend engineers targeting staff positions, understanding these labor market patterns can inform resume strategies, networking approaches, and the timing of career moves. Recognizing outdated job markets helps professionals position themselves for emerging opportunities in high-demand domains like AI infrastructure and systems architecture."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 8,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://www.reddit.com/r/sysadmin/comments/1wjdpgx/psa_grammarly_will_send_unhinged_messages_to_all/: HTTP Error 403: Blocked",
+      "enrich https://apnews.com/article/italy-nuclear-chernobyl-4891b6b7c7791ae84db6b0bf0f7cf567: HTTP Error 403: Forbidden",
+      "enrich https://www.usenix.org/publications/loginonline/data-only-attacks-are-easier-you-think: HTTP Error 403: Forbidden",
+      "enrich https://www.usenix.org/publications/loginonline/data-only-attacks-are-easier-you-think: HTTP Error 403: Forbidden"
+    ]
+  }
+}
