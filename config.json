@@ -16,7 +16,7 @@
     "_comment": "Tried in this order; first provider with an API key set (as a GitHub secret / env var) that succeeds wins. Pre-LLM pooling/relevance/summarization keeps the one remaining call's payload small enough (~6-7k tokens) that Groq/OpenRouter's free-tier token-per-minute caps are no longer a guaranteed 429 - see rank/llm_client.py.",
     "gemini": {"model": "gemini-3.6-flash"},
     "groq": {"model": "llama-3.3-70b-versatile"},
-    "openrouter": {"model": "openai/gpt-oss-20b:free"}
+    "openrouter": {"model": "openrouter/free"}
   },
 
   "pools": {
