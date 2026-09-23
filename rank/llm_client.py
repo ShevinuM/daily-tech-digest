@@ -111,7 +111,7 @@ PROVIDERS = [
      "call": _call_gemini},
     {"name": "groq", "env": "GROQ_API_KEY", "default_model": "llama-3.3-70b-versatile",
      "call": functools.partial(_call_openai_compat, base_url="https://api.groq.com/openai/v1")},
-    {"name": "openrouter", "env": "OPENROUTER_API_KEY", "default_model": "openai/gpt-oss-20b:free",
+    {"name": "openrouter", "env": "OPENROUTER_API_KEY", "default_model": "openrouter/free",
      "call": functools.partial(_call_openai_compat, base_url="https://openrouter.ai/api/v1")},
 ]
 PROVIDER_ENV_VARS = [p["env"] for p in PROVIDERS]
