@@ -1,0 +1,125 @@
+{
+  "date": "2026-09-25",
+  "title": "Shevinu's Digest — Friday, September 25, 2026",
+  "generatedAt": "2026-09-25T07:11:26Z",
+  "intro": "Today's tech reading focuses on cloud compute economics, data lifecycles in systems design, leadership feedback loops, and security in developer workflows.",
+  "sections": [
+    {
+      "heading": "🏗️ Systems Design & Architecture",
+      "items": [
+        {
+          "url": "https://blog.bytebytego.com/p/the-life-of-data-from-creation-to",
+          "title": "The Life of Data: From Creation to Deletion",
+          "source": "bytebytego",
+          "publishedAt": "2026-09-24T15:31:06Z",
+          "tags": [],
+          "summary": "Every piece of data entering an application embarks on a complex lifecycle—moving from user input and primary storage through caches, analytics pipelines, replica nodes, and eventual deletion. ByteByteGo outlines how a single data point expands across multiple system boundaries as an application scales, shifting from an active record to stale data and eventually requiring purge or retention workflows. Holistically mapping this journey allows architects to unite decisions that are frequently evaluated in isolation, including database schema design, read/write performance optimization, storage cost management, disaster recovery, and data privacy compliance. For backend engineers advancing toward staff-level systems design, mastering data lifecycle dynamics is foundational. Understanding how data propagates, ages, and gets retired prevents architectural fragmentation and technical debt. Designing with the full data lifecycle in mind ensures systems remain performant, cost-effective, compliant, and recoverable as data volumes grow over time."
+        },
+        {
+          "url": "https://blog.pragmaticengineer.com/the-pulse-a-new-trend-of-cpu-shortages/",
+          "title": "The Pulse: a new trend of CPU shortages",
+          "source": "pragmatic_engineer",
+          "publishedAt": "2026-09-24T16:45:01Z",
+          "tags": [],
+          "summary": "As AI workloads consume massive compute infrastructure, cloud providers are facing an unprecedented CPU availability crunch that is reshaping cloud economics. Based on discussions with CTOs and infrastructure leaders, companies are discovering that the era of steep discounts on idle CPU capacity—which previously reached up to 90% off standard pricing—is drawing to a close. Cloud vendors are increasingly turning down capacity reservation requests or requiring commitments months in advance due to severe inventory shortages. Even infrastructure-heavy companies like turbopuffer, whose core architecture runs strictly on CPUs rather than GPUs, are navigating this tight supply landscape. For backend engineers and aspiring staff architects, understanding these macro infrastructure shifts is essential when designing cost-effective, resilient cloud systems. Relying on cheap burstable compute or last-minute instance reservations is no longer a viable operational strategy. Systems designers must proactively account for longer procurement lead times and evolving cloud pricing dynamics when planning capacity and infrastructure budgets."
+        }
+      ]
+    },
+    {
+      "heading": "👥 Engineering Leadership & Craft",
+      "items": [
+        {
+          "url": "https://martinfowler.com/articles/healthy-peer-feedback.html",
+          "title": "Healthy Feedback",
+          "source": "martin_fowler",
+          "publishedAt": "2026-09-24T14:10:00Z",
+          "tags": [],
+          "summary": "Effective human collaboration within software teams relies heavily on feedback loops, yet providing constructive input remains a challenge for many engineering organizations. In this piece hosted on Martin Fowler's site, Anuja Karnik and Sumeet Gayathri Moghe explore practical techniques for establishing a healthy feedback culture. The authors emphasize that both praise and criticism should be grounded in a positive mindset aimed at mutual growth and alignment. Rather than viewing critique as a punitive measure, high-performing teams treat feedback as a continuous mechanism to refine processes, code quality, and interpersonal dynamics. For engineers striving to transition into senior and staff leadership roles, mastering the art of giving and receiving actionable feedback is as critical as technical competency. Building a culture where feedback is delivered thoughtfully fosters psychological safety and accelerates team velocity. This article serves as a concise reminder that deliberate communication practices directly elevate engineering craft and team performance."
+        },
+        {
+          "url": "https://martinfowler.com/fragments/2026-09-24.html",
+          "title": "Fragments: September 24",
+          "source": "martin_fowler",
+          "publishedAt": "2026-09-24T15:35:00Z",
+          "tags": [],
+          "summary": "In this collection of reflections, Martin Fowler addresses two distinct aspects of developer craft: editor visual design and emerging industry job titles. First, Fowler discusses code syntax highlighting, advocating for minimalist color schemes where visual emphasis is reserved strictly for key structural elements like function definitions, while background colors enhance light-mode readability. Second, he offers a skeptical perspective on the recent industry buzz surrounding \"Forward Deployed Engineers.\" While venture firms launch fellowships around the concept, Fowler points out that the underlying principles—embedding technical engineers directly alongside stakeholders to solve real user problems—represent battle-tested practices advocated by seasoned practitioners for decades. For developers navigating career growth, this post provides balanced guidance on separating enduring engineering methodologies from modern marketing rebrands. It reinforces the value of intentional personal tooling choices alongside a historical perspective on evolving engineering roles in software delivery."
+        }
+      ]
+    },
+    {
+      "heading": "🛠️ Developer Tooling & APIs",
+      "items": [
+        {
+          "url": "https://www.kenwalger.com/blog/developer-relations/dev-to-api-author-analytics-python/",
+          "title": "I Pulled Nine Years of My Own Dev.to Data. The Numbers Were Not What I Expected.",
+          "source": "ken_walger",
+          "publishedAt": "2026-09-24T12:11:00Z",
+          "tags": [
+            "Developer Relations",
+            "API",
+            "Content Analytics",
+            "Data Visualization",
+            "Python",
+            "Technical Writing"
+          ],
+          "summary": "Extracting long-term personal activity data from public APIs often reveals hidden capabilities and undocumented behaviors in RESTful endpoints. By analyzing nine years of platform data from Dev.to, developer Ken Walger uncovered several practical API tricks for efficient data ingestion. Notably, while the API documentation lists a default page limit of 80 records for the followers endpoint, sending a higher per_page parameter (such as 1000) successfully retrieves larger batches, dramatically reducing required HTTP requests from hundreds down to nineteen. Furthermore, examining timestamped follower records allows developers to reconstruct detailed historical growth metrics without having previously recorded them. For developers seeking to hone their API consumption and backend data pipeline skills, this writeup offers valuable practical lessons. It highlights the importance of probing API pagination limits dynamically and leveraging implicit historical metadata embedded within API payloads. Mastering these subtle integration mechanics helps engineers build faster, more resilient API integrations while minimizing rate limit overhead."
+        },
+        {
+          "url": "https://bestmodelforyourbudget.terrydjony.com/",
+          "title": "Best LLM for every budget, updated daily",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-24T14:09:57Z",
+          "tags": [],
+          "summary": "Navigating the expanding landscape of Large Language Models requires balancing inference performance against API operational costs. The Artificial Analysis Intelligence Index offers a daily-updated benchmarking resource that plots top LLMs based on their overall capability scores relative to blended API pricing. By filtering out obsolete or suboptimal models, the index highlights the Pareto frontier of efficiency—identifying the highest-performing model available at any given price point. The methodology isolates the best reasoning or effort variant for each model family, ensuring developers can quickly identify optimal trade-offs without overpaying for marginal quality gains. For software engineers integrating AI capabilities into backend services and workflow tools, this resource provides a data-driven framework for vendor selection and cost governance. It enables engineering teams to make informed architectural decisions, optimizing LLM selection for throughput, latency, accuracy, and budget constraints across diverse application requirements."
+        },
+        {
+          "url": "https://successfulsoftware.net/2026/09/24/github-has-not-removed-malicious-imitation-software-after-3-weeks/",
+          "title": "GitHub has not removed malicious imitation software after 3 weeks",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-24T15:50:26Z",
+          "tags": [],
+          "summary": "A developer's experience dealing with a fraudulent software clone hosted on GitHub underscores persistent challenges in open-source ecosystem moderation and security response workflows. After discovering an imitation repository distributing malware embedded within Mac disk images (.dmg), the software author reported the violation to GitHub support. Despite VirusTotal flags confirming malware warnings and evidence showing tampered background images instructing users to bypass OS security alerts, the malicious repository remained active for over three weeks. The offending content was only removed minutes after the issue reached the front page of Hacker News. For developers relying on platform security and supply chain integrity, this incident highlights the risks of delayed abuse response in major code hosting platforms. It emphasizes the need for proactive security verification when consuming third-party packages and serves as a sobering lesson in navigating ecosystem security escalations."
+        }
+      ]
+    },
+    {
+      "heading": "🔒 Web & Pipeline Security",
+      "items": [
+        {
+          "url": "https://blog.arusekk.pl/posts/srht-account-takeover/",
+          "title": "Sourcehut account takeover via build logs (XSS in ansi2html)",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-24T19:54:21Z",
+          "tags": [],
+          "summary": "A security vulnerability in Sourcehut highlights how subtle parsing errors in utility libraries can lead to critical cross-site scripting (XSS) and potential account takeovers. The flaw stemmed from ansi2html, a component responsible for converting terminal ANSI color codes into HTML for rendering build logs in the browser. Maliciously crafted terminal output containing specific ANSI escape sequences generated unescaped CSS and inline styles, enabling an attacker to execute arbitrary JavaScript within the victim's browser context. Because build logs are routinely viewed by developers and administrators, an unauthenticated attacker could trigger XSS to hijack active sessions. For backend and full-stack developers, this incident underscores the severe security risks associated with rendering untrusted log outputs or user-generated text. It reinforces the vital practice of strict sanitization, context-aware output encoding, and cautious handling of third-party parsing dependencies across continuous integration and build pipelines."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 8,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://dynomight.substack.com/p/liver: HTTP Error 403: Forbidden",
+      "enrich https://www.cell.com/iscience/fulltext/S2589-0042(26)00811-4: HTTP Error 403: Forbidden",
+      "enrich https://medium.com/@arielsimon/dark-sourcery-how-hackers-manipulate-ai-to-scam-you-88df434d2073: HTTP Error 403: Forbidden",
+      "enrich https://resobscura.substack.com/p/ai-labs-need-to-start-funding-historical: HTTP Error 403: Forbidden",
+      "enrich https://www.bloomberg.com/news/articles/2026-09-24/oracle-cites-force-majeure-to-shield-itself-on-controversial-data-center: HTTP Error 403: Forbidden",
+      "enrich https://www.economist.com/leaders/2026/09/24/back-and-shoulder-surgery-is-often-worse-than-useless: HTTP Error 403: Forbidden",
+      "enrich https://resobscura.substack.com/p/ai-labs-need-to-start-funding-historical: HTTP Error 403: Forbidden",
+      "enrich https://medium.com/@arielsimon/dark-sourcery-how-hackers-manipulate-ai-to-scam-you-88df434d2073: HTTP Error 403: Forbidden",
+      "enrich https://www.bloomberg.com/news/articles/2026-09-24/oracle-cites-force-majeure-to-shield-itself-on-controversial-data-center: HTTP Error 403: Forbidden"
+    ]
+  }
+}
