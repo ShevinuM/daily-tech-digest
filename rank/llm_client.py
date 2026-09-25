@@ -99,24 +99,47 @@ def _call_openai_compat(prompt: str, *, api_key: str, model: str, temperature: f
     }
     data = _request_with_retry(url, headers, json.dumps(payload).encode("utf-8"))
     try:
-        return data["choices"][0]["message"]["content"]
+        choice = data["choices"][0]
+        content = choice["message"]["content"]
     except (KeyError, IndexError) as e:
         raise ProviderError(f"missing expected content: {data}") from e
+    # Reasoning models (which openrouter/free can route to) can spend the
+    # whole budget thinking and come back with content: null.
+    if not content:
+        raise ProviderError(f"empty content (finish_reason={choice.get('finish_reason')})")
+    return content
+
+
+def _parse_json(text: str):
+    """json.loads, tolerating a ```json fence or trailing chatter after the
+    object — free models don't all honor response_format strictly."""
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        starts = [i for i in (text.find("{"), text.find("[")) if i >= 0]
+        if not starts:
+            raise
+        return json.JSONDecoder().raw_decode(text[min(starts):])[0]
 
 
 # Order matters: tried top to bottom, first one with an API key set that
-# succeeds wins. The one remaining call's payload is now ~6-7k tokens (all
-# mechanical filtering/scoring/summarizing happens in Python before this —
-# see rank/pools.py, rank/relevance.py, rank/summarize.py), which fits
+# succeeds wins. A provider's model can also be a list (in config.json),
+# tried in order before moving on to the next provider. The one remaining
+# call's payload is now ~6-7k tokens (all mechanical filtering/scoring/
+# summarizing happens in Python before this — see rank/pools.py, rank/relevance.py, rank/summarize.py), which fits
 # comfortably under Groq/OpenRouter's free-tier token-per-minute caps too,
 # so they're genuinely usable as a Gemini-outage fallback now rather than a
 # guaranteed 429.
 PROVIDERS = [
     {"name": "gemini", "env": "GEMINI_API_KEY", "default_model": "gemini-3.6-flash",
      "call": _call_gemini},
-    {"name": "groq", "env": "GROQ_API_KEY", "default_model": "llama-3.3-70b-versatile",
+    {"name": "groq", "env": "GROQ_API_KEY", "default_model": "openai/gpt-oss-120b",
      "call": functools.partial(_call_openai_compat, base_url="https://api.groq.com/openai/v1")},
-    {"name": "openrouter", "env": "OPENROUTER_API_KEY", "default_model": "openrouter/free",
+    {"name": "openrouter", "env": "OPENROUTER_API_KEY",
+     "default_model": ["deepseek/deepseek-v4-flash-0731:free", "openrouter/free"],
      "call": functools.partial(_call_openai_compat, base_url="https://openrouter.ai/api/v1")},
 ]
 PROVIDER_ENV_VARS = [p["env"] for p in PROVIDERS]
@@ -133,17 +156,22 @@ def generate_json(prompt: str, *, config: dict, temperature: float = 0.2):
         if not api_key:
             continue
         tried += 1
-        model = llm_cfg.get(provider["name"], {}).get("model", provider["default_model"])
-        try:
-            text = provider["call"](prompt, api_key=api_key, model=model, temperature=temperature)
-        except ProviderError as e:
-            errors.append(f"{provider['name']} ({model}): {e}")
-            continue
-        try:
-            return json.loads(text)
-        except json.JSONDecodeError:
-            errors.append(f"{provider['name']} ({model}): did not return valid JSON: {text[:300]}")
-            continue
+        models = llm_cfg.get(provider["name"], {}).get("model", provider["default_model"])
+        for model in [models] if isinstance(models, str) else models:
+            try:
+                text = provider["call"](prompt, api_key=api_key, model=model,
+                                        temperature=temperature)
+            except ProviderError as e:
+                errors.append(f"{provider['name']} ({model}): {e}")
+                continue
+            try:
+                result = _parse_json(text)
+            except json.JSONDecodeError:
+                errors.append(f"{provider['name']} ({model}): did not return valid JSON: "
+                              f"{text[:150]} ... {text[-150:]}")
+                continue
+            utils.log(f"llm: answered by {provider['name']} ({model})")
+            return result
 
     if tried == 0:
         raise RuntimeError(

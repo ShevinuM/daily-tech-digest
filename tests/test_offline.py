@@ -1606,6 +1606,44 @@ def test_llm_client():
                 check("falls over to the next configured provider when the first is down",
                       result == {"ok": True}, result)
 
+            with _EnvKeys(OPENROUTER_API_KEY="o"):
+                def openai_body(content):
+                    return json.dumps({"choices": [{"message": {"content": content},
+                                                    "finish_reason": "length"}]}).encode()
+
+                seen_models = []
+
+                def null_then_ok(req, timeout=None):
+                    model = json.loads(req.data)["model"]
+                    seen_models.append(model)
+                    if model == "first":
+                        return _FakeHTTPResponse(openai_body(None))
+                    return _FakeHTTPResponse(good_openai_body)
+
+                _urllib_request.urlopen = null_then_ok
+                cfg = {"llm": {"openrouter": {"model": ["first", "second"]}}}
+                result = llm_client.generate_json("prompt", config=cfg)
+                check("null content falls over to the provider's next listed model",
+                      result == {"ok": True} and seen_models == ["first", "second"], seen_models)
+
+                for label, content in [
+                    ("parses JSON wrapped in a ```json fence", '```json\n{"ok": true}\n```'),
+                    ("parses JSON followed by trailing chatter", '{"ok": true}\n\nHope this helps!'),
+                ]:
+                    _urllib_request.urlopen = (
+                        lambda req, timeout=None, c=content: _FakeHTTPResponse(openai_body(c)))
+                    result = llm_client.generate_json("prompt", config={})
+                    check(label, result == {"ok": True}, result)
+
+                _urllib_request.urlopen = (
+                    lambda req, timeout=None: _FakeHTTPResponse(openai_body(None)))
+                try:
+                    llm_client.generate_json("prompt", config=cfg)
+                    check("raises RuntimeError (not TypeError) when every model returns null", False)
+                except RuntimeError as e:
+                    check("raises RuntimeError (not TypeError) when every model returns null",
+                          "empty content" in str(e), e)
+
             with _EnvKeys():
                 try:
                     llm_client.generate_json("prompt", config={})
