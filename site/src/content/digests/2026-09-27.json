@@ -1,0 +1,101 @@
+{
+  "date": "2026-09-27",
+  "title": "Shevinu's Digest — Sunday, September 27, 2026",
+  "generatedAt": "2026-09-27T07:25:59Z",
+  "intro": "Today's edition explores local cloud emulation, visual architecture tooling, distributed agent sandboxes, and maintaining engineering craft in the age of AI.",
+  "sections": [
+    {
+      "heading": "🛠️ Developer Tooling & Architecture Visualization",
+      "items": [
+        {
+          "url": "https://github.com/reladraw/reladraw",
+          "title": "Show HN: Reladraw – A diagram language where you decide where to place things",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-26T17:10:40Z",
+          "tags": [],
+          "summary": "Reladraw is a diagramming language designed to bridge the gap between automated layout engines like Mermaid and freeform visual editors like draw.io. While automated tools often lack precise layout control, manual editors force developers and AI agents to manipulate complex absolute coordinate math. Reladraw introduces intuitive relative positioning constraints—placing nodes relative to one another or aligning them across levels—giving engineers explicit structural control without manual dragging.\n\nFor backend developers advancing toward staff engineer roles, clear visual architecture documentation is essential for communicating system boundaries and domain-driven design bounded contexts. Reladraw provides a clean text-based syntax that is both human-readable and agent-friendly, allowing you to quickly define and maintain architectural diagrams alongside code."
+        },
+        {
+          "url": "https://floci.io",
+          "title": "Floci: Locally emulating any cloud service",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-26T08:31:02Z",
+          "tags": [],
+          "summary": "Floci is a lightweight local cloud emulator designed to run services from AWS, Azure, GCP, and OCI in milliseconds without requiring cloud credentials or network connectivity. It emulates essential cloud components like serverless functions, managed databases, message queues, and object storage—including Azure services, Redis, Lambda, and Kafka—allowing developers and AI coding agents to test cloud infrastructure locally.\n\nAs a backend architect, maintaining a fast and reliable feedback loop is crucial for testing cloud infrastructure code and integrations. Floci eliminates the friction and cost of testing against live cloud accounts, allowing both human engineers and automated agents to verify complex multi-cloud interactions and state changes locally before deploying code to staging or production environments."
+        },
+        {
+          "url": "https://tangled.org/yanndegat.tngl.sh/drawgent",
+          "title": "Drawgent: Coding agent on a live Excalidraw canvas",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-26T15:56:34Z",
+          "tags": [],
+          "summary": "Drawgent is an open-source developer tool that connects local coding agents—such as Claude Code, Codex, or opencode—directly to an interactive Excalidraw whiteboard canvas in your browser. By running a simple CLI setup, Drawgent initializes an agent session tied to your local repository and automatically launches a synchronized visual canvas.\n\nVisualizing architecture and component interactions while writing code helps maintain clear mental models as system complexity grows. For developers leading domain-bounded context designs, Drawgent integrates visual diagramming directly into the AI-assisted development workflow, providing a shared visual workspace where you and your automated coding assistants can inspect, refine, and reason about system designs in real time."
+        }
+      ]
+    },
+    {
+      "heading": "🤖 AI Systems & Agent Infrastructure",
+      "items": [
+        {
+          "url": "https://arxiv.org/abs/2609.22978",
+          "title": "DeepSeek Elastic Compute (DSec)",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-26T18:22:41Z",
+          "tags": [],
+          "summary": "DeepSeek Elastic Compute (DSec) is a distributed sandbox infrastructure built for large-scale training and evaluation of autonomous LLM agents. Agentic execution requires isolated, stateful environments where models can inspect repositories, execute shell commands, invoke external tools, and interact with microservices. DSec manages cluster placement, lifecycle orchestration, CPU scheduling, and memory reclamation across high-density execution nodes, leveraging the Fire-Flyer File System (3FS) to load environment images on demand.\n\nSystems architects designing AI-enabled platforms must understand how distributed infrastructure scales stateful execution for autonomous agents. DSec illustrates how multi-layer environment composition, shared memory reclamation, and high-throughput distributed filesystems combine to deliver dense, low-latency execution environments for demanding agentic workloads."
+        },
+        {
+          "url": "https://www.privatemode.ai/blog/system-one-from-glm-flash",
+          "title": "Turning GLM-5.3-Flash into a Jev-like decision model",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-26T15:49:04Z",
+          "tags": [],
+          "summary": "This technical write-up demonstrates how to turn GLM-5.3-Flash into a fast decision model inspired by Jev. By embedding indexed options into a JSON prompt alongside system state, the model evaluates typed decisions and outputs probability scores across all choices in a single forward pass. To eliminate tokenization discrepancies without shipping heavy model-specific tokenizers, the framework fetches token IDs directly from the server via a completions call with echo enabled.\n\nFor backend engineers building high-performance AI services, standard sequential LLM generation can introduce unwanted latency and non-deterministic output structures. Understanding single-pass probabilistic decision models enables you to build deterministic, high-throughput routing logic and decision engines into your backend architecture."
+        }
+      ]
+    },
+    {
+      "heading": "💡 Software Craft & Developer Culture",
+      "items": [
+        {
+          "url": "https://discourse.haskell.org/t/how-to-keep-enjoying-programming-in-a-world-of-llms/14705",
+          "title": "How to keep enjoying programming in a world of LLMs",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-26T09:41:58Z",
+          "tags": [],
+          "summary": "This reflective article addresses the subtle erosion of coding skills developers experience when offloading coding tasks entirely to autonomous AI agents. Delegating every task can make returning to hands-on programming difficult and reduce personal satisfaction in software craft. The author suggests structuring workflows around planned todo lists and introducing explicit review cycles—treating agent-generated code as a draft that requires rigorous human code review before acceptance.\n\nAs AI agents become standard developer tooling, senior and staff engineers must maintain their core problem-solving intuition and code mastery. Establishing disciplined human-in-the-loop workflows ensures that you retain full agency over system design and software quality while effectively leveraging AI productivity tools."
+        },
+        {
+          "url": "https://blog.codinghorror.com/if-we-do-not-stop-to-help-each-other-what-do-we-become/",
+          "title": "If we do not stop to help each other, what do we become?",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-27T03:20:46Z",
+          "tags": [],
+          "summary": "The author reflects on the importance of human mentorship, peer support, and technical community during challenging career moments. As traditional Q&A platforms and developer forums hollow out—increasingly replaced by instantaneous LLM output—the author warns against sacrificing genuine human connection for automated convenience. While AI tools provide immediate answers, they lack empathy, shared technical context, and mentorship.\n\nTechnical leadership and staff engineering are inherently human disciplines focused on mentoring engineers, fostering collaborative cultures, and building resilient teams. Cultivating real developer relationships and community bonds ensures that engineering knowledge, career growth, and technical support remain grounded in human connection rather than automated answer generation."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 7,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://themomoftheyear.substack.com/p/im-the-mom-in-that-viral-giants-clip: HTTP Error 403: Forbidden",
+      "enrich https://www.economist.com/leaders/2026/09/10/plunging-test-scores-are-a-slow-moving-catastrophe: HTTP Error 403: Forbidden",
+      "enrich https://theborys.substack.com/p/what-is-the-size-of-yemen: HTTP Error 403: Forbidden",
+      "enrich https://theborys.substack.com/p/what-is-the-size-of-yemen: HTTP Error 403: Forbidden",
+      "enrich https://www.economist.com/leaders/2026/09/10/plunging-test-scores-are-a-slow-moving-catastrophe: HTTP Error 403: Forbidden"
+    ]
+  }
+}
