@@ -1,0 +1,124 @@
+{
+  "date": "2026-09-28",
+  "title": "Shevinu's Digest — Monday, September 28, 2026",
+  "generatedAt": "2026-09-28T08:17:59Z",
+  "intro": "On September 27, 2026, the focus is on writing portable code, mastering AI reasoning, and sharpening your tooling.",
+  "sections": [
+    {
+      "heading": "🛠️ Software Engineering Craft",
+      "items": [
+        {
+          "url": "https://iain.rocks/blog/dont-couple-your-go-code-to-github",
+          "title": "Don't couple your Go code to GitHub",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-27T16:50:58Z",
+          "tags": [],
+          "summary": "Go’s design lets you import packages by referencing the URL where they are hosted, which is convenient but ties your source code directly to a particular Git provider. If you later decide to move from GitHub to GitLab, Azure DevOps, or any other service, every import path must be rewritten, otherwise the build will break. The author recounts a real‑world case where a company simultaneously used GitHub, GitLab and Azure DevOps precisely to avoid the costly migration effort; changing the hosting location would have required a massive, coordinated update across the codebase, and the team simply did not have the time to undertake it. This illustrates how coupling code to a hosting provider creates unnecessary friction and technical debt. For developers aiming to write portable, maintainable software, the lesson is to decouple import identifiers from the hosting service—using a domain you control or a dependency‑management layer—so that future infrastructure changes do not force code changes."
+        },
+        {
+          "url": "https://eli.thegreenplace.net/2026/rusty-thoughts-on-parse-dont-validate/",
+          "title": "Rusty thoughts on \"Parse, don't validate\"",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-27T08:59:59Z",
+          "tags": [],
+          "summary": "The post explores the “parse, don’t validate” principle by showing how a Rust crate provides a NonEmpty type that guarantees a vector always contains at least one element. The struct stores the first element in a head field and the remainder in a tail Vec, and its constructor requires a single value, making it impossible to instantiate an empty collection. A first() method returns a reference to the head without wrapping it in an Option, eliminating the need for runtime emptiness checks. The crate also implements common traits and conversion helpers, such as from_vec, which turns a regular Vec into an Option<NonEmpty<T>> by removing the first element when the vector is non‑empty. By adopting this type, functions like get_configuration_directories can assume valid input and focus on their core logic, reducing boilerplate and preventing a whole class of bugs related to empty collections."
+        },
+        {
+          "url": "https://www.inkandswitch.com/essay/malleable-software/",
+          "title": "Malleable software: Restoring user agency in a world of locked-down apps (2025)",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-27T19:01:31Z",
+          "tags": [],
+          "summary": "Malleable software describes an ecosystem where users can reshape the tools they rely on without facing steep barriers. The concept covers everything from minor tweaks—changing a colour scheme or keyboard shortcut—to deep renovations that rewrite core behaviour, and even the creation of new utilities that interoperate with existing programs. The author links this idea to the open‑source movement, which publishes source code so that anyone can inspect, modify, and redistribute improvements, or publish a fork that better fits their workflow. Importantly, malleability does not demand that every user become a full‑blown developer; instead, it offers a gentle slope from casual user to creator, allowing incremental contributions as confidence and skill grow. By embracing malleability, software becomes more adaptable to individual needs, fostering a sense of ownership and reducing the lock‑in that often accompanies closed, monolithic applications."
+        },
+        {
+          "url": "https://pixelambacht.nl/2026/ten-lines-of-code/",
+          "title": "Ten lines of code that changed my world",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-27T13:33:03Z",
+          "tags": [],
+          "summary": "The author recalls a ten‑line snippet that forever shifted his perspective on coding. Pasting a single line into the browser’s console blends a nostalgic TV reference with the quirks of JavaScript, prompting a laugh at the language’s idiosyncrasies. One variant of the snippet pokes a specific byte in memory, instantly granting infinite lives, energy or in‑game currency—a vivid reminder of how low‑level manipulation can produce dramatic effects. Another version consists of 280 characters of pure CSS that runs in an empty HTML document containing only a <style> block, demonstrating that powerful visual tricks can be achieved without any JavaScript or markup. The piece also notes how expanding the shareable code limit from Twitter’s original 140 characters to 280 opened the door for such playful, self‑contained examples to be posted and tried instantly in environments like CodePen, turning a simple hack into a shared cultural moment among developers."
+        }
+      ]
+    },
+    {
+      "heading": "🤖 AI & LLMs",
+      "items": [
+        {
+          "url": "https://fireworks.ai/blog/ember-1",
+          "title": "Ember-1",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-27T17:31:53Z",
+          "tags": [],
+          "summary": "Ember‑1 is a language model trained to reason more efficiently, addressing a common flaw in today’s reasoning‑heavy models. Models such as Kimi K3 often devote over ninety percent of their generated tokens to internal reasoning steps, leaving only a small fraction for the final answer. Using the public Kimi K3 pricing—uncached input at $3 per million tokens, cached input at $0.30 per million, and output at $15 per million—the authors measured the cost‑to‑performance trade‑off across four configurations: low, high, and maximum reasoning effort for Kimi K3, plus the Ember‑1 model. The results showed how Ember‑1 achieves comparable accuracy while consuming far fewer tokens, thereby lowering inference cost. The study also emphasized testing the model on realistic workloads and production traffic, rather than isolated benchmarks, to verify that the efficiency gains hold in real‑world deployments where latency and cost matter."
+        },
+        {
+          "url": "https://arxiv.org/abs/2110.01834",
+          "title": "Thinking fast and slow in AI: The role of metacognition (2021)",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-28T03:23:53Z",
+          "tags": [],
+          "summary": "Despite the rapid progress in artificial intelligence, most deployed systems remain narrow, excelling at well‑defined tasks such as image classification, natural‑language processing, or predictive modelling while struggling to transfer abilities across domains. The paper introduces metacognition—the capacity of an AI system to monitor and regulate its own thinking—as a potential avenue toward more general intelligence. By enabling a model to reflect on its reasoning process, detect errors, and adjust strategies, metacognitive mechanisms could bridge the gap between specialised performance and flexible, human‑like problem solving. The authors argue that investing in metacognitive research may yield AI that not only solves today’s narrow challenges but also adapts to unforeseen situations, reducing brittleness and improving robustness in real‑world applications."
+        }
+      ]
+    },
+    {
+      "heading": "🔧 Developer Tooling",
+      "items": [
+        {
+          "url": "https://unsung.aresluna.org/they-had-no-concept-of-a-duty-of-care-to-their-users/",
+          "title": "On caring for user data: NeoVim caused Vim undo files to be deleted",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-27T14:45:07Z",
+          "tags": [],
+          "summary": "The article details a surprising bug in NeoVim where opening a file triggered the deletion of Vim’s persistent undo files, wiping out the undo history and replacing them with a format that Vim could no longer read. When the author reported the issue, maintainers explained that the undo format is intentionally unstable and should not be relied upon for long‑term data preservation. The incident is framed through the lens of Jef Raskin’s three laws of humane interface design, particularly the principle that a computer must not harm the user’s work, either through action or inaction. By losing undo data without warning, the editor violated this guideline, underscoring the importance of treating user‑generated data with care and providing clear guarantees about the stability of features that promise persistence."
+        },
+        {
+          "url": "https://david.alvarezrosa.com/posts/self-hosting-on-the-dark-web/",
+          "title": "Self-Hosting on the Dark Web",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-27T20:03:36Z",
+          "tags": [],
+          "summary": "The site is now accessible as a Tor hidden service, reachable only through a .onion address that resolves inside the Tor network. Users must open the address in the Tor Browser, which routes traffic through thousands of volunteer‑run relays that encrypt packets and conceal both the client’s identity and the server’s location. To obtain the current hostname, one can restart the Tor service and read the generated file, for example the string dhevt6e4rtgbtr3jh53xrpwmgtilkah6nyjujocsspssrsexc7omxhid.onion. Once the address is known, the web server only needs to listen on localhost port 8080, as Tor forwards incoming connections on the onion’s port 80 to that endpoint. When building a static site for onion access, developers must avoid hard‑coding clear‑net URLs in absolute links; otherwise, visitors would be redirected back to the public web, breaking the anonymity guarantees of the hidden service."
+        }
+      ]
+    },
+    {
+      "heading": "🚀 Career Growth & Learning",
+      "items": [
+        {
+          "url": "https://thill.me/2026/09/11/what-i-did-at-rc.html",
+          "title": "What I did at Recurse Center",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-27T19:04:19Z",
+          "tags": [],
+          "summary": "At the Recurse Center, the author joined a study group that worked through the first half of *Practical Deep Learning* by Jeremy Howard and Sylvain Gugger. The sessions began with classical machine learning techniques, progressed to using and adapting pre‑built models, and culminated in building original neural networks from scratch. Alongside the main curriculum, the group pursued side projects: Kenji and the author extended the chaos game in Desmos, experimenting with visualisations and parameter tweaks; Tony reverse‑engineered the AI for the board game *Race for the Galaxy* to understand its decision‑making logic; and in another exercise, agents were tasked with playing the word‑guessing game *Just One*, where the goal is to give unique hints for a secret word. Even with the temperature set to 1, the agents frequently converged on the same hint, revealing how easily independent learners can echo each other’s ideas."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 9,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://eoinhiggins.substack.com/p/there-are-no-rogue-ai-agents: HTTP Error 403: Forbidden",
+      "enrich https://www.nytimes.com/2026/09/26/science/motel-science-discovery.html: HTTP Error 403: Forbidden",
+      "enrich https://www.quora.com/Did-the-ENIAC-have-a-BIOS/answer/Alan-Kay-11: HTTP Error 403: Forbidden",
+      "enrich https://www.nytimes.com/2026/09/26/business/dealbook/ai-law-discount-billable-hour.html: HTTP Error 403: Forbidden",
+      "enrich https://www.ihatethefuture.com/2026/09/the-normalization-of-inexplicable.html: HTTP Error 429: Too Many Requests",
+      "enrich https://loficities.com/: The read operation timed out",
+      "enrich https://eoinhiggins.substack.com/p/there-are-no-rogue-ai-agents: HTTP Error 403: Forbidden"
+    ]
+  }
+}
