@@ -1,0 +1,65 @@
+{
+  "date": "2026-09-29",
+  "title": "Shevinu's Digest — Tuesday, September 29, 2026",
+  "generatedAt": "2026-09-29T07:56:46Z",
+  "intro": "Today’s reads explore how agents, tooling, and solid architecture empower the modern backend engineer.",
+  "sections": [
+    {
+      "heading": "🛠️ Agentic & Dev Tooling",
+      "items": [
+        {
+          "url": "https://blog.cloudflare.com/cloudflare-cf-cli-launch/",
+          "title": "Cf: The Agentic CLI for the Cloudflare API",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-28T15:28:13Z",
+          "tags": [],
+          "summary": "The new cf CLI brings Cloudflare’s entire API under the control of a single, globally‑installable tool. By running npm i -g cf you get a command‑line agent that can configure DNS, manage workers, and even spin up KV stores, all from a TypeScript‑based configuration file. The config format is deliberately type‑checked, letting both humans and AI agents read and modify it safely. For a backend engineer who already writes infrastructure as code in TypeScript, this means you can script complex deployments without leaving the language you know, and you can hand the same config to an LLM‑powered assistant that respects the same type contracts. The article walks through a quick install, a sample config, and shows how the agentic approach reshapes the developer‑ops feedback loop, turning what used to be a series of manual API calls into a reproducible, version‑controlled workflow."
+        },
+        {
+          "url": "https://git.mills.io/prologic/parley",
+          "title": "Parley: Federated, decentralised chat that speaks plain IRC",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-28T10:30:54Z",
+          "tags": [],
+          "summary": "Parley is a federated chat system that talks plain IRC while exposing a modern FastAPI + SQLite backend. The author describes how each peer announces its version during the initial handshake, allowing the network to keep a consistent view of capabilities without a central authority. The server component runs on FastAPI, stores messages and user metadata in SQLite, and offers a tiny web UI for browsing conversations. Because the protocol is deliberately simple, you can drop a new node into the mesh and it will immediately understand the existing versioning scheme. For engineers comfortable with Node‑style APIs, the FastAPI codebase is a clean example of how to build a lightweight, extensible service that can be deployed in a Docker container on Azure, while still supporting the low‑latency, text‑centric workflows that many legacy tools still rely on."
+        },
+        {
+          "url": "https://github.com/seamusc/papermono-shopping-list",
+          "title": "Show HN: PaperMono, e-ink fridge magnet shopping list with mobile web page",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-28T10:14:41Z",
+          "tags": [],
+          "summary": "PaperMono is a DIY e‑ink fridge‑magnet that doubles as a shopping‑list manager, and its software stack is a masterclass in full‑stack simplicity. The firmware runs on an Arduino‑compatible board compiled with PlatformIO, while the server side is a FastAPI application backed by SQLite. The web UI, served to a phone’s browser, lets you tap aisles, add items, and automatically categorises them using a Claude‑powered classifier. The repository includes a Dockerfile for containerising the FastAPI service, making it trivial to run on Azure Container Instances, and a CI script that validates the API contract with GitHub Actions. For a backend architect, the project showcases how to combine embedded hardware, a minimal Python API, and a modern CI pipeline to deliver a tangible, user‑facing product without any heavyweight infrastructure."
+        },
+        {
+          "url": "https://stateofutopia.com/experiments/microllmlab/",
+          "title": "MicroLLM Lab – Try 7 tiny LLM's in the browser",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-28T18:58:53Z",
+          "tags": [],
+          "summary": "MicroLLM Lab lets you benchmark seven tiny language models directly in the browser using pure JavaScript. The page runs each model’s inference loop, measures tokens per second, and reports pass rates on a suite of objective tests, all while generating a verifiable certificate of performance tied to your device’s hardware. Because the benchmark is written in JavaScript and executed client‑side, you can quickly compare how different models behave on a typical developer workstation without provisioning a GPU. The article walks through the code that builds the test harness, explains how to interpret the speed‑vs‑accuracy trade‑offs, and even shows how to export the results for inclusion in a CI report. For engineers building AI‑augmented tooling, this hands‑on example demonstrates a low‑friction way to evaluate model latency and quality before committing to a larger deployment."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 4,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "ken_walger: <urlopen error timed out>",
+      "enrich https://www.reuters.com/technology/mongodb-ceo-desai-steps-down-lead-metas-enterprise-platform-2026-09-28/: HTTP Error 401: HTTP Forbidden",
+      "enrich https://www.reuters.com/technology/mongodb-ceo-desai-steps-down-lead-metas-enterprise-platform-2026-09-28/: HTTP Error 401: HTTP Forbidden"
+    ]
+  }
+}
