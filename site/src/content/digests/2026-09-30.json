@@ -1,0 +1,128 @@
+{
+  "date": "2026-09-30",
+  "title": "Shevinu's Digest — Wednesday, September 30, 2026",
+  "generatedAt": "2026-09-30T08:05:58Z",
+  "intro": "Today’s reads explore how to safeguard code authority, harness AI agents responsibly, and sharpen the tooling that powers modern backend work.",
+  "sections": [
+    {
+      "heading": "🛡️ Code Authority & Safety",
+      "items": [
+        {
+          "url": "https://www.kenwalger.com/blog/software-architecture/code-review-authority-boundary-capability-security/",
+          "title": "Code Review Is Not an Authority Boundary",
+          "source": "ken_walger",
+          "publishedAt": "2026-09-29T14:27:49Z",
+          "tags": [
+            "Software Architecture",
+            "AI Agents",
+            "Authority",
+            "Capability Security",
+            "Least Privilege",
+            "MCP"
+          ],
+          "summary": "The article argues that code review should be seen less as a gatekeeper and more as a negotiation of capabilities. When a piece of code is merged, the execution environment can enforce fine‑grained permissions—specific directories, sockets, or operations—rather than assuming the code will behave. This capability‑based model mirrors the principle of least privilege and helps mitigate the risk of automatically generated or agent‑written functions that might otherwise run with broad access. By shifting the focus from “who can approve” to “what the code is allowed to do,” teams can maintain tighter security while still benefiting from rapid code generation."
+        },
+        {
+          "url": "https://www.kenwalger.com/blog/software-engineering/metric-vs-system-state-observability/",
+          "title": "Your Metric Is Not Your State",
+          "source": "ken_walger",
+          "publishedAt": "2026-09-29T12:13:00Z",
+          "tags": [
+            "Software Engineering",
+            "AI Systems",
+            "Distributed Systems",
+            "Measurement",
+            "Metrics",
+            "Monitoring"
+          ],
+          "summary": "Using a refractometer as a metaphor, the author illustrates why raw metrics can mislead developers about system health. Just as a refractometer reads sugar content that changes once fermentation begins, a metric like CPU usage or request latency can mask underlying state changes when new factors—such as background jobs or feature flags—are introduced. The piece urges engineers to treat observability data as a proxy, not a definitive state, and to combine quantitative readings with contextual knowledge to avoid false confidence in system performance."
+        },
+        {
+          "url": "https://martinfowler.com/bliki/SensibleDefault.html",
+          "title": "Bliki: Sensible Default",
+          "source": "martin_fowler",
+          "publishedAt": "2026-09-29T13:43:00Z",
+          "tags": [
+            "bliki"
+          ],
+          "summary": "The post distinguishes “sensible defaults” from the often‑overused term “best practice.” A sensible default is an action that makes sense in the absence of overriding constraints—like committing to version control, separating UI from domain logic, or automating deployments. By framing these habits as defaults rather than immutable rules, the author encourages teams to adopt them organically while retaining flexibility for edge cases. This mindset reduces resistance to adoption and helps maintain a pragmatic, context‑aware engineering culture."
+        }
+      ]
+    },
+    {
+      "heading": "🤖 AI Agents & Reliability",
+      "items": [
+        {
+          "url": "https://martinfowler.com/fragments/2026-09-29.html",
+          "title": "Fragments: September 29",
+          "source": "martin_fowler",
+          "publishedAt": "2026-09-29T12:41:00Z",
+          "tags": [],
+          "summary": "Simon Willison reflects on the paradox of coding agents: they can produce impressive code snippets, yet they also introduce new layers of complexity that can make software engineering harder. The author stresses that unlocking the full potential of these agents demands extraordinary discipline, deep domain knowledge, and rigorous testing. The piece also references Harper Reed’s “breakaway agent” experiment, which demonstrated how an autonomous agent could aggressively scan a subnet, highlighting the importance of embedding ethical constraints and robust safeguards into AI‑driven tooling."
+        },
+        {
+          "url": "https://github.com/PostHog/jeeves",
+          "title": "Jeeves. Reasoning improves Jev-like decision models",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-29T11:13:54Z",
+          "tags": [],
+          "summary": "Jeeves is an open‑source decision‑model framework that combines a reasoning engine with a drafter to improve output quality. The guide walks developers through installing the released weights, launching a local inference server, and optionally fusing custom checkpoints for specialized tasks. Interaction occurs via a simple HTTP endpoint that accepts JSON‑encoded state descriptions, making it straightforward to integrate Jeeves into existing pipelines for tasks such as automated ticket triage or contextual recommendation."
+        },
+        {
+          "url": "https://www.anthropic.com/research/glm-5-3-and-the-spread-of-advanced-cyber-capabilities",
+          "title": "GLM-5.3 and the spread of advanced cyber capabilities",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-29T17:31:26Z",
+          "tags": [],
+          "summary": "The analysis examines Claude Mythos Preview, a next‑generation LLM released through a restricted program aimed at trusted cyber defenders. By granting vetted users early access, the model demonstrated a marked jump in its ability to craft end‑to‑end exploits, outperforming prior Claude versions. The authors discuss the implications of such capabilities for both defensive security work and the broader risk landscape, emphasizing the need for responsible deployment controls when powerful generative models intersect with vulnerability research."
+        },
+        {
+          "url": "https://jorgegarciaherrero.com/wp-content/interactivos/20260916-Prompt-like-a-butterfly-sting-like-a-tracker-(clean).pdf",
+          "title": "A Privacy Analysis of Web and Mobile Conversational AI Agents [pdf]",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-29T09:03:41Z",
+          "tags": [],
+          "summary": "This paper conducts a systematic privacy audit of web‑ and mobile‑based conversational AI agents. It evaluates how these agents collect, store, and transmit user data across various platforms, uncovering common patterns of over‑collection and insufficient anonymization. The findings highlight gaps in consent mechanisms and suggest concrete engineering controls—such as on‑device processing, data minimization, and transparent logging—that developers can adopt to protect user privacy while still delivering rich conversational experiences."
+        }
+      ]
+    },
+    {
+      "heading": "🛠️ Developer Tooling & Environments",
+      "items": [
+        {
+          "url": "https://frostyard.github.io/nsl/",
+          "title": "Show HN: NSL – WSL for Linux",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-29T14:51:36Z",
+          "tags": [],
+          "summary": "NSL (NSpawn Subsystem for Linux) offers a lightweight, container‑based development environment that runs inside systemd‑nspawn containers on a shared VM. Developers can spin up isolated Debian or Fedora containers on demand, work directly on project files from the host, and expose services back to the host’s localhost. This approach provides the reproducibility of full VMs without the overhead, enabling fast iteration, consistent tooling, and clean separation between host and development environments—especially useful for backend engineers who need to test against multiple Linux distributions."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 8,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://openai.com/index/introducing-dots/: HTTP Error 403: Forbidden",
+      "enrich https://openai.com/index/introducing-gpt-6-1-sol/: HTTP Error 403: Forbidden",
+      "enrich https://america.gov/: HTTP Error 403: Forbidden",
+      "enrich https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers: HTTP Error 403: Forbidden",
+      "enrich https://www.cbc.ca/lite/story/9.7361622: The read operation timed out",
+      "enrich https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers: HTTP Error 403: Forbidden",
+      "enrich https://openai.com/index/introducing-gpt-6-1-sol/: HTTP Error 403: Forbidden",
+      "enrich https://openai.com/index/introducing-dots/: HTTP Error 403: Forbidden"
+    ]
+  }
+}
