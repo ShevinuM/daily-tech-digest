@@ -1,0 +1,105 @@
+{
+  "date": "2026-10-01",
+  "title": "Shevinu's Digest — Thursday, October 1, 2026",
+  "generatedAt": "2026-10-01T08:23:13Z",
+  "intro": "Today's digest focuses on AI agent gateway architecture, distributed systems verification, and refining engineering craft in the age of automated tooling.",
+  "sections": [
+    {
+      "heading": "🏗️ Systems Design & Backend Architecture",
+      "items": [
+        {
+          "url": "https://blog.bytebytego.com/p/how-doordash-built-a-toolbox-for",
+          "title": "How DoorDash Built a Toolbox for AI Agents",
+          "source": "bytebytego",
+          "publishedAt": "2026-09-30T15:31:13Z",
+          "tags": [],
+          "summary": "As companies deploy AI agents to handle operational tasks, bridging the gap between language models and internal software infrastructure becomes a critical systems challenge. DoorDash addresses this by building a unified Agent Gateway designed to manage how AI agents discover and execute tools securely across production environments. While models can reason about system problems, they require controlled access to code repositories, logs, and incident tools to act. The gateway introduces a centralized tool catalog and execution engine that handles caller identity verification separately from credential delegation, allowing users to connect accounts dynamically during tool calls. This architectural pattern demonstrates how backend teams can structure secure, scalable tool ecosystems for autonomous agents, offering valuable insights for staff engineers designing enterprise-grade AI integrations and gateway architectures."
+        },
+        {
+          "url": "https://buttondown.com/hillelwayne/archive/what-tla-can-and-cant-check/",
+          "title": "What TLA+ can and can't check",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-30T13:57:06Z",
+          "tags": [],
+          "summary": "Formal specification languages like TLA+ provide a rigorous mathematical framework for verifying distributed systems and concurrent algorithms before writing code. This article examines the reach and boundaries of TLA+ verification, focusing on safety properties—where a state constraint always holds across all execution behaviors—and liveness properties, which specify that desirable conditions eventually occur across future states. It clarifies that TLA+ fundamentally relies on representing system properties as logical formulas, meaning unexpressed assumptions or poorly defined behaviors cannot be verified. For backend architects and systems designers, understanding what TLA+ can and cannot model helps prevent subtle concurrency bugs and race conditions in distributed state management, making formal verification a powerful tool in high-stakes system design."
+        },
+        {
+          "url": "https://www.netlify.com/blog/edge-functions-firecracker-microvms/",
+          "title": "5x faster Edge Functions: V8 isolates to Firecracker MicroVMs",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-30T18:17:45Z",
+          "tags": [],
+          "summary": "Optimizing low-latency edge computing requires continuous evaluation of isolated compute runtimes. This technical write-up details an infrastructure migration from V8 isolates to Firecracker MicroVMs, achieving a fivefold latency reduction for edge function execution. By refining the request lifecycle—where an edge node generates a machine specification, selects an optimal compute node, and hands execution off to a MicroVM—the system lowered median warm invocation times from 25–40ms down to 5–6ms while achieving a 47.4% speedup in p99 latency and 99.998% availability. For systems architects and backend engineers, this breakdown highlights the latency, security, and operational trade-offs involved when choosing micro-virtualization layers over light process isolates in multi-tenant edge platforms."
+        }
+      ]
+    },
+    {
+      "heading": "🛠️ AI Tooling & Developer Workflows",
+      "items": [
+        {
+          "url": "https://earendil.com/posts/you-said-no-mcp/",
+          "title": "You said no MCP",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-30T09:55:23Z",
+          "tags": [],
+          "summary": "The Model Context Protocol (MCP) has rapidly evolved as a standard interface for connecting language models to external tools and context sources. This piece explores how integrating MCP alongside Codemode inside the Pi agent framework resolves long-standing friction points in agent tool execution. By automatically loading Codemode whenever MCP is configured, the system streamlines metadata wiring and tool execution without adding unnecessary operational overhead. For developers building or leveraging AI coding agents, this evolution highlights the growing maturity of standardized tool interfaces, demonstrating how deliberate architecture around agent protocols can improve tool discovery, reduce execution complexity, and create more reliable automation workflows."
+        },
+        {
+          "url": "https://yedhu.me/posts/commit-description-as-a-thinking-tool/",
+          "title": "Commit description as a thinking tool",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-30T17:18:13Z",
+          "tags": [],
+          "summary": "In an era where autonomous coding agents write implementation code and pull request descriptions alike, developer friction shifts from writing syntax to reviewing AI-generated changes. The author advocates for intentionally writing commit descriptions by hand as a reflective thinking tool when collaborating with AI agents. Manually drafting the rationale and summary of changes forces engineers to deeply examine and validate generated code rather than passively accepting automated outputs. For developers navigating AI-assisted workflows, this practice balances productivity with technical rigor, serving as an effective cognitive check to preserve deep codebase comprehension, maintain software quality, and prevent subtle architectural drift."
+        }
+      ]
+    },
+    {
+      "heading": "💡 Engineering Leadership & Craft",
+      "items": [
+        {
+          "url": "https://martinfowler.com/articles/never-send-slides/slide-principles.html",
+          "title": "Principles for effective slides",
+          "source": "martin_fowler",
+          "publishedAt": "2026-09-30T14:14:00Z",
+          "tags": [],
+          "summary": "Presentations remain one of the most effective tools for engineers communicating complex architectural choices and technical vision to stakeholders. Sumeet Gayathri Moghe outlines core principles for designing slides that enhance rather than distract from a speaker's narrative. Slides should serve strictly as a visual complement, operating under minimalism by default to ensure audiences focus on the core message rather than reading dense text. Key strategies include controlling the pace of information delivery, maintaining tight coupling between what is spoken and shown, leveraging diagrams or visuals that convey concepts better than text, and resisting the urge to distribute slides beforehand as standalone reading material. Mastering these presentation techniques is essential for senior developers and architects looking to pitch designs, align cross-functional teams, and exercise influence across an engineering organization."
+        },
+        {
+          "url": "https://blog.jim-nielsen.com/2026/dear-software-makers/",
+          "title": "Dear Software Makers",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-30T19:45:38Z",
+          "tags": [],
+          "summary": "Drawing inspiration from creator tech critiques, this post explores how product and software development teams often lose momentum by over-optimizing edge variants rather than delivering finished work. The author highlights how platforms waste engineering effort chasing competitor features instead of strengthening their core value proposition. Applying this insight to software craft, the piece argues that repeatedly shipping complete, functional software yields far greater growth and skill mastery than endlessly polishing minor variations or obsessing over analytics. For senior developers and tech leads shaping product roadmap decisions, this perspective reinforces the importance of product focus, execution velocity, and keeping user experience centered around core domain strengths."
+        },
+        {
+          "url": "https://manuel.darcemont.fr/posts/the-last-time-my-family-was-replaced-by-technology/",
+          "title": "The last time my family was replaced by technology",
+          "source": "hacker_news",
+          "publishedAt": "2026-09-30T13:06:11Z",
+          "tags": [],
+          "summary": "As artificial intelligence reshapes software development, engineers often wonder how technological displacement affects career identity. Drawing on a personal family history of transitioning from horse-drawn transport to mechanical engines, the author reflects on how core purpose survives industrial shifts. The fundamental driver of software engineering has never been the physical act of writing lines of syntax, but rather the problem-solving journey, the craft of creation, and the impact of delivering valuable tools to real users. For backend developers navigating industry shifts, this essay provides a grounding reminder that focusing on domain architecture, problem solving, and user value ensures long-term career resilience regardless of how implementation tools evolve."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 8,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://america.gov/chat: HTTP Error 403: Forbidden"
+    ]
+  }
+}
