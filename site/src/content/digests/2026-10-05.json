@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-05",
+  "title": "Shevinu's Digest — Monday, October 5, 2026",
+  "generatedAt": "2026-10-05T08:28:01Z",
+  "intro": "Today's focus centers on evolving software craft from deterministic logic to inferential systems, paired with modern cluster networking and pragmatic infrastructure tooling.",
+  "sections": [
+    {
+      "heading": "🏗️ Systems Architecture & Software Craft",
+      "items": [
+        {
+          "url": "https://martinfowler.com/fragments/2026-10-04.html",
+          "title": "Fragments: October  4",
+          "source": "martin_fowler",
+          "publishedAt": "2026-10-05T04:28:00Z",
+          "tags": [],
+          "summary": "Martin Fowler reflects on the fundamental paradigm shift from building traditional computational systems to nurturing modern inferential ones. Historically, software engineering has relied on deterministic foundations where system behavior is strictly prescribed through explicit logic, even if bugs or structural failures still occur in practice. Inferential AI systems introduce a fundamentally different dynamic where outcomes are probabilistic and emerging behavior requires new ways of thinking about safety, predictability, and process control. For backend developers and software architects transitioning into staff-level roles, understanding this shift is essential. Managing probabilistic AI components alongside traditional deterministic code requires evolving testing strategies, system boundaries, and operational safeguards to accommodate unintended model behaviors while maintaining reliable system design."
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=eZ8WWZzoaR0",
+          "title": "Homa: The end of TCP for AI clusters [video]",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-04T19:42:25Z",
+          "tags": [],
+          "summary": "This talk explores Homa, a network transport protocol designed to replace traditional TCP in modern AI and high-performance computing clusters. As AI workloads expand across distributed systems, the latency overheads, congestion control limitations, and head-of-line blocking inherent to standard TCP become major bottlenecks for inter-node communication and GPU synchronization. Homa introduces a specialized transport layer tailored specifically for low-latency, high-throughput RPC patterns in cluster environments. For backend architects and systems engineers designing scalable cloud infrastructure, understanding alternatives to legacy transport layers provides vital context on how low-level networking decisions impact cluster performance, distributed data flow, and modern high-concurrency architectures."
+        },
+        {
+          "url": "https://github.com/net4people/bbs/issues/672",
+          "title": "Xray-core concealed a certificate verification bypass vulnerability",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-04T17:38:54Z",
+          "tags": [],
+          "summary": "This security analysis examines a certificate verification bypass vulnerability in Xray-core and details how custom certificate validation options interact in proxy software. The maintainers highlight that toggling options like skipping certificate verification completely eliminates transport security unless paired strictly with explicit certificate pinning. When handling self-signed certificates, combining these flags bypasses standard CA verification in favor of custom SHA-256 fingerprint matching logic. For backend developers managing secure domain communication, public key infrastructure, and API gateways, this post underscores critical security pitfalls in custom TLS client configurations and the risk of accidental man-in-the-middle vulnerabilities when overriding default certificate checks."
+        }
+      ]
+    },
+    {
+      "heading": "🛠️ Developer Tooling & AI Infrastructure",
+      "items": [
+        {
+          "url": "https://vincent.bernat.ch/en/blog/2026-http-over-ssh",
+          "title": "Self-hosted HTTP tunnels with SSH and Nginx",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-04T22:25:10Z",
+          "tags": [],
+          "summary": "This guide demonstrates how to establish self-hosted, secure HTTP tunnels using standard SSH remote port forwarding combined with Nginx reverse proxying. By leveraging SSH commands to forward remote server ports back to local development environments, developers can expose internal services without relying on third-party tunneling platforms. The setup utilizes dynamic port allocation and embeds authentication tokens directly into HTTP basic auth usernames with expiration timestamps for secure access control. For backend engineers working with microservices and API integrations, mastering native networking tools like SSH and Nginx provides a cost-effective, self-sovereign workflow for staging and testing local backend services securely."
+        },
+        {
+          "url": "https://github.com/Niko1221/Strata",
+          "title": "Run Qwen 3.8 Flash Next (125B) on consumer hardware (RTX 4090) at 100T/s",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-04T12:51:53Z",
+          "tags": [],
+          "summary": "Strata is a local AI execution runtime that enables developers to run large language models, specifically the 125-billion-parameter Qwen 3.8 Flash Next model, on consumer hardware with 12 GB or more of GPU VRAM. Operating through a simple browser-based interface, Strata streams model weights directly from storage to generate output at speeds up to 100 tokens per second while managing context windows up to 128K. For backend engineers and systems architects exploring local AI integrations, Strata offers a practical look at optimized local inference pipelines, memory management strategies, and offloading compute tasks to edge or local environments without relying on external cloud APIs."
+        },
+        {
+          "url": "https://github.com/allenv0/SCM",
+          "title": "Show HN: AI search for every photo and every frame of video on macOS",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-04T09:24:52Z",
+          "tags": [],
+          "summary": "This open-source macOS tool combines Bun, React, Vite, and FFmpeg to build a local, AI-powered search index for personal photos and video clips. The architecture relies on FFmpeg to analyze video streams for shot boundaries, generate sampled segment plans based on user-defined density configurations, and embed midpoint frames for rapid query matching. Shot plans are cached using composite keys derived from file paths, modification timestamps, and configuration fingerprints to avoid redundant re-processing during re-imports. For full-stack and backend developers using Node or Bun, this project offers concrete patterns for orchestrating native CLI binaries, managing persistent indexing caches, and building offline media pipelines."
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=GLvFTMtw4Jk",
+          "title": "How to scale intent, quality, and artistry with AI [video]",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-04T08:41:58Z",
+          "tags": [],
+          "summary": "This video presentation explores strategies for maintaining high engineering standards, artistic quality, and clear architectural intent when integrating AI tools into development workflows. Rather than treating AI generation as a mechanism for raw output velocity, the discussion focuses on structuring prompts, architectural constraints, and feedback loops to preserve software design discipline at scale. For senior developers and tech leads aiming for staff engineer roles, mastering these practices helps balance the speed of AI generation with the rigorous oversight, code ownership, and domain clarity required to build maintainable, long-term software systems."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 7,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://www.nytimes.com/2026/09/30/technology/william-draper-dead.html: HTTP Error 403: Forbidden",
+      "enrich https://www.economist.com/international/2026/10/01/how-effective-altruism-conquered-the-world: HTTP Error 403: Forbidden",
+      "enrich https://onlinelibrary.wiley.com/doi/10.1002/eng2.70108: HTTP Error 403: Forbidden",
+      "enrich https://onlinelibrary.wiley.com/doi/10.1002/eng2.70108: HTTP Error 403: Forbidden",
+      "enrich https://www.economist.com/international/2026/10/01/how-effective-altruism-conquered-the-world: HTTP Error 403: Forbidden"
+    ]
+  }
+}
