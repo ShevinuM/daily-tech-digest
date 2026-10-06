@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-06",
+  "title": "Shevinu's Digest — Tuesday, October 6, 2026",
+  "generatedAt": "2026-10-06T08:37:54Z",
+  "intro": "From Node’s comeback to LLM prompt blindspots and a GitHub Actions hiccup, today’s reads sharpen your engineering craft.",
+  "sections": [
+    {
+      "heading": "📍 Pinned",
+      "items": [
+        {
+          "url": "https://www.jasonwei.net/blog/the-best-three-hours-in-san-francisco",
+          "title": "The Best Three Hours in San Francisco",
+          "source": "jason_wei",
+          "publishedAt": "2026-10-06T03:55:43Z",
+          "tags": [],
+          "summary": "A quick walk through San Francisco can showcase the city’s full cultural spectrum in just a few blocks. Starting in the leafy, upscale Presidio Heights you’ll see manicured streets and historic mansions, then plunge south into the Tenderloin, where the urban grind feels raw and unfiltered. The author now calls Cow Hollow home, a neighborhood that blends the two extremes with a relaxed vibe. A recommended stroll runs along Fillmore Street, the commercial spine of Pacific Heights, before a short detour to Alta Plaza Park, a favorite green spot that offers sweeping city views. The piece reads like a concise itinerary, perfect for a lunch‑time wander that captures both the polished and the gritty sides of the Bay Area."
+        }
+      ]
+    },
+    {
+      "heading": "🛠️ Node & Runtime Reflections",
+      "items": [
+        {
+          "url": "https://dbushell.com/2026/10/03/deno-to-node/",
+          "title": "Friendship ended with Deno, now Node is my best friend",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-05T22:30:02Z",
+          "tags": [],
+          "summary": "After years of favoring Deno, the author has swung back to Node.js, noting how the runtime has quietly matured. The switch required only a few straightforward changes: swapping Deno’s file‑system calls for the built‑in node:fs module, which now feels far more ergonomic than a decade ago. For version management, the writer prefers Fast Node Manager (FNM) over the traditional NVM script that still recommends piping a remote install script to Bash. The post highlights Node’s improved package ecosystem, smoother ES‑module support, and a more stable CLI, making it a solid choice for backend engineers who need reliable tooling without the friction of Deno’s security sandbox. It’s a practical reminder that revisiting familiar tools can uncover hidden gains for daily development."
+        }
+      ]
+    },
+    {
+      "heading": "🤖 LLM Prompt Engineering",
+      "items": [
+        {
+          "url": "https://blog.bytebytego.com/p/the-llm-blindspot-why-models-forget",
+          "title": "The LLM Blindspot: Why Models Forget What’s in the Middle of Your Prompt",
+          "source": "bytebytego",
+          "publishedAt": "2026-10-05T15:30:51Z",
+          "tags": [],
+          "summary": "At the recent Agentic Data Summit, researchers explained why large language models tend to over‑weight the start and end of a prompt, often neglecting crucial information tucked in the middle. The phenomenon, dubbed the “LLM blindspot,” stems from the way attention mechanisms allocate focus, and simply expanding the context window doesn’t fully solve it. The session outlined several mitigation strategies: re‑ordering key facts toward the prompt’s edges, using explicit delimiters, and employing “soft‑prompt” techniques that guide the model’s attention. Understanding these quirks is essential for developers building AI‑driven agents, as it directly impacts reliability and correctness of generated outputs. The talk also previewed the upcoming Agentic Data Plane, which aims to provide built‑in guardrails for safer, more predictable model behavior."
+        }
+      ]
+    },
+    {
+      "heading": "⚙️ CI & Platform Reliability",
+      "items": [
+        {
+          "url": "https://www.githubstatus.com/incidents/3q1yb5m7ltvb",
+          "title": "Incident with Actions",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-05T20:09:12Z",
+          "tags": [],
+          "summary": "GitHub announced that a recent outage affecting GitHub Actions has been mitigated. The team cleared the backlog of queued jobs and restored normal runner availability, ensuring new workflows can start without delay. While the core Actions service is back online, the incident also impacted ancillary features such as repository list retrieval, licensing checks, and billing page access. Engineers are monitoring the situation closely and have implemented additional safeguards to prevent similar disruptions. The update serves as a reminder to design CI pipelines with graceful degradation in mind and to keep an eye on service status dashboards, especially when critical deployments depend on continuous integration pipelines."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 4,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://techfundingnews.com/europes-new-robotics-unicorn-germanys-robco-hits-1b-valuation/: HTTP Error 403: Forbidden",
+      "enrich https://stratechery.com/2026/apple-and-a-hackers-future/: HTTP Error 403: Forbidden",
+      "enrich https://www.niemanlab.org/2026/10/chatgpt-is-adding-real-cartoonists-signatures-to-fake-new-yorker-cartoons/: HTTP Error 403: Forbidden",
+      "enrich https://www.barrons.com/news/norway-eyes-partial-ban-of-smart-glasses-e65dc239: HTTP Error 401: HTTP Forbidden",
+      "enrich https://terrytao.wordpress.com/2026/10/05/the-future-of-mathematics/: HTTP Error 403: Forbidden",
+      "enrich https://github.com/eolix/photosuite/issues/77: HTTP Error 404: Not Found",
+      "enrich https://terrytao.wordpress.com/2026/10/05/the-future-of-mathematics/: HTTP Error 403: Forbidden",
+      "enrich https://github.com/eolix/photosuite/issues/77: HTTP Error 404: Not Found",
+      "enrich https://stratechery.com/2026/apple-and-a-hackers-future/: HTTP Error 403: Forbidden"
+    ]
+  }
+}
