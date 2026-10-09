@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-09",
+  "title": "Shevinu's Digest — Friday, October 9, 2026",
+  "generatedAt": "2026-10-09T08:32:37Z",
+  "intro": "September 30, 2026: navigating service reliability, solid software boundaries, AI‑augmented careers, and lightweight AI tools.",
+  "sections": [
+    {
+      "heading": "🚨 Incident & Reliability",
+      "items": [
+        {
+          "url": "https://blog.pragmaticengineer.com/the-pulse-firebases-global-outage-poor-response/",
+          "title": "The Pulse: Firebase’s global outage & poor response",
+          "source": "pragmatic_engineer",
+          "publishedAt": "2026-10-08T16:56:37Z",
+          "tags": [],
+          "summary": "On Tuesday, September 29, 2026, at 5:41 p.m. PDT, iOS apps that integrate the Firebase SDK with analytics enabled began crashing immediately upon launch, affecting every such app worldwide. The failures persisted for over an hour before a Firebase engineer acknowledged the incident, noting that the team was aware of the problem. It remains uncertain whether the alert came from a public GitHub issue that quickly gathered more than a hundred developer comments or from Google’s internal monitoring systems. The episode highlights how a disruption in a widely used backend service can ripple through client applications, underscoring the importance of observability, rapid incident response, and clear communication channels between platform providers and the developers who depend on them."
+        }
+      ]
+    },
+    {
+      "heading": "🏗️ Software Engineering Craft",
+      "items": [
+        {
+          "url": "https://blog.bytebytego.com/p/how-software-boundaries-are-the-most",
+          "title": "How Software Boundaries Are The Most Important Skill for Developers",
+          "source": "bytebytego",
+          "publishedAt": "2026-10-08T15:31:01Z",
+          "tags": [],
+          "summary": "Regardless of how large a software system grows, it inevitably possesses a boundary that separates internal concerns from external ones. A well‑defined boundary encapsulates an application’s responsibilities, the rules that govern them, and the details needed to enforce those rules, while allowing outside components to interact only through explicit, controlled pathways. This article explains why mastering software boundaries is a core skill for developers, offering practical strategies for deciding where to draw those lines, how to keep responsibilities cohesive, and how to design interfaces that prevent leakage and tight coupling. By treating boundaries as first‑class design elements, developers can build systems that are easier to understand, test, and evolve as requirements change."
+        }
+      ]
+    },
+    {
+      "heading": "👥 Career Growth & Leadership",
+      "items": [
+        {
+          "url": "https://htmx.org/essays/yes-and/",
+          "title": "Yes, and",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-08T09:48:18Z",
+          "tags": [],
+          "summary": "The author argues that programming remains fundamentally about solving problems with computers and managing the complexity of those solutions—skills that will stay valuable even as AI tools become more prevalent. While acknowledging that AI can generate code for many tasks, the piece warns that relying on it without learning to write code deprives junior programmers of the deep, hands‑on understanding that comes from working directly with the codebase. The “yes, and” mindset encourages embracing AI’s assistance while still insisting on writing code oneself, ensuring that developers retain the visceral intuition needed to debug, extend, and maintain software effectively over the long term."
+        }
+      ]
+    },
+    {
+      "heading": "🎤 AI‑Powered Utilities",
+      "items": [
+        {
+          "url": "https://cactuscompute.com/blog/whistle",
+          "title": "Whistle: Speech to Text in 16.9 MB",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-08T16:59:39Z",
+          "tags": [],
+          "summary": "Whistle is a compact speech‑to‑text engine that fits in just 16.9 MB. Its architecture processes audio through decoder layers that attend to encoder outputs via a gated cross‑attention mechanism, with a learned gate per layer and key/value matrices derived from the input clip. The model’s vocabulary consists of 8,192 text tokens plus seven language‑specific tokens, allowing the detected language to be emitted directly as a token rather than a side‑channel output. Whistle returns a single JSON object containing the transcribed text, language identifier, latency to the first token, and tokens‑per‑second throughput. A companion playground lets users transcribe live microphone input in the terminal, and a comparison tool runs the same audio through Whistle, Whisper, and Moonshine side‑by‑side to show relative speed and accuracy."
+        }
+      ]
+    },
+    {
+      "heading": "🤖 Agentic AI Models",
+      "items": [
+        {
+          "url": "https://openrouter.ai/stepfun/step-5-preview",
+          "title": "Step 5 Preview, a 1M-context MoE from StepFun, shows up on OpenRouter",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-08T16:20:20Z",
+          "tags": [],
+          "summary": "Step 5 Preview is StepFun’s flagship model aimed at agentic workloads, built on a sparse Mixture‑of‑Experts design that activates 27 billion parameters out of a total of 600 billion. It is engineered for extended tasks that span large codebases or documents, enabling the model to invoke tools, refine its answers, and iterate over multiple steps. The provider emphasizes reliability: if an upstream source fails, requests can be rerouted to another healthy endpoint when filters allow, and per‑provider uptime metrics are accessible via an Endpoints API. The preview also highlights load‑balancing and customization options that let developers tailor how requests are distributed across available backends."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 5,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://apnews.com/article/h1b-visa-program-vance-microsoft-e7b3a407f822702b269ee277d21343ea: HTTP Error 403: Forbidden",
+      "enrich https://news.ycombinator.com/item?id=50006366: HTTP Error 419: ",
+      "enrich http://scottbezek.blogspot.com/2026/10/making-flexible-neon-t-shirt-with-leds.html: HTTP Error 429: Too Many Requests",
+      "enrich https://www.techspot.com/article/3178-oled-burn-in-test/: HTTP Error 403: Forbidden",
+      "enrich https://terrytao.wordpress.com/2026/10/08/what-should-we-tell-our-students/: HTTP Error 403: Forbidden",
+      "enrich https://terrytao.wordpress.com/2026/10/08/what-should-we-tell-our-students/: HTTP Error 403: Forbidden",
+      "enrich https://apnews.com/article/h1b-visa-program-vance-microsoft-e7b3a407f822702b269ee277d21343ea: HTTP Error 403: Forbidden",
+      "enrich https://www.techspot.com/article/3178-oled-burn-in-test/: HTTP Error 403: Forbidden",
+      "enrich https://news.ycombinator.com/item?id=50006366: HTTP Error 419: ",
+      "enrich http://scottbezek.blogspot.com/2026/10/making-flexible-neon-t-shirt-with-leds.html: HTTP Error 429: Too Many Requests"
+    ]
+  }
+}
