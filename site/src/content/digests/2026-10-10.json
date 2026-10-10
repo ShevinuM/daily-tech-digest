@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-10",
+  "title": "Shevinu's Digest — Saturday, October 10, 2026",
+  "generatedAt": "2026-10-10T08:09:28Z",
+  "intro": "AI‑augmented tooling meets backend craft in today’s reads",
+  "sections": [
+    {
+      "heading": "🧩 Runtime & Cloud Platforms",
+      "items": [
+        {
+          "url": "https://deno.com/blog/cloudflare",
+          "title": "Cloudflare acquires Deno",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-09T13:03:48Z",
+          "tags": [],
+          "summary": "Cloudflare’s acquisition of the Deno team signals a strategic push to blend Deno’s modern JavaScript/TypeScript runtime with the company’s edge‑computing platform. By folding Deno Deploy into Cloudflare Workers, developers can now write serverless functions that benefit from Deno’s security‑first defaults, built‑in TypeScript support, and streamlined standard library, while still leveraging Cloudflare’s global network. The move also introduces “celld,” a distributed‑application framework that abstracts away the operational complexity of scaling edge services. For backend engineers accustomed to Node, this creates a low‑friction path to adopt a more secure, standards‑compliant runtime without abandoning the existing JavaScript ecosystem, and it hints at a future where edge‑native runtimes become the default deployment target for micro‑services.\n"
+        },
+        {
+          "url": "https://rea.tools/",
+          "title": "REA Reverse – Engineer Anything",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-10T00:37:07Z",
+          "tags": [],
+          "summary": "The REA (Reverse‑Engineer‑Anything) project offers a hands‑on way to attach a coding agent to a live JavaScript application and interrogate its internals. After a one‑line npm setup, the agent can pull the full source of a running module, expose its functions, and even rewrite behavior on the fly—demonstrated by tweaking a game’s speed and rebuilding UI components. For developers building AI‑assisted tooling, REA showcases how a language‑model‑driven agent can act as a dynamic debugger, surfacing code paths, suggesting refactors, and automating repetitive edits. Its ability to bridge the gap between static analysis and live execution makes it a compelling sandbox for experimenting with next‑generation developer assistants.\n"
+        },
+        {
+          "url": "https://www.hetzner.com/blog/the-hetzner-cloud-network-stack-history-and-technical-overview/",
+          "title": "The Hetzner Cloud network stack – history and technical overview",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-09T12:20:55Z",
+          "tags": [],
+          "summary": "The Hetzner Cloud network stack deep‑dive walks through the architecture that powers private and public networking for virtual machines and load balancers. It covers the DHCP service that hands out IPv4 configurations, the use of Open vSwitch for flow‑based packet forwarding, and the orchestration layer that programs firewall rules per instance. Although Hetzner runs on its own infrastructure, the concepts map closely to Azure’s virtual network design—especially the separation of private overlay networks, flow‑based switching, and per‑VM firewalling. Backend architects can borrow these patterns to design more deterministic, secure, and observable networking layers for containerized workloads running in Docker or Kubernetes.\n"
+        }
+      ]
+    },
+    {
+      "heading": "🖼️ AI‑Driven UI & Agent Tooling",
+      "items": [
+        {
+          "url": "https://github.com/franzenzenhofer/big-arrow-on-the-screen",
+          "title": "Show HN: Let your AI agents paint big arrows, boxes and text on your screen",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-09T11:03:48Z",
+          "tags": [],
+          "summary": "A new Show HN utility lets AI agents draw annotated overlays—arrows, boxes, and custom text—directly onto a macOS screen via the Accessibility API. By constructing a simple command that specifies the target UI element, label, color, and placement, developers can script visual cues that guide users through complex workflows or debug UI state in real time. The tool demonstrates how language‑model‑driven agents can translate high‑level intent (“highlight the toggle button”) into concrete system calls, opening a path toward more interactive, self‑documenting developer tools that blend code execution with on‑screen guidance.\n"
+        }
+      ]
+    },
+    {
+      "heading": "📚 Hidden Engineering Literature",
+      "items": [
+        {
+          "url": "https://readrare.com/",
+          "title": "Show HN: The rarest tech books and docs you've probably never read",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-09T17:39:44Z",
+          "tags": [],
+          "summary": "An open‑source index curates some of the most obscure internal memos, handbooks, and design documents from tech giants such as Apple, Google, and Netflix. Each entry is freely readable or borrowable, offering rare insight into the decision‑making processes, architectural trade‑offs, and cultural norms that shaped industry‑defining products. For engineers aiming to deepen their craft, these primary sources serve as case studies in large‑scale system design, product strategy, and engineering leadership—materials that are typically hidden behind corporate firewalls but now available for anyone willing to explore.\n"
+        }
+      ]
+    },
+    {
+      "heading": "🔐 Security Insights",
+      "items": [
+        {
+          "url": "https://beaksec.github.io/posts/telegram-desktop-one-click-account-takeover/",
+          "title": "Telegram Desktop vulnerability allowed any user's file to be stolen",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-10T03:02:47Z",
+          "tags": [],
+          "summary": "A recent vulnerability in Telegram Desktop demonstrates how an attacker can abuse the app’s custom URI scheme (interpret:) to read arbitrary files from a victim’s machine and exfiltrate them via a chat channel. By crafting a malicious link that points to a locally written instruction file, the attacker triggers Telegram to send the specified file without any user confirmation. The exploit underscores the importance of strict input validation and sandboxing for desktop applications that expose inter‑process communication endpoints, a lesson directly applicable to developers building Electron‑based tools or any software that handles external URLs.\n"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 6,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://gizmodo.com/youtuber-says-cops-paid-him-a-visit-after-he-built-flock-style-camera-to-track-cops-2000824306: HTTP Error 403: Forbidden",
+      "enrich https://iminafleeting.com/: HTTP Error 403: Forbidden",
+      "enrich https://animationobsessive.substack.com/p/wallace-and-gromit-90-alone: HTTP Error 403: Forbidden",
+      "enrich https://gizmodo.com/youtuber-says-cops-paid-him-a-visit-after-he-built-flock-style-camera-to-track-cops-2000824306: HTTP Error 403: Forbidden",
+      "enrich https://iminafleeting.com/: HTTP Error 403: Forbidden",
+      "enrich https://animationobsessive.substack.com/p/wallace-and-gromit-90-alone: HTTP Error 403: Forbidden"
+    ]
+  }
+}
