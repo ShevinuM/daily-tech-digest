@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-11",
+  "title": "Shevinu's Digest — Sunday, October 11, 2026",
+  "generatedAt": "2026-10-11T08:21:29Z",
+  "intro": "Today's digest focuses on practical multi-agent AI architectures, edge deployment patterns, and foundational systems design.",
+  "sections": [
+    {
+      "heading": "🤖 AI Engineering & Agent Architectures",
+      "items": [
+        {
+          "url": "https://momo5502.com/posts/2026-10-09-game-decompilation/",
+          "title": "500B Tokens Later: Letting AI Agents Decompile a First-Person Shooter",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-11T02:02:38Z",
+          "tags": [],
+          "summary": "This post explores a large-scale experiment in automated reverse engineering, where autonomous AI agents consumed over 500 billion tokens to decompile a complex first-person shooter codebase. Operating within dedicated CLI environments like Claude Code and Codex, the system architecture separates responsibilities across specialized roles: multiple worker agents focus on decompiling and committing code iterations, while a dedicated reviewer agent coordinates commits, reviews changes asynchronously, and flags potential bugs. Central to this architecture is \"The Oracle\"—an automated verification mechanism that continuously validates whether a reconstructed function identically matches the original compiled binary, giving agents deterministic feedback to iterate when a match fails. For developers growing into staff engineering and systems design roles, this write-up provides valuable insights into multi-agent orchestration, automated evaluation loops, and practical token optimization strategies when deploying LLM workflows against massive software engineering challenges."
+        },
+        {
+          "url": "https://github.com/rociiu/talorys",
+          "title": "Talorys – A self-hosted personal AI agent on Cloudflare's free tier",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-10T10:52:09Z",
+          "tags": [],
+          "summary": "Talorys is a self-hosted personal AI agent architecture built to run entirely within Cloudflare's serverless infrastructure. The system leverages Cloudflare Pages for the frontend React interface and API function endpoints, routing requests securely via service bindings to a private Worker running a Hono router. At the core sits a Durable Object powered by the Cloudflare Agents SDK, managing persistent state in SQLite—including conversation histories, long-term memories, tasks, notes, and recurring scheduled alarms—while integrating Workers AI to stream responses and handle tool calling. For backend engineers working in TypeScript and Node environments, Talorys serves as an exemplary modern blueprint for building stateful, event-driven AI agents on the edge. It demonstrates how to combine lightweight web frameworks, persistent storage, background scheduling, and LLM orchestration into a cohesive, cost-effective serverless architecture without maintaining heavy infrastructure."
+        },
+        {
+          "url": "https://nishtahir.com/build-your-own-decision-model/",
+          "title": "Build your own decision model",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-10T22:50:10Z",
+          "tags": [],
+          "summary": "This article discusses the foundational concepts of constructing custom decision models using modern large language models. Rather than relying on unstructured text output, the author emphasizes the practical utility of Structured Output techniques to enforce strict schema adherence, ensuring that language models generate strictly typed and parseable JSON data. By constraining model output at the decoding level, developers can reliably convert nondeterministic LLM responses into deterministic data structures suitable for programmatic control flow. For backend engineers building reliable API integrations and automated workflows, mastering structured output design is essential. It provides a foundational pattern for bridging the gap between natural language reasoning and strongly typed domain logic, enabling developers to incorporate AI-driven decision nodes directly into backend application services with confidence and type safety."
+        }
+      ]
+    },
+    {
+      "heading": "🏗️ Systems Architecture & Data Engineering",
+      "items": [
+        {
+          "url": "https://ghuntley.com/unikernels/",
+          "title": "Unikernels were hard. key word: were",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-10T14:27:09Z",
+          "tags": [],
+          "summary": "This article examines the evolution and resurgence of unikernels, questioning the traditional architectural assumption that applications must run on top of general-purpose operating systems. Historically viewed as complex and difficult to deploy, modern unikernel frameworks are simplifying how single-purpose application binaries are packaged alongside minimal operating system services. By treating full OS abstractions as potential design debt, unikernels eliminate unnecessary kernel overhead, reduce attack surfaces, and enable lightweight, hyper-specialized deployments such as distributed unikernel operating systems. For senior backend developers aspiring to staff-level systems design roles, this exploration offers a refreshing perspective on core infrastructural abstractions. Understanding the trade-offs between traditional operating systems and unikernels challenges conventional deployment paradigms, encouraging engineers to evaluate hardware boundaries, performance isolation, and system efficiency from first principles."
+        },
+        {
+          "url": "https://motherduck.com/blog/why-duckdb-20-is-faster/",
+          "title": "Why DuckDB 2.0 is faster",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-10T18:08:49Z",
+          "tags": [],
+          "summary": "This technical write-up highlights how DuckDB 2.0 significantly improves performance when processing deeply nested parent-child hierarchies using recursive Common Table Expressions (CTEs). Hierarchical structures—such as organization charts, file trees, bill of materials, reply threads, data lineage, and git commit histories—are traditionally challenging for relational engines, often forcing engineers to offload graph-like queries to dedicated graph databases. Through benchmark examples walking back thousands of commits in a git repository using recursive CTE joins, the post demonstrates how optimized query execution in DuckDB turns deep recursive walks into fast, standard analytical queries. For backend architects and systems designers, this update illustrates key database design patterns for handling graph-shaped relational data. It reassesses when standard relational engines can efficiently manage complex relationships without adding specialized graph database infrastructure to your tech stack."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 5,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://conversableeconomist.com/2026/09/28/i-would-like-the-value-of-my-home-to-rise-while-my-property-taxes-fall/: HTTP Error 403: Forbidden",
+      "enrich https://community.bitwarden.com/t/published-version-update-in-app-stores/102750: HTTP Error 403: Forbidden",
+      "enrich https://www.ft.com/content/052610c5-22b4-4dd4-932e-b7f9f0628b6a: HTTP Error 403: Forbidden",
+      "enrich https://www.ft.com/content/e26574cf-94cc-40d9-921e-5c7417fc5dbd: HTTP Error 403: Forbidden",
+      "enrich https://www.ft.com/content/052610c5-22b4-4dd4-932e-b7f9f0628b6a: HTTP Error 403: Forbidden",
+      "enrich https://community.bitwarden.com/t/published-version-update-in-app-stores/102750: HTTP Error 403: Forbidden"
+    ]
+  }
+}
