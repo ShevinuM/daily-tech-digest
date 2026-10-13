@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-13",
+  "title": "Shevinu's Digest — Tuesday, October 13, 2026",
+  "generatedAt": "2026-10-13T09:01:55Z",
+  "intro": "AI tools meet software craftsmanship – today’s reads explore the balance between automation and engineering rigor.",
+  "sections": [
+    {
+      "heading": "🛠️ Engineering Craft & Thought",
+      "items": [
+        {
+          "url": "https://arstechnica.com/ai/2026/10/ai-coding-agents-generate-more-code-but-not-more-software/",
+          "title": "AI coding agents generate more code, but not more software",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-12T17:14:01Z",
+          "tags": [],
+          "summary": "A new cross‑company study examined how AI‑assisted coding tools affect real‑world software delivery. While the tools do generate more lines of code and trigger additional commits, the researchers found that human code review remains a major bottleneck. The extra churn does not translate into higher overall software output, nor does it noticeably reduce headcount. For developers focused on craftsmanship, the takeaway is clear: AI can speed up certain mechanical steps, but the quality gate of peer review still dictates velocity and value. Understanding where the bottleneck lies helps you decide whether to invest in AI assistants or double down on improving review processes."
+        },
+        {
+          "url": "https://www.linkedin.com/pulse/ai-tool-rich-hickey-kjl8e",
+          "title": "'AI' Is Not a Tool by Rich Hickey",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-12T18:00:25Z",
+          "tags": [],
+          "summary": "Rich Hickey’s essay on what counts as a \"tool\" draws a sharp line between wieldable implements and opaque automation. He argues that a true tool lives in the hand of its user, offering immediate feedback, control, and the ability to be directed with intent. By contrast, many AI systems act more like black‑box services that produce output without letting the operator steer the process in real time. For engineers, this distinction matters because it frames how we evaluate new AI‑driven features: are we adding a lever we can grip, or are we outsourcing decision‑making to a system we can’t directly command?"
+        },
+        {
+          "url": "https://yyhh.org/blog/2026/10/ai-is-a-tool/",
+          "title": "AI is a tool and using it well takes skill",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-12T21:40:18Z",
+          "tags": [],
+          "summary": "Building on the same theme, Hickey contends that treating AI as a tool requires skillful handling rather than blind reliance. He notes that a tool’s usefulness isn’t diminished by its difficulty; instead, mastery comes from learning its limits and integrating it into a disciplined workflow. When developers approach LLMs as extensions of their own reasoning—using them to probe ideas, surface alternatives, or surface hidden assumptions—they retain judgment rather than surrendering it. The piece serves as a reminder that the value of AI lies in augmenting, not replacing, the craftsman's expertise."
+        }
+      ]
+    },
+    {
+      "heading": "⚙️ Tooling & Workflow",
+      "items": [
+        {
+          "url": "https://github.com/openai/codex/issues/48195",
+          "title": "Codex CLI installs a persistent, self-updating background daemon by default",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-12T18:29:04Z",
+          "tags": [],
+          "summary": "A recent issue surfaced in the Codex command‑line interface: the installer now enables a persistent, self‑updating background daemon by default. The daemon runs silently, consumes resources, and can update without explicit user consent, raising both performance and security concerns. The project’s maintainers have responded by making the daemon opt‑in rather than opt‑out, but the change highlights a broader trend of tooling that silently adds background processes. For developers who care about reproducible environments and minimal attack surface, the story underscores the importance of reviewing default installation behaviors and configuring CLIs to respect explicit consent."
+        },
+        {
+          "url": "https://lunarwatcher.codeberg.page/til/firefox/resumable-big-downloads.html",
+          "title": "Making big downloads resumable in Firefox",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-12T19:36:02Z",
+          "tags": [],
+          "summary": "Firefox’s default network timeout of 300 seconds can interfere with resuming large downloads, especially when a server supports range requests but the browser aborts the connection before the next chunk arrives. By lowering the network.http.response.timeout preference—or by configuring a proxy that keeps the connection alive—users can restore reliable resumable downloads. The tweak is especially useful for developers who frequently transfer big build artifacts, container images, or data sets, ensuring that a transient network hiccup doesn’t force a costly restart of the transfer."
+        }
+      ]
+    },
+    {
+      "heading": "🤖 AI Frontiers",
+      "items": [
+        {
+          "url": "https://blog.bytebytego.com/p/how-to-build-models-without-language",
+          "title": "How to Build Models Without Language, with Logical Intelligence",
+          "source": "bytebytego",
+          "publishedAt": "2026-10-12T15:00:45Z",
+          "tags": [],
+          "summary": "Logical Intelligence’s Eve Bodnia explains a new direction in model building that moves beyond pure language processing. Their energy‑based reasoning models (EBRMs), exemplified by the Kona system, excel at constraint‑heavy tasks such as Sudoku, where traditional LLMs struggle. By representing problems as energy landscapes rather than token sequences, these models can search for low‑energy solutions that satisfy complex rules. The interview highlights that while LLMs remain the most capable language‑centric AI, many real‑world engineering challenges—optimizing schedules, verifying invariants, or solving combinatorial puzzles—require this broader form of intelligence. For developers aiming to become staff engineers, the discussion offers a glimpse of emerging tools that could augment system design and verification beyond what current LLMs provide."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 6,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://news.sky.com/story/breaking-bad-star-rj-mitte-dies-aged-34-13598332: HTTP Error 403: Forbidden",
+      "enrich https://doi.org/10.1111/acel.70751: HTTP Error 403: Forbidden",
+      "enrich https://news.ycombinator.com/item?id=50059096: HTTP Error 419: ",
+      "enrich https://news.sky.com/story/breaking-bad-star-rj-mitte-dies-aged-34-13598332: HTTP Error 403: Forbidden",
+      "enrich https://doi.org/10.1111/acel.70751: HTTP Error 403: Forbidden",
+      "enrich https://news.ycombinator.com/item?id=50059096: HTTP Error 419: "
+    ]
+  }
+}
