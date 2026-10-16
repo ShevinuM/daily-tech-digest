@@ -1,0 +1,95 @@
+{
+  "date": "2026-10-16",
+  "title": "Shevinu's Digest — Friday, October 16, 2026",
+  "generatedAt": "2026-10-16T06:47:05Z",
+  "intro": "Resilience and AI‑augmented tooling are shaping today’s backend craft.",
+  "sections": [
+    {
+      "heading": "🛠️ Systems Design & Reliability",
+      "items": [
+        {
+          "url": "https://martinfowler.com/articles/software-meets-hardware.html",
+          "title": "When Software Meets Hardware",
+          "source": "martin_fowler",
+          "publishedAt": "2026-10-15T13:25:00Z",
+          "tags": [],
+          "summary": "When software meets hardware, the core engineering principles stay the same, but the sensible defaults shift. Kuldeep Singh walks through modernizing a massive IoT fleet of battery‑powered sensors, showing how familiar patterns—like modularity, testing, and observability—still apply, yet must be tuned for low‑power, intermittent connectivity environments. The article chronicles a series of experiments, failures, and operational tweaks that replaced naïve assumptions with more realistic defaults, such as aggressive retry back‑off and edge‑side validation. For a backend architect, the piece offers concrete takeaways on adapting design thinking to hardware‑constrained contexts while preserving the rigor of software engineering."
+        },
+        {
+          "url": "https://blog.bytebytego.com/p/how-to-design-for-failures",
+          "title": "How to Design for Failures",
+          "source": "bytebytego",
+          "publishedAt": "2026-10-15T15:31:01Z",
+          "tags": [],
+          "summary": "Even the best‑written code can be undone by a power outage, a disk failure, or a network glitch. This guide adopts an \"assume everything breaks\" mindset and walks developers through a toolbox for building fault‑tolerant systems. It distinguishes between avoiding faults—through defensive coding and validation—and tolerating them via redundancy, graceful degradation, and retry strategies. Readers learn how to scope failures, limit blast radius, and design recovery pathways that keep services running while errors are being resolved. The article also covers metrics for measuring recovery time and reliability, giving engineers a practical framework to turn inevitable failures into manageable events."
+        },
+        {
+          "url": "https://ipinfo.io/blog/rpki-protects-70-internet-routes",
+          "title": "RPKI now protects 70% of internet routes",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-16T00:52:35Z",
+          "tags": [],
+          "summary": "Resource Public Key Infrastructure (RPKI) has reached a new milestone: over 70 % of advertised internet routes now carry a valid Route Origin Authorization. The piece explains how RPKI works—network operators publish signed records that bind IP prefixes to the autonomous systems allowed to announce them—thereby reducing accidental or malicious hijacks. It highlights the jump from 54 % validity in September 2025 to 70 % in September 2026, a 30 % year‑over‑year gain, and breaks down the remaining gaps, such as ROAs that are too permissive or missing more‑specific routes. For backend engineers managing external dependencies or designing network‑aware services, the article underscores why RPKI adoption matters for a more secure and predictable internet."
+        }
+      ]
+    },
+    {
+      "heading": "🤖 AI Engineering & Tooling",
+      "items": [
+        {
+          "url": "https://blog.pragmaticengineer.com/the-pulse-new-trend-of-building-internal-vibe-coding-apps-at-tech-companies/",
+          "title": "The Pulse: new trend of building “internal vibe-coding apps” at tech companies",
+          "source": "pragmatic_engineer",
+          "publishedAt": "2026-10-15T17:01:10Z",
+          "tags": [],
+          "summary": "At Ramp, a four‑person team built “Glass,” an internal “vibe‑coding” platform that lets engineers stitch together connectors to internal services and then prototype full‑stack apps in minutes. The article showcases a custom CRM built by a marketer, featuring 50 + fields and live filters, all assembled without writing a line of traditional code. Stripe’s counterpart, “Harbor,” is described as an AI‑assisted prototyping tool that similarly abstracts away boilerplate, letting teams focus on domain logic. For developers, the write‑up illustrates how internal developer portals can accelerate experimentation, reduce context‑switching, and democratize tooling across product groups."
+        }
+      ]
+    },
+    {
+      "heading": "📌 From the blogs you follow",
+      "items": [
+        {
+          "url": "https://www.kenwalger.com/blog/ai-engineering/introducing-b-tap-token-attribution-provenance/",
+          "title": "Introducing B-TAP: Because Your AI Infrastructure Hasn’t Attributed Its Fair Share",
+          "source": "ken_walger",
+          "publishedAt": "2026-10-15T11:42:00Z",
+          "tags": [
+            "AI Engineering",
+            "satire",
+            "AI Agents",
+            "AI Governance",
+            "Cost Attribution",
+            "LLM"
+          ],
+          "summary": "Observability systems watch the supervisors, and other systems watch the observability systems. We’re pleased to introduce the Bureau of Token Attribution and Provenance , or B-TAP , the first bureau of The Vernholt Secretariat and the one some of you will insist on calling the Token IRS no matter how many times we correct you. Our mandate is voluntary but sweeping: to harmonize the reporting of token costs across every model, agent, retrieval pipeline, and suspiciously autonomous llama, everywhere, forever. Context Tax is assessed when information must be carried through active model context. Every instruction, retrieved document, conversation turn, agent output, and piece of supporting material occupies finite context and incurs processing cost."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 5,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://www.tesla.com/roadster: HTTP Error 403: Forbidden",
+      "enrich https://thereallo.dev/blog/someone-on-torrent-sites-kept-fucking-with-my-sonarr-setup: HTTP Error 403: Forbidden",
+      "enrich https://viceconsole.fyi/blog/2026/10/10/what-i-self-host/: HTTP Error 403: Forbidden",
+      "enrich https://www.niemanlab.org/2026/10/metas-new-commercial-terms-will-allow-the-scraping-of-news-sites-legal-experts-say/: HTTP Error 403: Forbidden",
+      "enrich https://support.withings.com/hc/en-us/community/posts/51887047154577-Unacceptable-Apple-Health-Sync-is-now-behind-a-99-year-paywall-for-new-accounts: HTTP Error 403: Forbidden",
+      "enrich https://www.tesla.com/roadster: HTTP Error 403: Forbidden",
+      "enrich https://thereallo.dev/blog/someone-on-torrent-sites-kept-fucking-with-my-sonarr-setup: HTTP Error 403: Forbidden",
+      "enrich https://support.withings.com/hc/en-us/community/posts/51887047154577-Unacceptable-Apple-Health-Sync-is-now-behind-a-99-year-paywall-for-new-accounts: HTTP Error 403: Forbidden"
+    ]
+  }
+}
