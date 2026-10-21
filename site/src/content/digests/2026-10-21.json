@@ -1,0 +1,89 @@
+{
+  "date": "2026-10-21",
+  "title": "Shevinu's Digest — Wednesday, October 21, 2026",
+  "generatedAt": "2026-10-21T07:08:20Z",
+  "intro": "Mid-October brings faster TypeScript tooling, programmable CSS, and a reminder that system state is proven over time, not declared on a calendar.",
+  "sections": [
+    {
+      "heading": "🛠️ Developer Tooling & Language Craft",
+      "items": [
+        {
+          "url": "https://blog.cloudflare.com/typescript-rust-port/",
+          "title": "Tsrs: A Port of TypeScript to Rust",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-20T13:18:07Z",
+          "tags": [],
+          "summary": "Tsrs is a faithful port of the TypeScript compiler from JavaScript to Rust, developed by Max Schwenk of Owner.com with involvement from Cloudflare and VoidZero. The goal is to keep TypeScript’s behavior intact while improving compiler performance and memory use. Early benchmarks show tsrs running up to eight times faster and using roughly 70 percent less memory than TypeScript 7.0 when compared with the same number of type-check workers. The upcoming TypeScript 7.1 already brings gains of its own—up to 2.5 times faster than 7.0—but tsrs goes further with an adaptive configuration that adjusts to the host machine, trading memory for speed where appropriate. For a backend developer working in TypeScript and Node, compiler speed directly affects feedback loops: type checking, builds, and editor responsiveness all shape daily productivity. A Rust port promises quicker type checking on large codebases without changing the language you write. The project is also notable as a rare successful compiler port; the summary notes that only the TypeScript team’s earlier move from JavaScript to Go had previously succeeded. If you are interested in tooling, language infrastructure, or simply faster local development, this is a practical signal of where the TypeScript ecosystem may be heading."
+        },
+        {
+          "url": "https://www.joshwcomeau.com/css/interop-2027/",
+          "title": "The Future of CSS",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-21T01:47:28Z",
+          "tags": [],
+          "summary": "This piece looks at a proposal to bring functions to CSS, allowing developers to define reusable abstractions directly in stylesheets. The example shows a custom --gradient-to-transparent function that accepts a color and an optional direction, then returns a linear gradient. Once defined, it can be invoked like any other CSS value, producing the expected background without repeating the gradient syntax. For anyone comfortable with JavaScript functions, the model should feel immediately familiar: parameters, a default value, and a return expression. CSS has traditionally been declarative and repetitive, so adding functions is a meaningful step toward more maintainable stylesheets, especially in large frontend codebases shared with backend work. It reduces duplication, makes design tokens easier to manage, and keeps styling logic close to where it is used. While still a proposal, it signals a direction for the language that could simplify everyday UI work. For a developer focused on backend architecture but still touching full-stack features, it is a readable glimpse into how CSS is evolving to support composition and abstraction without leaving the stylesheet."
+        }
+      ]
+    },
+    {
+      "heading": "📌 From Your Follows",
+      "items": [
+        {
+          "url": "https://www.kenwalger.com/blog/software-engineering/tuesday-isnt-a-valid-state-transition/",
+          "title": "Tuesday Isn’t a Valid State Transition",
+          "source": "ken_walger",
+          "publishedAt": "2026-10-20T12:57:00Z",
+          "tags": [
+            "Software Engineering",
+            "Distributed Systems",
+            "Event Sourcing",
+            "Observability",
+            "State Machines",
+            "System Design"
+          ],
+          "summary": "This piece uses a home winemaking experiment to explore a principle that applies directly to distributed systems and observability: you cannot declare a process finished from a single measurement. The author tracked pear wine fermentation with a refractometer, recording Brix readings across days. The traditional rule is that primary fermentation is done only when the reading stays the same three times in a row—one snapshot tells you where things are, not whether they are still moving. In the data shown, readings hovered around 5.6 for days, yet the author kept going until five readings across eight days agreed. For a backend engineer working with state machines, event sourcing, or observable systems, the analogy is immediate. A service reporting “healthy” at one moment is not proof it has reached a stable state; calendars and arbitrary deadlines are not valid state transitions. The writing is practical and accessible, reminding us to look for convergence over time rather than trusting a single point-in-time check. It’s a concise lesson in patience, measurement, and system thinking that fits well with the craft of designing reliable, observable backend systems."
+        },
+        {
+          "url": "https://www.kenwalger.com/blog/uncategorized/world-series-pitching-predictions-2026/",
+          "title": "Five World Series Pitching Predictions, Locked Before Game 1",
+          "source": "ken_walger",
+          "publishedAt": "2026-10-20T18:19:20Z",
+          "tags": [
+            "Uncategorized",
+            "Baseball",
+            "MLB",
+            "Pitching",
+            "Predictions",
+            "Real World Data"
+          ],
+          "summary": "This post is a public forecasting experiment from a blog you follow. Before the World Series opened, the author locked in five predictions about starting pitching and committed to grading them in public after the final out, misses included. To qualify for ranking, a starter must throw at least 75 pitches across his Series starts, and one prediction is that at least one Game 1 starter will finish the Series under that threshold. The author built a small Statcast app to process every pitch and invites readers to grade the predictions themselves once the Series ends, since the whole event fits inside the app’s 14-day window. While it sits outside the usual technical stack, it is included because it comes directly from a followed source. For a developer, the underlying pattern—shipping a small tool, making predictions observable, and then reviewing them against real data—mirrors the feedback loops that good engineering relies on. It’s a lightweight reminder that craft includes measuring your own calls against outcomes, not just shipping code."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 4,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://www.neowin.net/news/google-cloud-outage-takes-down-hsbc-revolut-bank-of-scotland-llyods-equifax-more/: HTTP Error 403: Forbidden",
+      "enrich https://prestonbyrne.com/2026/10/20/ofcom-concedes-defeat/: HTTP Error 403: Forbidden",
+      "enrich https://news.ycombinator.com/item?id=50167754: HTTP Error 419: ",
+      "enrich https://www.thebeliever.net/the-other-epidemic/: HTTP Error 403: Forbidden",
+      "enrich https://www.reuters.com/business/anthropic-recorded-net-loss-over-80-billion-first-half-this-year-wsj-reports-2026-10-20/: HTTP Error 401: HTTP Forbidden",
+      "enrich https://www.reuters.com/business/anthropic-recorded-net-loss-over-80-billion-first-half-this-year-wsj-reports-2026-10-20/: HTTP Error 401: HTTP Forbidden",
+      "enrich https://www.neowin.net/news/google-cloud-outage-takes-down-hsbc-revolut-bank-of-scotland-llyods-equifax-more/: HTTP Error 403: Forbidden",
+      "enrich https://news.ycombinator.com/item?id=50167754: HTTP Error 419: "
+    ]
+  }
+}
