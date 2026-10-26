@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-26",
+  "title": "Shevinu's Digest — Monday, October 26, 2026",
+  "generatedAt": "2026-10-26T07:28:20Z",
+  "intro": "Today's focus centers on modern observability paradigms with wide events, practical context engineering for LLM agents, and trade-offs between frontier models and domain-specific architectures.",
+  "sections": [
+    {
+      "heading": "🏗️ Systems Design & Observability",
+      "items": [
+        {
+          "url": "https://isburmistrov.substack.com/p/all-you-need-is-wide-events-not-metrics",
+          "title": "All you need is Wide Events, not \"Metrics, Logs and Traces\"",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-25T18:11:38Z",
+          "tags": [],
+          "summary": "Modern observability architecture is undergoing a fundamental shift away from the traditional three pillars—metrics, logs, and traces—toward a unified model centered on structured wide events. Instead of maintaining disparate telemetry pipelines that force developers to manually correlate disconnected log strings, aggregated metrics, and distributed trace spans during an incident, wide events capture rich, contextual structured data for every request or execution path in a single comprehensive record. Emitting a single, high-cardinality event populated with domain identifiers, environment state, feature flags, and granular execution timings allows engineers to query and slice operational behavior arbitrarily without pre-aggregating metrics or stitching fragmented logs together. For backend architects and engineers aiming for staff-level systems design, adopting wide event telemetry is a critical pattern for building deeply inspectable distributed systems while reducing operational friction and monitoring overhead."
+        }
+      ]
+    },
+    {
+      "heading": "🤖 Agent & AI-Engineering Craft",
+      "items": [
+        {
+          "url": "https://www.dbreunig.com/2026/10/24/the-state-of-context-engineering.html",
+          "title": "The State of Context Engineering",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-25T20:32:31Z",
+          "tags": [],
+          "summary": "As LLM context windows have expanded from 128,000 to million-token scales, context engineering has emerged as a core discipline focused on balancing deterministic logic with probabilistic model behavior. Managing massive context windows introduces key failure modes, notably context distraction—where models hyper-focus on extraneous context at the expense of baseline training knowledge—and context inertia, where autonomous agents fixate on initial hypotheses or subtasks long after they ought to pivot. Mitigating these issues requires deliberate context management within agent harnesses, controlling task duration, and knowing precisely when to enforce deterministic constraints over raw model autonomy. For developers building production-grade agentic workflows, understanding context failure modes and establishing dynamic context management strategies is essential for engineering reliable, predictable AI systems."
+        },
+        {
+          "url": "https://lynchlab.net/llm-skin-cancer",
+          "title": "A 10-year-old CNN outperforms frontier LLMs for skin cancer diagnosis",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-25T17:15:38Z",
+          "tags": [],
+          "summary": "A comparative evaluation measuring frontier LLMs against a decade-old Convolutional Neural Network (CNN) on skin lesion diagnosis highlights critical trade-offs between general-purpose foundation models and specialized architectures. When presented with clinical and dermoscopic imaging datasets, frontier LLMs were outpaced by the older, purpose-built CNN tailored specifically for medical image analysis. This comparison provides a practical lesson for systems architects evaluating AI integration: while multi-modal frontier models offer unmatched adaptability across broad reasoning tasks, lightweight domain-specific models often deliver superior accuracy, lower latency, and lower resource overhead for targeted perception tasks. Engineering leaders must carefully weigh generalist LLMs against task-specific models when designing high-stakes domain applications."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 3,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://www.reuters.com/live/brazil-election-live-lula-bolsonaro-face-off-presidential-runoff-2026-10-25/: HTTP Error 401: HTTP Forbidden",
+      "enrich https://isburmistrov.substack.com/p/all-you-need-is-wide-events-not-metrics: HTTP Error 403: Forbidden",
+      "enrich https://isburmistrov.substack.com/p/all-you-need-is-wide-events-not-metrics: HTTP Error 403: Forbidden"
+    ]
+  }
+}
