@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-27",
+  "title": "Shevinu's Digest — Tuesday, October 27, 2026",
+  "generatedAt": "2026-10-27T07:22:54Z",
+  "intro": "AI agents are moving from demos to production, and today's craft-focused reads zero in on the engineering practices that make them trustworthy: type infrastructure, tool calling, evaluation, and debugging.",
+  "sections": [
+    {
+      "heading": "💬 AI Assistants & Everyday Use",
+      "items": [
+        {
+          "url": "https://www.404media.co/chatgpt-keeps-telling-people-404-media-can-solve-their-tech-support-problems/",
+          "title": "ChatGPT Keeps Telling People 404 Media Can Solve Their Tech Support Problems",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-26T17:32:16Z",
+          "tags": [],
+          "summary": "ChatGPT reportedly kept telling people that 404 Media could solve their tech support problems. The context: big tech platforms have little real customer support and make it nearly impossible for users to reach a human. Many people experiencing ordinary tech problems have turned to ChatGPT, and increasingly the chatbot has responded by suggesting that their issue might be worth a journalist's attention. One user sent the ChatGPT conversation to 404 Media, and the assistant initially said the solution was probably not possible before eventually pointing to the outlet.\n\nThe item is a small window into how AI assistants handle out-of-distribution requests and how people are already using them as de facto support channels. For developers building AI products, it raises questions about where assistants should defer, how they should handle failure, and what their role should be when a human expert is the right answer."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 1,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://openai.com/index/introducing-gpt-6-1-terra/: HTTP Error 403: Forbidden",
+      "enrich https://openai.com/index/building-scientific-understanding-with-academic-communities/: HTTP Error 403: Forbidden",
+      "enrich https://apnews.com/article/energy-critical-materials-minerals-helium-43da160adc1bad389fba0b9ffbd14c3c: HTTP Error 403: Forbidden",
+      "enrich http://muratbuffalo.blogspot.com/2026/10/the-man-from-future-why-johnny-cant.html: HTTP Error 429: Too Many Requests",
+      "enrich https://openai.com/index/building-scientific-understanding-with-academic-communities/: HTTP Error 403: Forbidden",
+      "enrich https://apnews.com/article/energy-critical-materials-minerals-helium-43da160adc1bad389fba0b9ffbd14c3c: HTTP Error 403: Forbidden",
+      "enrich https://openai.com/index/introducing-gpt-6-1-terra/: HTTP Error 403: Forbidden"
+    ]
+  }
+}
