@@ -1,0 +1,127 @@
+{
+  "date": "2026-10-30",
+  "title": "Shevinu's Digest — Friday, October 30, 2026",
+  "generatedAt": "2026-10-30T08:08:55Z",
+  "intro": "Today's highlights focus on system architecture trade-offs, critical evaluations of AI reliability, and production engineering practices.",
+  "sections": [
+    {
+      "heading": "🛠️ Software Engineering Craft & Architecture",
+      "items": [
+        {
+          "url": "https://martinfowler.com/rachels-ramblings/good-devs-wary.html",
+          "title": "Why are good developers so wary of agentic development?",
+          "source": "martin_fowler",
+          "publishedAt": "2026-10-29T13:50:00Z",
+          "tags": [
+            "rachels-ramblings"
+          ],
+          "summary": "Senior software engineers often approach agentic coding tools with healthy skepticism, grounded in the reality that generating code is vastly different from running software reliably in production. Experienced developers who championed practices like continuous integration, automated testing, microservices, and pair programming did so to ensure systems are built correctly and remain maintainable over time. While early AI coding agents make it effortless to draft large volumes of code, they frequently bypass essential checks and produce patterns that are unsuitable for enterprise deployment. For developers aspiring to staff-level positions, this perspective is vital: true craft lies not in how quickly syntax can be outputted, but in designing resilient, testable, and operable systems that bridge the chasm between raw code generation and production readiness."
+        },
+        {
+          "url": "https://blog.bytebytego.com/p/data-movement-strategies-in-system",
+          "title": "Data Movement Strategies In System Design",
+          "source": "bytebytego",
+          "publishedAt": "2026-10-29T15:31:02Z",
+          "tags": [],
+          "summary": "Connecting decoupled backend services requires deliberate choices about how information flows between sources and consumers. This breakdown reviews foundational data movement patterns in system design, contrasting pull and push models alongside techniques like short polling, long polling, Server-Sent Events, WebSockets, message queues, and Change Data Capture (CDC). Each strategy addresses distinct trade-offs around latency, resource usage, and system coupling. Understanding when to publish events via queues versus exposing reactive endpoints or streaming database state changes is crucial for designing scalable, maintainable microservices. For backend engineers building bounded contexts, mastering these communication patterns ensures data consistency across complex domain boundaries while keeping services cleanly isolated."
+        }
+      ]
+    },
+    {
+      "heading": "🤖 AI Engineering, Systems & Reliability",
+      "items": [
+        {
+          "url": "https://trakkr.ai/trakkr-research/zombie-stats",
+          "title": "Zombie stats: Where the numbers AI quotes come from",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-29T15:06:17Z",
+          "tags": [],
+          "summary": "A deep-dive investigation into major LLM assistants—including ChatGPT, Claude, Gemini, and Perplexity—reveals significant reliability flaws when models cite quantitative data. By auditing over 1,200 cited statistics and tracing source references up to five hops deep, researchers found that more than 20% of generated claims mutated key numbers, measurements, timeframes, or primary sources. In extreme cases, small niche academic studies were transformed into sweeping global generalizations. For engineers integrating LLMs into software or building RAG pipelines, this highlights why unverified model outputs cannot be treated as reliable facts in production systems. Robust validation layers, strict citation parsing, and grounded context boundaries are essential when designing trustworthy AI-driven features."
+        },
+        {
+          "url": "https://github.com/SheepSeb/tinyworldformer",
+          "title": "A tiny world model running games on a Raspberry Pi Pico 2 W",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-29T20:32:28Z",
+          "tags": [],
+          "summary": "This project explores running lightweight AI world models directly on microcontrollers like the Raspberry Pi Pico 2 W to simulate game environments and policy decisions. By recording millions of real gameplay steps—capturing state frames, actions, and rewards—the system trains a compact model capable of dreaming upcoming frames and evaluating agent decisions locally on constrained hardware. For developers interested in edge computing and ML architectures, this experiment illustrates how reduced model architectures can execute complex state-prediction loops outside of heavy cloud infrastructure, offering practical insights into resource-constrained model execution and local evaluation pipelines."
+        }
+      ]
+    },
+    {
+      "heading": "🔒 Security Analysis & Tooling Workflows",
+      "items": [
+        {
+          "url": "https://dreamgroup.com/blog/chained-php2shell-exploit-roots-25-servers",
+          "title": "Chained PHP2Shell exploit roots 25 servers, including US Government servers",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-29T10:42:41Z",
+          "tags": [],
+          "summary": "Security researchers uncovered an aggressive AI-assisted exploitation campaign that chained a custom PHP2Shell vulnerability with a Linux kernel local privilege escalation to compromise PAN-OS firewalls worldwide. The post details the attacker's operational funnel, starting from broad internet reconnaissance across 19,000 targets indexed by specialized search engines, down to pinpointing unpatched releases and gaining root access on 25 high-value servers. For backend and systems developers, this incident serves as an impactful case study in threat modeling, highlighting how automated scanning tools accelerate attack velocity and why rapid patch deployment, minimal privilege surfaces, and defense-in-depth infrastructure remain indispensable."
+        },
+        {
+          "url": "https://github.com/johncassil/dontallow",
+          "title": "Show HN: Auto Dismiss Mac OS \"Allow <app> to find devices on local networks?\"",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-29T19:27:44Z",
+          "tags": [],
+          "summary": "On macOS Sequoia and later, local network permission dialogs frequently reappear when running applications like Chromium browsers that copy dynamically signed app bundles to temporary folders upon launch. This lightweight utility utility (`dontallow`) installs a background launchd agent to automatically handle and dismiss these recurring system prompts, keeping developer environments friction-free. While a targeted utility, it serves as a practical reference for macOS automation, process monitoring, and developer workflow tuning, demonstrating how subtle OS-level security behaviors can be automated cleanly using native shell scripts and system daemons."
+        }
+      ]
+    },
+    {
+      "heading": "📈 Personal Blogs & Data Visualizations",
+      "items": [
+        {
+          "url": "https://www.kenwalger.com/blog/uncategorized/sixty-feet-six-inches-of-october/",
+          "title": "Sixty Feet, Six Inches of October",
+          "source": "ken_walger",
+          "publishedAt": "2026-10-29T15:37:17Z",
+          "tags": [
+            "Uncategorized",
+            "Baseball",
+            "Data Visualization",
+            "MLB",
+            "Pitching",
+            "Python"
+          ],
+          "summary": "This personal blog entry walks through building a Python data pipeline that pulls Statcast pitch-tracking metrics directly from MLB databases to analyze October postseason starting pitchers. The author uses Called Strikes Plus Whiffs (CSW%) as the core metric to evaluate pitching efficiency, enforcing a strict 75-pitch threshold to filter qualifying starts across a playoff series. The post offers a hands-on look at working with domain-specific data filtering, defining boundary conditions in analytics scripts, and turning raw event streams into clean data visualizations."
+        },
+        {
+          "url": "https://www.kenwalger.com/blog/ai-engineering/a-message-from-our-founder-laasy/",
+          "title": "A Message From Our Founder: On The Winding Down of LaaSy™",
+          "source": "ken_walger",
+          "publishedAt": "2026-10-29T12:57:00Z",
+          "tags": [
+            "AI Engineering",
+            "satire"
+          ],
+          "summary": "A lighthearted satirical founder's note announcing the shutdown of a fictional AI startup called LaaSy. The piece pokes fun at modern enterprise AI buzzwords and over-engineered tech stacks, recounting misadventures with autonomous agents, 'Retrieval-Augmented Rumination' pipelines, complex cloud-edge control planes, and red-teaming edge cases in production. Beyond the humor, it serves as a subtle reminder of the real operational friction that occurs when abstract software architecture collides with messy, unpredictable real-world environments."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 8,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://arkm.com/explorer/entity/21a94755-f604-45e5-9501-6542e23005e8: HTTP Error 403: Forbidden",
+      "enrich https://www.nytimes.com/2026/10/29/arts/television/patrick-stewart-dead.html: HTTP Error 403: Forbidden",
+      "enrich https://gizmodo.com/el-nino-is-already-flooding-californias-coasts-and-the-years-highest-tides-havent-arrived-2000832574: HTTP Error 403: Forbidden",
+      "enrich https://www.washingtonpost.com/climate-environment/2026/10/27/i-saw-future-driving-mexico-its-off-limits-americans/: The read operation timed out",
+      "enrich https://arkm.com/explorer/entity/21a94755-f604-45e5-9501-6542e23005e8: HTTP Error 403: Forbidden",
+      "enrich https://www.washingtonpost.com/climate-environment/2026/10/27/i-saw-future-driving-mexico-its-off-limits-americans/: The read operation timed out"
+    ]
+  }
+}
