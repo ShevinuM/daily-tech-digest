@@ -1,0 +1,91 @@
+{
+  "date": "2026-10-31",
+  "title": "Shevinu's Digest — Saturday, October 31, 2026",
+  "generatedAt": "2026-10-31T08:01:59Z",
+  "intro": "Today's tech digest highlights cloud security flaws in Azure, the impact of AI on SRE operational mental models, and novel federated architecture for developer tooling.",
+  "sections": [
+    {
+      "heading": "🛡️ Infrastructure Security & Systems Resilience",
+      "items": [
+        {
+          "url": "https://blog.pragmaticengineer.com/the-pulse-time-to-rethink-software-security-because-of-ai/",
+          "title": "The Pulse: Time to rethink software security because of AI?",
+          "source": "pragmatic_engineer",
+          "publishedAt": "2026-10-30T16:49:15Z",
+          "tags": [],
+          "summary": "This update from Pragmatic Engineer highlights critical software security vulnerabilities affecting modern backend systems, focusing on compromised intermediate Certificate Authority (CA) private keys and severe unpatched PHP remote code execution (RCE) flaws. The report breaks down how eight leaked 384-bit private keys from eMudhra—an intermediate CA—expose server-to-server communications to potential man-in-the-middle (MITM) attacks. Concurrently, critical unpatched vulnerabilities in PHP runtimes expose production systems to RCE attacks and potential secret exfiltration. Recent vendor security releases address these threats by revoking the compromised intermediate certificates and patching ten critical CVEs. For backend developers and systems architects, this write-up underscores the imperative of strict certificate chain validation, robust secret management, and rapid patch deployment across production environments to maintain zero-trust security boundaries."
+        },
+        {
+          "url": "https://www.binarysecurity.no/posts/2026/10/one-root-case",
+          "title": "Azure's Weakest Link – Five Full Cross-Tenant Compromises",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-30T10:06:15Z",
+          "tags": [],
+          "summary": "This security breakdown explores a critical architecture vulnerability in Azure Logic Apps' API Connections that enabled cross-tenant compromise of backend services worldwide. The flaw lies in the shared Azure API Management instance architecture responsible for validating OpenAPI definitions and performing token exchanges. An attacker could exploit these inherent gateway flaws during token exchange to substitute authentication tokens and gain unauthorized access to backend systems connected by other Azure tenants. For backend engineers and software architects building on Azure infrastructure, this incident delivers vital insights into cloud multi-tenancy risks, API gateway trust boundaries, and token exchange security. Understanding these system design vulnerabilities helps senior engineers design more resilient bounded contexts and enforce zero-trust security postures within cloud-native architectures."
+        },
+        {
+          "url": "https://www.githubstatus.com/incidents/pwxsjgnvrk6b",
+          "title": "GitHub Incident with Actions, Pages, and Webhooks",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-30T17:57:35Z",
+          "tags": [],
+          "summary": "This incident report documents a major operational degradation across GitHub infrastructure, specifically impacting GitHub Actions workflows, GitHub Pages deployments, and system webhooks. During the disruption, engineering teams experienced processing delays in automated CI/CD pipelines, delayed webhook events, and degraded performance in code search and live status updates, until GitHub engineers mitigated the issue. For backend developers and engineering leads who rely heavily on GitHub for automated testing, continuous integration, and event-driven automation, this report provides a practical reminder of upstream infrastructure risks. It underscores the importance of monitoring external developer tooling dependencies, designing resilient deployment processes, and establishing clear fallback protocols when core CI/CD services experience unexpected outages."
+        }
+      ]
+    },
+    {
+      "heading": "🛠️ Systems Design & Engineering Craft",
+      "items": [
+        {
+          "url": "https://newsletter.signoz.io/p/ai-isnt-replacing-sres-its-deskilling",
+          "title": "AI isn't replacing SREs, it's deskilling them",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-30T15:52:18Z",
+          "tags": [],
+          "summary": "This article examines how increasing reliance on AI coding tools and automated copilots is quietly deskilling Site Reliability Engineers (SREs). While AI tools offer immediate productivity gains by summarizing log streams, proposing root cause diagnoses, and mapping service dependency graphs, they simultaneously discourage human engineers from developing deep operational intuition. As engineers stop manually analyzing log streams and building mental models of system architecture, their ability to diagnose novel, unforeseen incidents decays. For developers growing toward staff engineering roles, this piece provides a crucial perspective on balancing AI automation with deliberate craft. It emphasizes that maintaining hands-on debugging skills and comprehensive mental models of complex systems remains essential for long-term engineering leadership and incident response."
+        },
+        {
+          "url": "https://tangled.org/blog/forge/",
+          "title": "The federated code forge",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-30T15:44:29Z",
+          "tags": [],
+          "summary": "This post introduces Tangled, a novel federated code hosting forge constructed on top of the AT Protocol. Designed to break away from centralized code repositories, Tangled allows developers to host repositories on self-managed servers called 'knots' while preserving cross-network collaboration and discovery. Knots operate similarly to Personal Data Servers (PDS), holding cryptographically signed records and complete version histories that sync across the AT Protocol firehose. Developers can construct custom extensions and deploy knots on serverless runtimes like Cloudflare Workers utilizing custom git storage primitives. For backend architects, this project illustrates practical decentralized systems design, demonstrating how event streams and open data protocols can decouple data persistence from centralized hosting while preserving rich developer workflows."
+        },
+        {
+          "url": "https://fortune.com/2026/10/30/cisco-president-jeetu-patel-gen-z-27-year-old-unlimited-ai-tokens-rewrite-legacy-code-entry-level-jobs/",
+          "title": "Cisco gives engineer unlimited AI tokens to rewrite legacy code",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-30T14:08:20Z",
+          "tags": [],
+          "summary": "This report details an enterprise engineering experiment at Cisco, where early-career engineers were given unlimited AI token budgets to lead legacy codebase rewrites. Leadership contends that combining junior engineers with advanced AI tools can accelerate software modernization faster than traditional approaches, despite creating cultural friction with veteran developers. Similar trends are emerging across tech organizations seeking to unblock legacy debt by pairing AI tools with hungry talent. For senior developers and staff architects, this case study offers valuable insights into organizational dynamics, AI-driven code refactoring strategies, and the evolving role of senior engineers in guiding automated codebase transformations while maintaining code quality and architectural standards."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 6,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://www.ft.com/content/59383c7f-8d82-493f-bf01-d2e862a1018f: HTTP Error 403: Forbidden",
+      "enrich https://www.wsj.com/tech/ai/openai-raises-less-than-half-of-30-billion-target-in-latest-round-91aecdc5: HTTP Error 401: HTTP Forbidden",
+      "enrich https://news.ycombinator.com/item?id=50312756: HTTP Error 419: ",
+      "enrich https://blog.persistent.info/2026/10/infinite-mac-beos.html: HTTP Error 429: Too Many Requests",
+      "enrich https://www.ft.com/content/59383c7f-8d82-493f-bf01-d2e862a1018f: HTTP Error 403: Forbidden",
+      "enrich https://www.wsj.com/tech/ai/openai-raises-less-than-half-of-30-billion-target-in-latest-round-91aecdc5: HTTP Error 401: HTTP Forbidden",
+      "enrich https://news.ycombinator.com/item?id=50312756: HTTP Error 419: ",
+      "enrich https://blog.persistent.info/2026/10/infinite-mac-beos.html: HTTP Error 429: Too Many Requests"
+    ]
+  }
+}
