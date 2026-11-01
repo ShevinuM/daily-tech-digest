@@ -1,0 +1,79 @@
+{
+  "date": "2026-11-01",
+  "title": "Shevinu's Digest — Sunday, November 1, 2026",
+  "generatedAt": "2026-11-01T08:48:03Z",
+  "intro": "Today's digest focuses on modular multi-agent LLM architectures, lightweight agent harness engineering, and critical vulnerabilities across web applications and network infrastructure.",
+  "sections": [
+    {
+      "heading": "🤖 Agent & AI-Engineering Craft",
+      "items": [
+        {
+          "url": "https://github.com/guregodevo/memdoor/tree/main/examples/workflows/team-solve",
+          "title": "Memdoor: A team of 5 Qwen3.8-27B models beats Fable 5 on LiveCodeBench Hard",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-31T22:46:12Z",
+          "tags": [],
+          "summary": "Memdoor demonstrates how a multi-agent harness coordinating five specialized 27B parameter models—structured into roles like planner, ideator, solver, manager, and repair worker—can outperform monolithic models on complex coding benchmarks. By distributing reasoning steps across specialized agents with a 128K context window, the architecture shows that role-driven decomposition can overcome the limits of individual model capacities. For backend developers aiming for staff-level architecture roles, this offers a practical case study in designing resilient, distributed LLM workflows and managing multi-agent context boundaries effectively."
+        },
+        {
+          "url": "https://nullprogram.com/blog/2026/10/31/",
+          "title": "Prospero: A new coding harness for a more civilized age",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-31T11:54:59Z",
+          "tags": [],
+          "summary": "Prospero is a minimalist coding harness built to let agents spawn parallel subagents while keeping context windows clean and context drift minimal. Its extremely lightweight footprint prevents the Linux out-of-memory (OOM) killer from terminating the harness during intensive processes like automated fuzzing campaigns on headless systems. Understanding how to structure lean agent execution harnesses provides backend engineers with actionable principles for managing subagent processes, isolating runtime state, and building robust developer tooling."
+        }
+      ]
+    },
+    {
+      "heading": "🛡️ Systems Security & Application Resilience",
+      "items": [
+        {
+          "url": "https://atlasum.net/blog/cve-2026-98432-linux-ipv4-tcp-uaf",
+          "title": "TCP Use-After-Free: CVE-2026-98432 / CVSS 9.8",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-31T19:16:30Z",
+          "tags": [],
+          "summary": "A critical CVSS 9.8 Use-After-Free vulnerability in the Linux TCP stack (CVE-2026-98432) highlights the operational friction between upstream patches and enterprise distribution rollouts. While the fix is concise, delayed kernel package updates leave systems vulnerable—particularly affecting environments running default MPTCP configurations in Go programs and containerized networks. This breakdown covers interim mitigations, including turning off MPTCP and setting targeted iptables rules, emphasizing the systems architecture lessons behind host-level network security and kernel upgrade strategies."
+        },
+        {
+          "url": "https://www.parameter.ai/labs/we-found-a-gap-at-openai",
+          "title": "Do the math: How we took over ChatGPT accounts",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-31T10:30:11Z",
+          "tags": [],
+          "summary": "A security post-mortem detailing a full account takeover flaw in ChatGPT illustrates how minor frontend misconfigurations can expose authenticated backend APIs. The attack chained a lenient origin policy in the MathLive component with un-sandboxed iframe rendering via `srcdoc` within document previews, allowing arbitrary postMessage events to execute privileged API requests on behalf of the victim. For backend and system architects, this breakdown underscores the critical importance of origin validation, proper iframe sandboxing, and defending sensitive session contexts."
+        },
+        {
+          "url": "https://blog.talosintelligence.com/appraisal-by-ai-model-driven-victim-prioritization-in-the-volta-infostealer/",
+          "title": "Malware uses LLMs to rank victims by how much they're worth",
+          "source": "hacker_news",
+          "publishedAt": "2026-10-31T14:29:03Z",
+          "tags": [],
+          "summary": "Analysis of the VOLTA malware reveals an emerging threat vector where stolen host credentials, OAuth tokens, and session data are summarized into structured evidence bundles and evaluated by LLMs to prioritize high-value targets. To bypass safety guardrails, the malware uses a multi-model failover chain when primary models refuse evaluation requests. Studying these real-world adversarial application patterns helps senior developers design stronger API key isolation, prompt guardrails, and rapid token revocation mechanisms."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 5,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://www.casio.com/us/watches/50th/Heritage/1980s/: HTTP Error 403: Forbidden",
+      "enrich https://www.science.org/content/article/serbia-just-elected-world-s-brainiest-parliament: HTTP Error 403: Forbidden",
+      "enrich https://help.openai.com/en/articles/20001625-understanding-chatgpt-and-codex-usage-limits: HTTP Error 403: Forbidden",
+      "enrich https://help.openai.com/en/articles/20001625-understanding-chatgpt-and-codex-usage-limits: HTTP Error 403: Forbidden"
+    ]
+  }
+}
