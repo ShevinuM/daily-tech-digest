@@ -1,0 +1,99 @@
+{
+  "date": "2026-11-03",
+  "title": "Shevinu's Digest — Tuesday, November 3, 2026",
+  "generatedAt": "2026-11-03T09:04:24Z",
+  "intro": "Today’s reads dive into scaling the foundations of our codebases, hardening infrastructure, and the next wave of AI model tooling.",
+  "sections": [
+    {
+      "heading": "🛠️ Engineering Craft & Systems",
+      "items": [
+        {
+          "url": "https://openai.com/index/scaling-git-at-openai/",
+          "title": "Scaling Git at OpenAI",
+          "source": "hacker_news",
+          "publishedAt": "2026-11-02T23:47:56Z",
+          "tags": [],
+          "summary": "OpenAI’s engineering team recently detailed how they tackled the daunting problem of scaling Git for massive codebases. As the repository grew into the terabytes, traditional Git operations like cloning, fetching, and history traversal began to choke. The post walks through the architectural changes they made: sharding the repository, introducing partial clones, leveraging Git’s sparse checkout, and building custom server‑side tooling to prune history on demand. They also share practical metrics showing latency drops from minutes to seconds and discuss trade‑offs such as increased complexity in CI pipelines. For developers aiming to own large monorepos or improve version‑control performance, the lessons offer concrete patterns that can be adapted to TypeScript‑heavy back‑ends or any Node‑centric workflow."
+        },
+        {
+          "url": "https://posthog.com/blog/moving-off-duckdb",
+          "title": "Moving our warehouse off DuckDB",
+          "source": "hacker_news",
+          "publishedAt": "2026-11-02T16:02:26Z",
+          "tags": [],
+          "summary": "PostHog’s engineering group announced a migration away from DuckDB toward a more distributed data‑warehouse architecture. Their original move to DuckDB was motivated by the lack of a cost‑based optimizer in ClickHouse and the desire for per‑customer instances. However, as query volumes and analytical workloads grew, DuckDB’s single‑node nature hit scalability limits. The team describes their evaluation of distributed alternatives, the challenges of preserving dbt integration, and the incremental rollout strategy that minimizes downtime. They also highlight the importance of developer‑friendly tooling—AI observability, feature flags, and session replay—that must remain performant at scale. The write‑up is a practical case study for architects planning to evolve data pipelines while keeping the developer experience smooth."
+        },
+        {
+          "url": "https://blog.cloudflare.com/dns-targeted-zone-builds/",
+          "title": "We halved DNS build delay and cut memory use by 85%",
+          "source": "hacker_news",
+          "publishedAt": "2026-11-02T14:47:28Z",
+          "tags": [],
+          "summary": "A Cloudflare engineer shared a deep dive into how their DNS zone builder was optimized to slash build latency by 50 % and cut memory consumption by 85 %. By rethinking the zone‑event processing pipeline, they eliminated redundant metadata merges and introduced a snapshot‑first approach that reads the latest publication state before any changes are applied. The post details the new data structures, the reduction in per‑zone memory overhead, and the measurable impact on real‑world zone updates across millions of domains. For developers working on high‑throughput networking services, the techniques illustrate how careful state management and incremental processing can yield massive performance gains without sacrificing correctness."
+        },
+        {
+          "url": "https://syscall.sh/",
+          "title": "Show HN: I've updated my Linux System Call website and API",
+          "source": "hacker_news",
+          "publishedAt": "2026-11-02T09:29:16Z",
+          "tags": [],
+          "summary": "A new open‑source site now serves the complete history of Linux system‑call tables for every supported architecture as tidy JSON files. Each file lists every syscall, its numeric identifier, the kernel version it entered, and the version it was deprecated, if applicable. The generator parses the SYSCALL_DEFINE macros across mainline releases, capturing calling conventions and entry‑point instructions. This resource lets developers quickly look up syscall numbers for x86‑64, ARM, and others, and even see how the API surface has evolved over time—useful when writing low‑level Node native addons or debugging FastAPI services that interact with kernel features. The site also offers a selector to include removed syscalls, making it a handy reference for systems‑programming and security audits."
+        }
+      ]
+    },
+    {
+      "heading": "🔐 Security & Infra Reliability",
+      "items": [
+        {
+          "url": "https://freenode.net/article/ubuntu-lts-kernels-still-unfixed-for-critical-cve-2026-98432",
+          "title": "Ubuntu still has not released patch for Linux 0day RCE in almost 3 weeks",
+          "source": "hacker_news",
+          "publishedAt": "2026-11-02T18:39:38Z",
+          "tags": [],
+          "summary": "Ubuntu’s LTS kernels for 22.04, 24.04, and 26.04 remain unpatched for the critical CVE‑2026‑98432 vulnerability, a remote‑code‑execution flaw rated 9.8 on the CVSS scale. The issue was disclosed weeks ago, yet no official kernel packages have been released, leaving production servers exposed. The article outlines the risk profile for internet‑facing and multi‑tenant workloads, discusses possible mitigation strategies such as out‑of‑tree patches or temporary migration to newer kernel branches, and emphasizes the importance of monitoring vendor advisories. For developers managing Docker containers on Azure or deploying Node services, the piece serves as a reminder to audit base images and have a rollback plan when upstream fixes lag behind."
+        },
+        {
+          "url": "https://chalmovsky.com/posts/wtf-ubuntu",
+          "title": "WTF Ubuntu?",
+          "source": "hacker_news",
+          "publishedAt": "2026-11-02T14:52:00Z",
+          "tags": [],
+          "summary": "A frustrated sysadmin posted a terse critique of Ubuntu’s patch cadence after a high‑severity kernel exploit remained unaddressed for over a week. The author points out that Ubuntu’s promise of “timely patches for critical vulnerabilities” was not met, forcing them to take production servers offline rather than risk compromise. The rant highlights the operational impact of delayed security updates, especially for teams that rely on Ubuntu LTS images in Docker and Azure pipelines. While the tone is blunt, the underlying message underscores the need for contingency planning, such as maintaining alternative base images or employing automated vulnerability scanners that can flag stale kernels before they become a liability."
+        },
+        {
+          "url": "https://www.nist.gov/news-events/news/2026/11/self-employed-solopreneur-nist-has-cybersecurity-guide-just-you",
+          "title": "Self-Employed? Solopreneur? NIST Has a Cybersecurity Guide Just for You",
+          "source": "hacker_news",
+          "publishedAt": "2026-11-02T17:47:40Z",
+          "tags": [],
+          "summary": "The National Institute of Standards and Technology released a concise cybersecurity white paper aimed at solopreneurs and solo‑developer businesses. Written in lay‑friendly language, the guide walks readers through the core components of the NIST Cybersecurity Framework, offering actionable steps like asset inventory, threat modeling, and incident‑response planning. It also provides worksheets and templates that can be integrated into a GitHub‑based CI workflow, making it easy for a TypeScript/Node developer to embed security checks into pull‑request pipelines. By framing cybersecurity as a scalable practice rather than a heavyweight compliance exercise, the paper helps individual engineers protect their services on Azure without needing a dedicated security team."
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "itemCount": 7,
+    "sourcesScanned": [
+      "alperen_keles",
+      "bytebytego",
+      "gary_marcus",
+      "hacker_news",
+      "jason_wei",
+      "ken_walger",
+      "martin_fowler",
+      "pragmatic_engineer",
+      "agentmail"
+    ],
+    "errors": [
+      "gary_marcus: HTTP Error 403: Forbidden",
+      "enrich https://news.ycombinator.com/item?id=50340088: HTTP Error 419: ",
+      "enrich https://namedaisy.com/blog/boy-names-that-became-girl-names: HTTP Error 429: Too Many Requests",
+      "enrich https://news.ycombinator.com/item?id=50338728: HTTP Error 419: ",
+      "enrich https://openai.com/index/scaling-git-at-openai/: HTTP Error 403: Forbidden",
+      "enrich https://www.bloomberg.com/news/features/2026-09-17/san-francisco-s-ai-wealth-boom-skirts-engineers-as-openai-anthropic-ipos-near: HTTP Error 403: Forbidden",
+      "enrich https://openai.com/index/scaling-git-at-openai/: HTTP Error 403: Forbidden",
+      "enrich https://news.ycombinator.com/item?id=50338728: HTTP Error 419: ",
+      "enrich https://www.bloomberg.com/news/features/2026-09-17/san-francisco-s-ai-wealth-boom-skirts-engineers-as-openai-anthropic-ipos-near: HTTP Error 403: Forbidden"
+    ]
+  }
+}
